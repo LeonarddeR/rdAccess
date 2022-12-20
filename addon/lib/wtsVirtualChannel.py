@@ -1,13 +1,24 @@
 from winAPI import wtsApi32
 from hwIo.base import IoBase
 from typing import Callable, Optional
-from ctypes import byref, create_string_buffer, windll, WinError, memmove, sizeof
+from ctypes import byref, create_string_buffer, windll, WinError, memmove, sizeof, Structure, c_uint32
 from ctypes.wintypes import HANDLE, DWORD, LPVOID, UINT
 from serial.win32 import INVALID_HANDLE_VALUE
 
 WTS_CHANNEL_OPTION_DYNAMIC = 0x00000001
 WTS_CHANNEL_OPTION_DYNAMIC_PRI_REAL = 0x00000006
 WTSVirtualFileHandle = 1
+CHANNEL_CHUNK_LENGTH = 1600
+
+
+class ChannelPduHeader(Structure):
+	_fields_ = (
+		("length", c_uint32),
+		("flags", c_uint32),
+	)
+
+
+CHANNEL_PDU_LENGTH = CHANNEL_CHUNK_LENGTH +sizeof(ChannelPduHeader)
 
 
 class WTSVirtualChannel(IoBase):
@@ -42,6 +53,7 @@ class WTSVirtualChannel(IoBase):
 		super().__init__(
 			fileHandle,
 			onReceive,
+			onReceiveSize=sizeof(ChannelPduHeader),
 			onReadError=onReadError
 		)
 
