@@ -15,6 +15,7 @@ from ctypes import (
 from ctypes.wintypes import HANDLE, DWORD, UINT
 from serial.win32 import INVALID_HANDLE_VALUE, ERROR_IO_PENDING
 from logHandler import log
+import winKernel
 
 WTS_CHANNEL_OPTION_DYNAMIC = 0x00000001
 WTS_CHANNEL_OPTION_DYNAMIC_PRI_REAL = 0x00000006
@@ -36,7 +37,6 @@ CHANNEL_PDU_LENGTH = CHANNEL_CHUNK_LENGTH +sizeof(ChannelPduHeader)
 
 
 class WTSVirtualChannel(IoBase):
-	_wtsHandle: int
 	_rawOutput: bool
 
 	def __init__(
@@ -53,19 +53,32 @@ class WTSVirtualChannel(IoBase):
 		)
 		if wtsHandle == 0:
 			raise WinError()
-		fileHandlePtr = POINTER(HANDLE)()
-		length = DWORD()
-		if not windll.wtsapi32.WTSVirtualChannelQuery(
-			wtsHandle,
-			WTSVirtualFileHandle,
-			byref(fileHandlePtr),
-			byref(length)
-		):
-			raise WinError()
-		assert length.value == sizeof(HANDLE)
-		fileHandle = fileHandlePtr.contents.value
-		windll.wtsapi32.WTSFreeMemory(fileHandlePtr)
-		self._wtsHandle = wtsHandle
+		try:
+			fileHandlePtr = POINTER(HANDLE)()
+			length = DWORD()
+			if not windll.wtsapi32.WTSVirtualChannelQuery(
+				wtsHandle,
+				WTSVirtualFileHandle,
+				byref(fileHandlePtr),
+				byref(length)
+			):
+				raise WinError()
+			try:
+				assert length.value == sizeof(HANDLE)
+				curProc = winKernel.GetCurrentProcess()
+				fileHandle = winKernel.DuplicateHandle(
+					curProc,
+					fileHandlePtr.contents.value,
+					curProc,
+					0,
+					False,
+					winKernel.DUPLICATE_SAME_ACCESS
+				)
+			finally:
+				windll.wtsapi32.WTSFreeMemory(fileHandlePtr)
+		finally:
+			if not windll.wtsapi32.WTSVirtualChannelClose(wtsHandle):
+				raise WinError()
 		self._rawOutput = rawOutput
 		super().__init__(
 			fileHandle,
@@ -76,9 +89,8 @@ class WTSVirtualChannel(IoBase):
 
 	def close(self):
 		super().close()
-		if hasattr(self, "_wtsHandle") and self._wtsHandle:
-			if windll.wtsapi32.WTSVirtualChannelClose(self._wtsHandle):
-				raise WinError()
+		if hasattr(self, "_file") and self._file is not INVALID_HANDLE_VALUE:
+			winKernel.closeHandle(self._file)
 
 	def _notifyReceive(self, data: bytes):
 		if self._rawOutput:

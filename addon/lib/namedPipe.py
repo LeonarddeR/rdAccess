@@ -2,7 +2,7 @@ from hwIo.base import IoBase
 from typing import Callable, Optional
 from ctypes import byref, windll, WinError, c_ulong
 from ctypes.wintypes import HANDLE, DWORD
-from serial.win32 import FILE_FLAG_OVERLAPPED, INVALID_HANDLE_VALUE, ERROR_IO_PENDING, CreateFile
+from serial.win32 import FILE_FLAG_OVERLAPPED, INVALID_HANDLE_VALUE, ERROR_IO_PENDING
 import winKernel
 
 
@@ -22,7 +22,7 @@ class NamedPipe(IoBase):
 		onReadError: Optional[Callable[[int], bool]] = None,
 		pipeMode: int = PIPE_READMODE_BYTE
 	):
-		fileHandle = CreateFile(
+		fileHandle = winKernel.CreateFile(
 			pipeName,
 			winKernel.GENERIC_READ | winKernel.GENERIC_WRITE,
 			0,
