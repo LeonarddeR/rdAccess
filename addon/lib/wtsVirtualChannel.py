@@ -1,14 +1,18 @@
 from winAPI import wtsApi32
-from hwIo.base import IoBase
+from hwIo.base import IoBase, _isDebug
 from typing import Callable, Optional
-from ctypes import byref, create_string_buffer, windll, WinError, memmove, sizeof, Structure, c_uint32
+from ctypes import byref, create_string_buffer, windll, WinError, POINTER, sizeof, Structure, c_uint32, GetLastError
 from ctypes.wintypes import HANDLE, DWORD, LPVOID, UINT
-from serial.win32 import INVALID_HANDLE_VALUE
+from serial.win32 import INVALID_HANDLE_VALUE, ERROR_IO_PENDING
+from logHandler import log
 
 WTS_CHANNEL_OPTION_DYNAMIC = 0x00000001
 WTS_CHANNEL_OPTION_DYNAMIC_PRI_REAL = 0x00000006
 WTSVirtualFileHandle = 1
 CHANNEL_CHUNK_LENGTH = 1600
+CHANNEL_FLAG_FIRST = 0x01
+CHANNEL_FLAG_LAST = 0x02
+CHANNEL_FLAG_ONLY = CHANNEL_FLAG_FIRST | CHANNEL_FLAG_LAST
 
 
 class ChannelPduHeader(Structure):
@@ -22,13 +26,15 @@ CHANNEL_PDU_LENGTH = CHANNEL_CHUNK_LENGTH +sizeof(ChannelPduHeader)
 
 
 class WTSVirtualChannel(IoBase):
-	wtsHandle: int
+	_wtsHandle: int
+	_rawOutput: bool
 
 	def __init__(
 		self,
 		channelName: str,
 		onReceive: Callable[[bytes], None],
-		onReadError: Optional[Callable[[int], bool]] = None
+		onReadError: Optional[Callable[[int], bool]] = None,
+		rawOutput=False
 	):
 		wtsHandle = windll.wtsapi32.WTSVirtualChannelOpenEx(
 			wtsApi32.WTS_CURRENT_SESSION,
@@ -37,28 +43,54 @@ class WTSVirtualChannel(IoBase):
 		)
 		if wtsHandle == 0:
 			raise WinError()
-		self.wtsHandle = wtsHandle
-		fileHandle = HANDLE()
-		fileHandlePtr = LPVOID()
-		len = DWORD()
-		if windll.wtsapi32.WTSVirtualChannelQuery(
+		fileHandlePtr = POINTER(HANDLE)()
+		length = DWORD()
+		if not windll.wtsapi32.WTSVirtualChannelQuery(
 			wtsHandle,
 			WTSVirtualFileHandle,
-			byref(fileHandle),
-			byref(len)
+			byref(fileHandlePtr),
+			byref(length)
 		):
 			raise WinError()
-		memmove(fileHandle, fileHandlePtr, sizeof(fileHandle))
+		assert length.value == sizeof(HANDLE)
+		fileHandle = fileHandlePtr.contents.value
 		windll.wtsapi32.WTSFreeMemory(fileHandlePtr)
+		self._wtsHandle = wtsHandle
+		self._rawOutput = rawOutput
 		super().__init__(
 			fileHandle,
 			onReceive,
-			onReceiveSize=sizeof(ChannelPduHeader),
+			onReceiveSize=CHANNEL_PDU_LENGTH,
 			onReadError=onReadError
 		)
 
 	def close(self):
 		super().close()
-		if hasattr(self, "_file") and self._file is not INVALID_HANDLE_VALUE:
-			if windll.wtsapi32.WTSVirtualChannelClose(self._file):
+		if hasattr(self, "_wtsHandle") and self._wtsHandle:
+			if windll.wtsapi32.WTSVirtualChannelClose(self._wtsHandle):
 				raise WinError()
+
+	def _notifyReceive(self, data: bytes):
+		if self._rawOutput:
+			return super()._notifyReceive(data)
+		buffer = bytearray()
+		dataToProcess = data
+		while True:
+			header = ChannelPduHeader.from_buffer_copy(dataToProcess[:sizeof(ChannelPduHeader)])
+			if not buffer:
+				assert header.flags & CHANNEL_FLAG_FIRST
+			buffer.extend(dataToProcess[sizeof(ChannelPduHeader):])
+			if header.flags & CHANNEL_FLAG_LAST:
+				assert len(buffer) == header.length
+				return super()._notifyReceive(bytes(buffer))
+			dataToProcess = self._read()
+
+	def _read(self) -> bytes:
+		byteData = DWORD()
+		if not windll.kernel32.ReadFile(self._file, self._readBuf, self._readSize, byref(byteData), byref(self._readOl)):
+			if GetLastError() != ERROR_IO_PENDING:
+				if _isDebug():
+					log.debug(f"Read failed: {WinError()}")
+				raise WinError()
+			windll.kernel32.GetOverlappedResult(self._file, byref(self._readOl), byref(byteData), True)
+		return self._readBuf[:byteData.value]
