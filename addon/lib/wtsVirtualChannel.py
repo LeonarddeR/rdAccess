@@ -1,8 +1,18 @@
 from winAPI import wtsApi32
 from hwIo.base import IoBase, _isDebug
 from typing import Callable, Optional
-from ctypes import byref, create_string_buffer, windll, WinError, POINTER, sizeof, Structure, c_uint32, GetLastError
-from ctypes.wintypes import HANDLE, DWORD, LPVOID, UINT
+from ctypes import (
+	byref,
+	create_string_buffer,
+	windll,
+	WinError,
+	POINTER,
+	sizeof,
+	Structure,
+	c_uint32,
+	GetLastError
+)
+from ctypes.wintypes import HANDLE, DWORD, UINT
 from serial.win32 import INVALID_HANDLE_VALUE, ERROR_IO_PENDING
 from logHandler import log
 
