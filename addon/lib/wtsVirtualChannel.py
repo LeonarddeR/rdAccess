@@ -1,4 +1,4 @@
-from winAPI import wtsApi32
+from winAPI import _wtsApi32 as wtsApi32
 from hwIo.base import IoBase, _isDebug
 from typing import Callable, Optional
 from ctypes import (
@@ -12,7 +12,7 @@ from ctypes import (
 	c_uint32,
 	GetLastError
 )
-from ctypes.wintypes import HANDLE, DWORD, UINT
+from ctypes.wintypes import HANDLE, DWORD
 from serial.win32 import INVALID_HANDLE_VALUE, ERROR_IO_PENDING
 from logHandler import log
 import winKernel
@@ -33,7 +33,7 @@ class ChannelPduHeader(Structure):
 	)
 
 
-CHANNEL_PDU_LENGTH = CHANNEL_CHUNK_LENGTH +sizeof(ChannelPduHeader)
+CHANNEL_PDU_LENGTH = CHANNEL_CHUNK_LENGTH + sizeof(ChannelPduHeader)
 
 
 class WTSVirtualChannel(IoBase):
@@ -109,10 +109,16 @@ class WTSVirtualChannel(IoBase):
 
 	def _read(self) -> bytes:
 		byteData = DWORD()
-		if not windll.kernel32.ReadFile(self._file, self._readBuf, self._readSize, byref(byteData), byref(self._readOl)):
+		if not windll.kernel32.ReadFile(
+			self._file,
+			self._readBuf,
+			self._readSize,
+			byref(byteData),
+			byref(self._readOl)
+		):
 			if GetLastError() != ERROR_IO_PENDING:
 				if _isDebug():
 					log.debug(f"Read failed: {WinError()}")
 				raise WinError()
 			windll.kernel32.GetOverlappedResult(self._file, byref(self._readOl), byref(byteData), True)
-		return self._readBuf[:byteData.value]
+		return self._readBuf.raw[:byteData.value]

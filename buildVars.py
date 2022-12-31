@@ -25,7 +25,7 @@ addon_info = {
 	# Translators: Long description to be shown for this add-on on add-on information from add-ons manager
 	"addon_description": _("""NVDA Remote Desktop Support"""),
 	# version
-	"addon_version": "2022.1",
+	"addon_version": "2023.1",
 	# Author(s)
 	"addon_author": "Leonard de Ruijter <alderuijter@gmail.com>",
 	# URL for the add-on documentation support
