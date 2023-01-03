@@ -8,6 +8,10 @@ from threading import Lock
 import time
 from logHandler import log
 import pickle
+import speech
+
+
+SPEECH_INDEX_OFFSET = speech.manager.SpeechManager.MAX_INDEX + 1
 
 
 class DriverType(IntEnum):
@@ -38,6 +42,18 @@ class SpeechCommand(IntEnum):
 
 class SpeechAttribute(IntEnum):
 	SUPPORTED_COMMANDS = ord(b'C')
+	SUPPORTED_SETTINGS = ord(b'S')
+	LANGUAGE = ord(b'L')
+	AVAILABLE_LANGUAGES = ord(b'l')
+	RATE = ord(b'R')
+	PITCH = ord(b'P')
+	VOLUME = ord(b'o')
+	INFLECTION = ord(b'I')
+	VOICE = ord(b'V')
+	AVAILABLE_VOICES = ord(b'v')
+	VARIANT = ord(b'A')
+	AVAILABLE_VARIANTS = ord(b'a')
+	RATE_BOOST = ord(b'b')
 
 
 AttributeValueType = TypeVar("AttributeValueType")

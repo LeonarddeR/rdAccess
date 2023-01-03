@@ -1,7 +1,6 @@
 from ._remoteHandler import RemoteHandler
 import typing
 import synthDriverHandler
-import speech
 from speech.commands import IndexCommand
 import sys
 
@@ -20,6 +19,8 @@ class RemoteSpeechHandler(RemoteHandler):
 		self._indexesSpeaking = []
 		synthDriverHandler.synthIndexReached.register(self._onSynthIndexReached)
 		synthDriverHandler.synthDoneSpeaking.register(self._onSynthDoneSpeaking)
+		self._sendSupportedCommands()
+		self._sendSupportedSettings()
 
 	def terminate(self):
 		synthDriverHandler.synthDoneSpeaking.unregister(self._onSynthDoneSpeaking)
@@ -39,6 +40,14 @@ class RemoteSpeechHandler(RemoteHandler):
 			self.pickle(self._curSynth.supportedCommands)
 		)
 
+	@protocol.attributeHandler(protocol.SpeechAttribute.SUPPORTED_SETTINGS)
+	def _sendSupportedSettings(self, incomingPayLoad: bytes = b''):
+		assert len(incomingPayLoad) == 0
+		self.setRemoteAttribute(
+			protocol.SpeechAttribute.SUPPORTED_SETTINGS,
+			self.pickle(self._curSynth.supportedSettings)
+		)
+
 	@protocol.commandHandler(protocol.SpeechCommand.SPEAK)
 	def _handleSpeak(self, payload: bytes):
 		sequence = self.unpickle(payload)
@@ -46,19 +55,18 @@ class RemoteSpeechHandler(RemoteHandler):
 			if isinstance(item, IndexCommand):
 				self._indexesSpeaking.append(item.index)
 		# Queue speech to the manager directly because we don't want unnecessary processing to happen.
-		speech.speech._speechState.beenCanceled = False
-		speech._manager.speak(sequence, speech.Spri.NOW)
+		self._curSynth.speak(sequence)
 
 	@protocol.commandHandler(protocol.SpeechCommand.CANCEL)
 	def _handleCancel(self, payload: bytes = b''):
 		self._indexesSpeaking.clear()
-		speech.cancelSpeech()
+		self._curSynth.cancel()
 
 	@protocol.commandHandler(protocol.SpeechCommand.PAUSE)
 	def _handlePause(self, payload: bytes):
 		assert len(payload) == 1
 		switch = bool.from_bytes(payload, sys.byteorder)
-		speech.pauseSpeech(switch)
+		self._curSynth.pause(switch)
 
 	def _onSynthIndexReached(
 		self,

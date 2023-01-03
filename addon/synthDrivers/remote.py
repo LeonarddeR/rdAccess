@@ -4,6 +4,7 @@ import synthDriverHandler
 import queueHandler
 from hwIo import boolToByte
 import sys
+from speech.commands import IndexCommand
 
 if typing.TYPE_CHECKING:
 	from ..lib import driver
@@ -19,7 +20,6 @@ class remoteSynthDriver(driver.WTSRemoteDriver, synthDriverHandler.SynthDriver):
 	# Translators: Name for a remote braille display.
 	description = _("Remote speech")
 	supportedNotifications = {synthDriverHandler.synthIndexReached, synthDriverHandler.synthDoneSpeaking}
-	supportedSettings = ()
 
 	def _handleRemoteDisconnect(self):
 		queueHandler.queueFunction(queueHandler.eventQueue, synthDriverHandler.findAndSetNextSynth, self.name)
@@ -29,6 +29,9 @@ class remoteSynthDriver(driver.WTSRemoteDriver, synthDriverHandler.SynthDriver):
 		driver.WTSRemoteDriver.__init__(self, protocol.DriverType.SPEECH)
 
 	def speak(self, speechSequence):
+		for item in speechSequence:
+			if isinstance(item, IndexCommand):
+				item.index += protocol.SPEECH_INDEX_OFFSET
 		self.writeMessage(protocol.SpeechCommand.SPEAK, self.pickle(speechSequence))
 
 	def cancel(self):
@@ -46,10 +49,19 @@ class remoteSynthDriver(driver.WTSRemoteDriver, synthDriverHandler.SynthDriver):
 	def _get_supportedCommands(self):
 		return self._attributeHandlers[protocol.SpeechAttribute.SUPPORTED_COMMANDS].value
 
+	@protocol.attributeHandler(protocol.SpeechAttribute.SUPPORTED_SETTINGS, defaultValue=[])
+	def _handleSupportedSettingsUpdate(self, payLoad: bytes):
+		assert len(payLoad) > 0
+		return self.unpickle(payLoad)
+
+	def _get_supportedSettings(self):
+		return self._attributeHandlers[protocol.SpeechAttribute.SUPPORTED_SETTINGS].value
+
 	@protocol.commandHandler(protocol.SpeechCommand.INDEX_REACHED)
 	def _handleIndexReached(self, incomingPayload: bytes):
 		assert len(incomingPayload) == 2
 		index = int.from_bytes(incomingPayload, sys.byteorder)
+		index -= protocol.SPEECH_INDEX_OFFSET
 		synthDriverHandler.synthIndexReached.notify(synth=self, index=index)
 
 
