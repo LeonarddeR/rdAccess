@@ -16,11 +16,22 @@ class RemoteBrailleHandler(RemoteHandler):
 	def __init__(self, pipeAddress: str):
 		super().__init__(protocol.DriverType.BRAILLE, pipeAddress)
 		self._sendNumCells()
+		self._sendGestureMap()
+
+	_currentDisplay: braille.BrailleDisplayDriver
+
+	def _get_currentDisplay(self):
+		return braille.handler.display
 
 	@protocol.attributeHandler(protocol.BrailleAttribute.NUM_CELLS)
 	def _sendNumCells(self, payLoad: bytes = b''):
 		assert len(payLoad) == 0
-		self.setRemoteAttribute(protocol.BrailleAttribute.NUM_CELLS, intToByte(braille.handler.display.numCells))
+		self.setRemoteAttribute(protocol.BrailleAttribute.NUM_CELLS, intToByte(self._currentDisplay.numCells))
+
+	@protocol.attributeHandler(protocol.BrailleAttribute.GESTURE_MAP)
+	def _sendGestureMap(self, payLoad: bytes = b''):
+		assert len(payLoad) == 0
+		self.setRemoteAttribute(protocol.BrailleAttribute.GESTURE_MAP, self.pickle(self._currentDisplay.gestureMap))
 
 	@protocol.commandHandler(protocol.BrailleCommand.DISPLAY)
 	def _handleDisplay(self, payload: bytes):

@@ -2,6 +2,7 @@ import braille
 import typing
 import addonHandler
 from typing import List
+from inputCore import GlobalGestureMap
 
 if typing.TYPE_CHECKING:
 	from ..lib import driver
@@ -30,14 +31,22 @@ class RemoteBrailleDisplayDriver(driver.WTSRemoteDriver, braille.BrailleDisplayD
 		driver.WTSRemoteDriver.__init__(self, protocol.DriverType.BRAILLE)
 
 	@protocol.attributeHandler(protocol.BrailleAttribute.NUM_CELLS, defaultValue=0)
-	def _handleNumCellsUpdate(self, payLoad: bytes):
-		if len(payLoad) == 0:
+	def _handleNumCellsUpdate(self, payload: bytes):
+		if len(payload) == 0:
 			return 0
-		assert len(payLoad) == 1
-		return ord(payLoad)
+		assert len(payload) == 1
+		return ord(payload)
 
 	def _get_numCells(self) -> int:
 		return self._attributeHandlers[protocol.BrailleAttribute.NUM_CELLS].value
+
+	@protocol.attributeHandler(protocol.BrailleAttribute.GESTURE_MAP, defaultValue=GlobalGestureMap())
+	def _handleGestureMapUpdate(self, payload: bytes):
+		assert len(payload) > 0
+		return self.unpickle(payload)
+
+	def _get_gestureMap(self) -> GlobalGestureMap:
+		return self._attributeHandlers[protocol.BrailleAttribute.GESTURE_MAP].value
 
 	def display(self, cells: List[int]):
 		# cells will already be padded up to numCells.
