@@ -3,10 +3,11 @@ import hwIo
 from baseObject import AutoPropertyObject
 import inspect
 from enum import IntEnum
-from typing import Union, Callable, Dict, TypeVar, Generic, cast
+from typing import Union, Callable, Dict, TypeVar, Generic, cast, Any
 from threading import Lock
 import time
 from logHandler import log
+import pickle
 
 
 class DriverType(IntEnum):
@@ -37,7 +38,6 @@ class SpeechCommand(IntEnum):
 
 class SpeechAttribute(IntEnum):
 	SUPPORTED_COMMANDS = ord(b'C')
-	SUPPORTED_NOTIFICATIONS = ord(b'N')
 
 
 AttributeValueType = TypeVar("AttributeValueType")
@@ -94,7 +94,6 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 	_attributeHandlers: Dict[AttributeType, Callable[[bytes], None]]
 
 	def __init__(self, driverType: DriverType):
-		super().__init__()
 		self._driverType = driverType
 		self._receiveBuffer = b""
 
@@ -121,13 +120,11 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		self._attributeHandlers = handlerDict
 		return self._attributeHandlers
 
-	def close(self):
-		self._dev.close()
-
 	def _onReceive(self, message: bytes):
 		if self._receiveBuffer:
 			message = self._receiveBuffer + message
-		assert message[0] == self._driverType
+		if not message[0] == self._driverType:
+			raise RuntimeError(f"Unexpected payload: {message}")
 		command = cast(CommandType, message[1])
 		length = int.from_bytes(message[2:4], sys.byteorder)
 		payload = message[4:]
@@ -150,7 +147,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 			return
 		handler(payload[1:])
 
-	def writeMessage(self, command: CommandType, payload: bytes):
+	def writeMessage(self, command: CommandType, payload: bytes = b""):
 		data = bytes((
 			self._driverType,
 			command,
@@ -179,3 +176,9 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 			timeout -= (time.time() - curTime)
 		else:
 			raise TimeoutError(f"Wait for remote attribute {attribute} timed oud")
+
+	def pickle(self, obj: Any):
+		return pickle.dumps(obj, protocol=4)
+
+	def unpickle(self, payload: bytes) -> Any:
+		return pickle.loads(payload)

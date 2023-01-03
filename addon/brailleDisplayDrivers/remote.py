@@ -6,22 +6,30 @@ from typing import List
 if typing.TYPE_CHECKING:
 	from ..lib import driver
 	from ..lib import protocol
-	from ..lib import wtsVirtualChannel
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
-	driver = addon.loadModule("lib\\driver")
-	protocol = addon.loadModule("lib\\protocol")
-	wtsVirtualChannel = addon.loadModule("lib\\wtsVirtualChannel")
+	driver = addon.loadModule("lib.driver")
+	protocol = addon.loadModule("lib.protocol")
 
 
-class RemoteBrailleDisplayDriver(braille.BrailleDisplayDriver, driver.RemoteDriver):
+class RemoteBrailleDisplayDriver(driver.WTSRemoteDriver, braille.BrailleDisplayDriver):
+	name = "remote"
 	# Translators: Name for a remote braille display.
 	description = _("Remote Braille")
 	isThreadSafe = True
 
-	check = driver.RemoteDriver.check
+	def _handleRemoteDisconnect(self):
+		# Raise an exception because handleDisplayUnavailable expects one
+		try:
+			raise RuntimeError("XOFF received, remote client disconnected")
+		except RuntimeError:
+			braille.handler.handleDisplayUnavailable()
 
-	@protocol.attributeHandler(protocol.BrailleAttribute.NUM_CELLS)
+	def __init__(self, port="auto"):
+		braille.BrailleDisplayDriver.__init__(self, port)
+		driver.WTSRemoteDriver.__init__(self, protocol.DriverType.BRAILLE)
+
+	@protocol.attributeHandler(protocol.BrailleAttribute.NUM_CELLS, defaultValue=0)
 	def _handleNumCellsUpdate(self, payLoad: bytes):
 		if len(payLoad) == 0:
 			return 0
@@ -35,5 +43,6 @@ class RemoteBrailleDisplayDriver(braille.BrailleDisplayDriver, driver.RemoteDriv
 		# cells will already be padded up to numCells.
 		arg = bytes(cells)
 		self.writeMessage(protocol.BrailleCommand.DISPLAY, arg)
+
 
 BrailleDisplayDriver = RemoteBrailleDisplayDriver

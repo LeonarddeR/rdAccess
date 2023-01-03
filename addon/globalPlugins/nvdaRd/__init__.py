@@ -14,8 +14,8 @@ if typing.TYPE_CHECKING:
 	from ...lib import namedPipe
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
-	protocol = addon.loadModule("lib\\protocol")
-	namedPipe = addon.loadModule("lib\\namedPipe")
+	protocol = addon.loadModule("lib.protocol")
+	namedPipe = addon.loadModule("lib.namedPipe")
 
 
 PIPE_DIRECTORY = "\\\\?\\pipe\\"
@@ -54,7 +54,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin, IoThread):
 		elif action == directoryChanges.FileNotifyInformationAction.FILE_ACTION_REMOVED:
 			handler = self._handlers.pop(fileName, None)
 			if handler:
-				handler.close()
+				handler.terminate()
+				del handler
 
 	def terminate(self):
 		self._pipeWatcher.stop()
