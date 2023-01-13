@@ -40,22 +40,22 @@ class remoteSynthDriver(driver.WTSRemoteDriver, synthDriverHandler.SynthDriver):
 	def pause(self, switch):
 		self.writeMessage(protocol.SpeechCommand.PAUSE, boolToByte(switch))
 
-	@protocol.attributeHandler(protocol.SpeechAttribute.SUPPORTED_COMMANDS, defaultValue=frozenset())
+	@protocol.attributeSender(protocol.SpeechAttribute.SUPPORTED_COMMANDS, defaultValue=frozenset())
 	def _handleSupportedCommandsUpdate(self, payLoad: bytes):
 		if len(payLoad) == 0:
 			return frozenset()
 		return self.unpickle(payLoad)
 
 	def _get_supportedCommands(self):
-		return self._attributeHandlers[protocol.SpeechAttribute.SUPPORTED_COMMANDS].value
+		return self._attributeValueProcessors[protocol.SpeechAttribute.SUPPORTED_COMMANDS].value
 
-	@protocol.attributeHandler(protocol.SpeechAttribute.SUPPORTED_SETTINGS, defaultValue=[])
+	@protocol.attributeSender(protocol.SpeechAttribute.SUPPORTED_SETTINGS, defaultValue=[])
 	def _handleSupportedSettingsUpdate(self, payLoad: bytes):
 		assert len(payLoad) > 0
 		return self.unpickle(payLoad)
 
 	def _get_supportedSettings(self):
-		return self._attributeHandlers[protocol.SpeechAttribute.SUPPORTED_SETTINGS].value
+		return self._attributeValueProcessors[protocol.SpeechAttribute.SUPPORTED_SETTINGS].value
 
 	@protocol.commandHandler(protocol.SpeechCommand.INDEX_REACHED)
 	def _handleIndexReached(self, incomingPayload: bytes):

@@ -30,7 +30,7 @@ class RemoteBrailleDisplayDriver(driver.WTSRemoteDriver, braille.BrailleDisplayD
 		braille.BrailleDisplayDriver.__init__(self, port)
 		driver.WTSRemoteDriver.__init__(self, protocol.DriverType.BRAILLE)
 
-	@protocol.attributeHandler(protocol.BrailleAttribute.NUM_CELLS, defaultValue=0)
+	@protocol.attributeSender(protocol.BrailleAttribute.NUM_CELLS, defaultValue=0)
 	def _handleNumCellsUpdate(self, payload: bytes):
 		if len(payload) == 0:
 			return 0
@@ -38,15 +38,15 @@ class RemoteBrailleDisplayDriver(driver.WTSRemoteDriver, braille.BrailleDisplayD
 		return ord(payload)
 
 	def _get_numCells(self) -> int:
-		return self._attributeHandlers[protocol.BrailleAttribute.NUM_CELLS].value
+		return self._attributeValueProcessors[protocol.BrailleAttribute.NUM_CELLS].value
 
-	@protocol.attributeHandler(protocol.BrailleAttribute.GESTURE_MAP, defaultValue=GlobalGestureMap())
+	@protocol.attributeSender(protocol.BrailleAttribute.GESTURE_MAP, defaultValue=GlobalGestureMap())
 	def _handleGestureMapUpdate(self, payload: bytes):
 		assert len(payload) > 0
 		return self.unpickle(payload)
 
 	def _get_gestureMap(self) -> GlobalGestureMap:
-		return self._attributeHandlers[protocol.BrailleAttribute.GESTURE_MAP].value
+		return self._attributeValueProcessors[protocol.BrailleAttribute.GESTURE_MAP].value
 
 	def display(self, cells: List[int]):
 		# cells will already be padded up to numCells.

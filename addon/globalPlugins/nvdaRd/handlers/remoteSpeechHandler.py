@@ -32,7 +32,7 @@ class RemoteSpeechHandler(RemoteHandler):
 	def _get__curSynth(self):
 		return synthDriverHandler.getSynth()
 
-	@protocol.attributeHandler(protocol.SpeechAttribute.SUPPORTED_COMMANDS)
+	@protocol.attributeSender(protocol.SpeechAttribute.SUPPORTED_COMMANDS)
 	def _sendSupportedCommands(self, incomingPayLoad: bytes = b''):
 		assert len(incomingPayLoad) == 0
 		self.setRemoteAttribute(
@@ -40,7 +40,7 @@ class RemoteSpeechHandler(RemoteHandler):
 			self.pickle(self._curSynth.supportedCommands)
 		)
 
-	@protocol.attributeHandler(protocol.SpeechAttribute.SUPPORTED_SETTINGS)
+	@protocol.attributeSender(protocol.SpeechAttribute.SUPPORTED_SETTINGS)
 	def _sendSupportedSettings(self, incomingPayLoad: bytes = b''):
 		assert len(incomingPayLoad) == 0
 		self.setRemoteAttribute(

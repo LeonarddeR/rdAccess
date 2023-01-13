@@ -1,7 +1,7 @@
 import os
 import globalPluginHandler
 import addonHandler
-from hwIo import IoThread
+import hwIo
 from . import directoryChanges
 import typing
 from glob import glob
@@ -22,18 +22,17 @@ PIPE_DIRECTORY = "\\\\?\\pipe\\"
 globPattern = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
 
 
-class GlobalPlugin(globalPluginHandler.GlobalPlugin, IoThread):
+class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def __init__(self):
 		super().__init__()
-		self.start()
 		self._handlers: Dict[str, handlers.RemoteHandler] = {}
 		self._pipeWatcher = directoryChanges.DirectoryWatcher(
 			PIPE_DIRECTORY,
 			directoryChanges.FileNotifyFilter.FILE_NOTIFY_CHANGE_FILE_NAME
 		)
 		self._pipeWatcher.directoryChanged.register(self._handleNewPipe)
-		self._pipeWatcher.start(self)
+		self._pipeWatcher.start(hwIo.bgThread)
 		self._initializeExistingPipes()
 
 	def _initializeExistingPipes(self):
@@ -47,7 +46,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin, IoThread):
 			if fnmatch(fileName, globPattern.replace("*", f"{protocol.DriverType.BRAILLE.name}*")):
 				handler = handlers.RemoteBrailleHandler(fileName)
 			elif fnmatch(fileName, globPattern.replace("*", f"{protocol.DriverType.SPEECH.name}*")):
-				handler = handlers.RemoteSpeechHandler(fileName)
+				handler = handlers.RemoteSpeechHandler(self, fileName)
 			else:
 				raise RuntimeError(f"Unknown named pipe: {fileName}")
 			self._handlers[fileName] = handler
@@ -59,5 +58,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin, IoThread):
 
 	def terminate(self):
 		self._pipeWatcher.stop()
-		self.stop()
+		forhandler in self._handlers.values();
+			handler.terminate()
+		self._handlers.clear()
 		super().terminate()
+
+
+GlobalPlugin = RDGlobalPlugin

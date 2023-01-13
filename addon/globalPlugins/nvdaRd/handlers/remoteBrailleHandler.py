@@ -23,12 +23,12 @@ class RemoteBrailleHandler(RemoteHandler):
 	def _get_currentDisplay(self):
 		return braille.handler.display
 
-	@protocol.attributeHandler(protocol.BrailleAttribute.NUM_CELLS)
+	@protocol.attributeSender(protocol.BrailleAttribute.NUM_CELLS)
 	def _sendNumCells(self, payLoad: bytes = b''):
 		assert len(payLoad) == 0
 		self.setRemoteAttribute(protocol.BrailleAttribute.NUM_CELLS, intToByte(self._currentDisplay.numCells))
 
-	@protocol.attributeHandler(protocol.BrailleAttribute.GESTURE_MAP)
+	@protocol.attributeSender(protocol.BrailleAttribute.GESTURE_MAP)
 	def _sendGestureMap(self, payLoad: bytes = b''):
 		assert len(payLoad) == 0
 		self.setRemoteAttribute(protocol.BrailleAttribute.GESTURE_MAP, self.pickle(self._currentDisplay.gestureMap))

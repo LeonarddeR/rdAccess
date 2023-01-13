@@ -3,7 +3,15 @@ import hwIo
 from baseObject import AutoPropertyObject
 import inspect
 from enum import IntEnum
-from typing import Union, Callable, Dict, TypeVar, Generic, cast, Any
+from typing import (
+	Any,
+	Callable,
+	cast,
+	Dict,
+	Generic,
+	TypeVar,
+	Union,
+)
 from threading import Lock
 import time
 from logHandler import log
@@ -56,49 +64,59 @@ class SpeechAttribute(IntEnum):
 	RATE_BOOST = ord(b'b')
 
 
-AttributeValueType = TypeVar("AttributeValueType")
-CommandType = Union[GenericCommand, SpeechCommand, BrailleCommand]
-AttributeType = Union[SpeechAttribute, BrailleAttribute]
+AttributeValueT = TypeVar("AttributeValueT")
+CommandT = Union[GenericCommand, SpeechCommand, BrailleCommand]
+CommandHandlerT = Callable[[bytes], None]
+AttributeT = Union[SpeechAttribute, BrailleAttribute]
+attributeSenderT = Callable[..., None]
+AttributeReceiverT = Callable[[bytes], AttributeValueT]
 
 
-def commandHandler(command: CommandType):
-	def wrapper(func):
-		func._remoteCommand = command
+def commandHandler(command: CommandT):
+	def wrapper(func: CommandHandlerT):
+		func._command = command
 		return func
 	return wrapper
 
 
-def attributeHandler(attribute: AttributeType, defaultValue=None):
-	def wrapper(func):
-		func._remoteAttribute = attribute
+def attributeSender(attribute: AttributeT):
+	def wrapper(func: attributeSenderT):
+		func._sendingAttribute = attribute
+		return func
+	return wrapper
+
+
+def attributeReceiver(attribute: AttributeT, defaultValue):
+	def wrapper(func: AttributeReceiverT):
+		func._receivingAttribute = attribute
 		func._defaultValue = defaultValue
 		return func
 	return wrapper
 
 
-class AttributeValueProcessor(Generic[AttributeValueType]):
+class AttributeValueProcessor(Generic[AttributeValueT]):
 
-	def __init__(self, valueExtractor: Callable[[bytes], AttributeValueType]):
-		self._valueExtractor = valueExtractor
+	def __init__(self, attributeReceiver: AttributeReceiverT):
+		self._attributeReceiver = attributeReceiver
 		self._valueLock = Lock()
 		self._valueLastSet: float = time.time()
-		self._value: AttributeValueType = valueExtractor._defaultValue
+		self._value: AttributeValueT = attributeReceiver._defaultValue
 
 	def hasNewValueSince(self, t: float) -> bool:
 		return t < self._valueLastSet
 
 	@property
-	def value(self) -> AttributeValueType:
+	def value(self) -> AttributeValueT:
 		with self._valueLock:
 			return self._value
 
 	@value.setter
-	def value(self, val: AttributeValueType):
+	def value(self, val: AttributeValueT):
 		with self._valueLock:
 			self._value = val
 
 	def __call__(self, val: bytes):
-		self.value = self._valueExtractor(val)
+		self.value = self._attributeReceiver(val)
 		self._valueLastSet = time.time()
 
 
@@ -106,8 +124,9 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 	_dev: hwIo.IoBase
 	_driverType: DriverType
 	_receiveBuffer: bytes
-	_commandHandlers: Dict[CommandType, Callable[[bytes], None]]
-	_attributeHandlers: Dict[AttributeType, Callable[[bytes], None]]
+	_commandHandlers: Dict[CommandT, CommandHandlerT]
+	_attributeSenders: Dict[AttributeT, attributeSenderT]
+	_attributeValueProcessors: Dict[AttributeT, AttributeValueProcessor]
 
 	def __init__(self, driverType: DriverType):
 		self._driverType = driverType
@@ -121,27 +140,36 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		self._commandHandlers = {v._remoteCommand: getattr(self, k) for k, v in handlers}
 		return self._commandHandlers
 
-	def _get__attributeHandlers(self):
+	def _get__attributeSenders(self):
 		handlers = inspect.getmembers(
 			self.__class__,
-			predicate=lambda o: inspect.isfunction(o) and hasattr(o, "_remoteAttribute")
+			predicate=lambda o: inspect.isfunction(o) and hasattr(o, "_sendingAttribute")
 		)
-		handlerDict = {}
-		for k, v in handlers:
-			key = v._remoteAttribute
-			callable = getattr(self, k)
-			if callable._defaultValue is not None:
-				callable = AttributeValueProcessor(callable)
-			handlerDict[key] = callable
-		self._attributeHandlers = handlerDict
-		return self._attributeHandlers
+		handlerDict: Dict[AttributeT, attributeSenderT] = {
+			v._sendingAttribute: getattr(self, k)
+			for k, v in handlers
+		}
+		self._attributeSenders = handlerDict
+		return self._attributeSenders
+
+	def _get__attributeValueProcessors(self):
+		handlers = inspect.getmembers(
+			self.__class__,
+			predicate=lambda o: inspect.isfunction(o) and hasattr(o, "_receivingAttribute")
+		)
+		handlerDict: Dict[AttributeT, AttributeValueProcessor] = {
+			v._receivingAttribute: AttributeValueProcessor(getattr(self, k))
+			for k, v in handlers
+		}
+		self.__attributeValueProcessors = handlerDict
+		return self._attributeValueProcessors
 
 	def _onReceive(self, message: bytes):
 		if self._receiveBuffer:
 			message = self._receiveBuffer + message
 		if not message[0] == self._driverType:
 			raise RuntimeError(f"Unexpected payload: {message}")
-		command = cast(CommandType, message[1])
+		command = cast(CommandT, message[1])
 		length = int.from_bytes(message[2:4], sys.byteorder)
 		payload = message[4:]
 		if length < len(payload):
@@ -156,14 +184,22 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 
 	@commandHandler(GenericCommand.ATTRIBUTE)
 	def _handleAttributeChanges(self, payload: bytes):
-		attribute = cast(AttributeType, payload[0])
-		handler = self._attributeHandlers.get(attribute)
-		if handler is None:
-			log.error(f"No attribute handler for attribute {attribute}")
-			return
-		handler(payload[1:])
+		attribute = cast(AttributeT, payload[0])
+		value = payload[1:]
+		if not value:
+			handler = self._attributeSenders.get(attribute)
+			if handler is None:
+				log.error(f"No attribute sender for attribute {attribute}")
+				return
+			handler()
+		else:
+			handler = self._attributeValueProcessors.get(attribute)
+			if handler is None:
+				log.error(f"No attribute receiver for attribute {attribute}")
+				return
+			handler(value)
 
-	def writeMessage(self, command: CommandType, payload: bytes = b""):
+	def writeMessage(self, command: CommandT, payload: bytes = b""):
 		data = bytes((
 			self._driverType,
 			command,
@@ -172,12 +208,12 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		))
 		return self._dev.write(data)
 
-	def setRemoteAttribute(self, attribute: AttributeType, value: bytes):
+	def setRemoteAttribute(self, attribute: AttributeT, value: bytes):
 		return self.writeMessage(GenericCommand.ATTRIBUTE, bytes((attribute, *value)))
 
-	def getRemoteAttribute(self, attribute: AttributeType, timeout: float = 3.0):
+	def getRemoteAttribute(self, attribute: AttributeT, timeout: float = 3.0):
 		initialTime = time.time()
-		handler = self._attributeHandlers.get(attribute)
+		handler = self._attributeValueProcessors.get(attribute)
 		if not handler or not isinstance(handler, AttributeValueProcessor):
 			raise RuntimeError(f"No attribute value processor for attribute {attribute}")
 		self.writeMessage(GenericCommand.ATTRIBUTE, bytes((attribute,)))
