@@ -17,6 +17,7 @@ import time
 from logHandler import log
 import pickle
 import speech
+from functools import wraps
 
 
 SPEECH_INDEX_OFFSET = speech.manager.SpeechManager.MAX_INDEX + 1
@@ -29,11 +30,16 @@ class DriverType(IntEnum):
 
 class GenericCommand(IntEnum):
 	ATTRIBUTE = ord(b'@')
+	INTERCEPT_GESTURE = ord(b'I')
 
 
 class BrailleCommand(IntEnum):
 	DISPLAY = ord(b'D')
 	EXECUTE_GESTURE = ord(b'G')
+
+
+class GenericAttribute(IntEnum):
+	HAS_FOCUS = ord(b"f")
 
 
 class BrailleAttribute(IntEnum):
@@ -64,30 +70,41 @@ class SpeechAttribute(IntEnum):
 	RATE_BOOST = ord(b'b')
 
 
+RemoteProtocolHandlerT = TypeVar("RemoteProtocolHandlerT", bound="RemoteProtocolHandler")
 AttributeValueT = TypeVar("AttributeValueT")
 CommandT = Union[GenericCommand, SpeechCommand, BrailleCommand]
+CommandHandlerUnboundT = Callable[[RemoteProtocolHandlerT, bytes], None]
 CommandHandlerT = Callable[[bytes], None]
-AttributeT = Union[SpeechAttribute, BrailleAttribute]
+AttributeT = Union[GenericAttribute, SpeechAttribute, BrailleAttribute]
+attributeFetcherT = Callable[..., bytes]
 attributeSenderT = Callable[..., None]
 AttributeReceiverT = Callable[[bytes], AttributeValueT]
+AttributeReceiverUnboundT = Callable[[RemoteProtocolHandlerT, bytes], AttributeValueT]
 
 
 def commandHandler(command: CommandT):
-	def wrapper(func: CommandHandlerT):
-		func._command = command
-		return func
+	def wrapper(func: CommandHandlerUnboundT):
+		@wraps(func)
+		def handler(self, payload: bytes):
+			log.debug(f"Handling command {command}")
+			return func(self, payload)
+		handler._command = command
+		return handler
 	return wrapper
 
 
 def attributeSender(attribute: AttributeT):
-	def wrapper(func: attributeSenderT):
-		func._sendingAttribute = attribute
-		return func
+	def wrapper(func: attributeFetcherT):
+		@wraps(func)
+		def sender(self: "RemoteProtocolHandler", *args, **kwargs) -> None:
+			self.setRemoteAttribute(attribute=attribute, value=func(self, *args, **kwargs))
+		sender._sendingAttribute = attribute
+		return sender
 	return wrapper
 
 
-def attributeReceiver(attribute: AttributeT, defaultValue):
-	def wrapper(func: AttributeReceiverT):
+def attributeReceiver(attribute: AttributeT, defaultValue: AttributeValueT):
+	def wrapper(func: AttributeReceiverUnboundT):
 		func._receivingAttribute = attribute
 		func._defaultValue = defaultValue
 		return func
@@ -114,10 +131,10 @@ class AttributeValueProcessor(Generic[AttributeValueT]):
 	def value(self, val: AttributeValueT):
 		with self._valueLock:
 			self._value = val
+			self._valueLastSet = time.time()
 
 	def __call__(self, val: bytes):
 		self.value = self._attributeReceiver(val)
-		self._valueLastSet = time.time()
 
 
 class RemoteProtocolHandler((AutoPropertyObject)):
@@ -128,41 +145,34 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 	_attributeSenders: Dict[AttributeT, attributeSenderT]
 	_attributeValueProcessors: Dict[AttributeT, AttributeValueProcessor]
 
+	def __new__(cls, *args, **kwargs):
+		self = super().__new__(cls, *args, **kwargs)
+		commandHandlers = inspect.getmembers(
+			cls,
+			predicate=lambda o: inspect.isfunction(o) and hasattr(o, "_command")
+		)
+		self._commandHandlers = {v._command: getattr(self, k) for k, v in commandHandlers}
+		senders = inspect.getmembers(
+			cls,
+			predicate=lambda o: inspect.isfunction(o) and hasattr(o, "_sendingAttribute")
+		)
+		self._attributeSenders = {
+			v._sendingAttribute: getattr(self, k)
+			for k, v in senders
+		}
+		receivers = inspect.getmembers(
+			cls,
+			predicate=lambda o: inspect.isfunction(o) and hasattr(o, "_receivingAttribute")
+		)
+		self._attributeValueProcessors = {
+			v._receivingAttribute: AttributeValueProcessor(getattr(self, k))
+			for k, v in receivers
+		}
+		return self
+
 	def __init__(self, driverType: DriverType):
 		self._driverType = driverType
 		self._receiveBuffer = b""
-
-	def _get__commandHandlers(self):
-		handlers = inspect.getmembers(
-			self.__class__,
-			predicate=lambda o: inspect.isfunction(o) and hasattr(o, "_remoteCommand")
-		)
-		self._commandHandlers = {v._remoteCommand: getattr(self, k) for k, v in handlers}
-		return self._commandHandlers
-
-	def _get__attributeSenders(self):
-		handlers = inspect.getmembers(
-			self.__class__,
-			predicate=lambda o: inspect.isfunction(o) and hasattr(o, "_sendingAttribute")
-		)
-		handlerDict: Dict[AttributeT, attributeSenderT] = {
-			v._sendingAttribute: getattr(self, k)
-			for k, v in handlers
-		}
-		self._attributeSenders = handlerDict
-		return self._attributeSenders
-
-	def _get__attributeValueProcessors(self):
-		handlers = inspect.getmembers(
-			self.__class__,
-			predicate=lambda o: inspect.isfunction(o) and hasattr(o, "_receivingAttribute")
-		)
-		handlerDict: Dict[AttributeT, AttributeValueProcessor] = {
-			v._receivingAttribute: AttributeValueProcessor(getattr(self, k))
-			for k, v in handlers
-		}
-		self.__attributeValueProcessors = handlerDict
-		return self._attributeValueProcessors
 
 	def _onReceive(self, message: bytes):
 		if self._receiveBuffer:
@@ -211,23 +221,29 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 	def setRemoteAttribute(self, attribute: AttributeT, value: bytes):
 		return self.writeMessage(GenericCommand.ATTRIBUTE, bytes((attribute, *value)))
 
+	def REQUESTRemoteAttribute(self, attribute: AttributeT):
+		return self.writeMessage(GenericCommand.ATTRIBUTE, hwIo.intToByte(attribute))
+
+	def _safeWait(self, predicate: Callable[[], bool], timeout: float = 3.0):
+		while timeout > 0.0:
+			if predicate():
+				return True
+			curTime = time.time()
+			res: bool = self._dev.waitForRead(timeout=timeout)
+			if res is False:
+				break
+			timeout -= (time.time() - curTime)
+		return predicate()
+
 	def getRemoteAttribute(self, attribute: AttributeT, timeout: float = 3.0):
 		initialTime = time.time()
 		handler = self._attributeValueProcessors.get(attribute)
 		if not handler or not isinstance(handler, AttributeValueProcessor):
 			raise RuntimeError(f"No attribute value processor for attribute {attribute}")
-		self.writeMessage(GenericCommand.ATTRIBUTE, bytes((attribute,)))
-		while timeout > 0.0:
-			curTime = time.time()
-			res: bool = self._dev.waitForRead(timeout=timeout)
-			if res is False:
-				timeout = 0.0
-				continue
-			if handler.hasNewValueSince(initialTime):
-				return handler.value
-			timeout -= (time.time() - curTime)
-		else:
-			raise TimeoutError(f"Wait for remote attribute {attribute} timed oud")
+		self.REQUESTRemoteAttribute(attribute=attribute)
+		if self._safeWait(lambda: handler.hasNewValueSince(initialTime), timeout=timeout):
+			return handler.value
+		raise TimeoutError(f"Wait for remote attribute {attribute} timed out")
 
 	def pickle(self, obj: Any):
 		return pickle.dumps(obj, protocol=4)

@@ -57,7 +57,7 @@ addon_info = {
 # For more information on SCons Glob expressions please take a look at:
 # https://scons.org/doc/production/HTML/scons-user/apd.html
 pythonSources = [
-	"addon/*/*.py",
+	"addon/*/**.py",
 ]
 
 # Files that contain strings for translation. Usually your python sources

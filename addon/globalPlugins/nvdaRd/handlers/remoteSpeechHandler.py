@@ -33,20 +33,12 @@ class RemoteSpeechHandler(RemoteHandler):
 		return synthDriverHandler.getSynth()
 
 	@protocol.attributeSender(protocol.SpeechAttribute.SUPPORTED_COMMANDS)
-	def _sendSupportedCommands(self, incomingPayLoad: bytes = b''):
-		assert len(incomingPayLoad) == 0
-		self.setRemoteAttribute(
-			protocol.SpeechAttribute.SUPPORTED_COMMANDS,
-			self.pickle(self._curSynth.supportedCommands)
-		)
+	def _sendSupportedCommands(self) -> bytes:
+		return self.pickle(self._curSynth.supportedCommands)
 
 	@protocol.attributeSender(protocol.SpeechAttribute.SUPPORTED_SETTINGS)
-	def _sendSupportedSettings(self, incomingPayLoad: bytes = b''):
-		assert len(incomingPayLoad) == 0
-		self.setRemoteAttribute(
-			protocol.SpeechAttribute.SUPPORTED_SETTINGS,
-			self.pickle(self._curSynth.supportedSettings)
-		)
+	def _sendSupportedSettings(self) -> bytes:
+		return self.pickle(self._curSynth.supportedSettings)
 
 	@protocol.commandHandler(protocol.SpeechCommand.SPEAK)
 	def _handleSpeak(self, payload: bytes):

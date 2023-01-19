@@ -20,24 +20,21 @@ class RemoteBrailleHandler(RemoteHandler):
 
 	_currentDisplay: braille.BrailleDisplayDriver
 
-	def _get_currentDisplay(self):
+	def _get__currentDisplay(self):
 		return braille.handler.display
 
 	@protocol.attributeSender(protocol.BrailleAttribute.NUM_CELLS)
-	def _sendNumCells(self, payLoad: bytes = b''):
-		assert len(payLoad) == 0
-		self.setRemoteAttribute(protocol.BrailleAttribute.NUM_CELLS, intToByte(self._currentDisplay.numCells))
+	def _sendNumCells(self) -> bytes:
+		return intToByte(self._currentDisplay.numCells)
 
 	@protocol.attributeSender(protocol.BrailleAttribute.GESTURE_MAP)
-	def _sendGestureMap(self, payLoad: bytes = b''):
-		assert len(payLoad) == 0
-		self.setRemoteAttribute(protocol.BrailleAttribute.GESTURE_MAP, self.pickle(self._currentDisplay.gestureMap))
+	def _sendGestureMap(self) -> bytes:
+		return self.pickle(self._currentDisplay.gestureMap)
 
 	@protocol.commandHandler(protocol.BrailleCommand.DISPLAY)
 	def _handleDisplay(self, payload: bytes):
 		cells = list(payload)
-		if braille.handler.displaySize > 0 and len(cells) <= braille.handler.displaySize:
+		if braille.handler.displaySize > 0:
 			# We use braille.handler._writeCells since this respects thread safe displays
 			# and automatically falls back to noBraille if desired
-			cells = cells + [0] * (braille.handler.displaySize - len(cells))
 			braille.handler._writeCells(cells)

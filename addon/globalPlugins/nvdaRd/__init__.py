@@ -46,7 +46,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			if fnmatch(fileName, globPattern.replace("*", f"{protocol.DriverType.BRAILLE.name}*")):
 				handler = handlers.RemoteBrailleHandler(fileName)
 			elif fnmatch(fileName, globPattern.replace("*", f"{protocol.DriverType.SPEECH.name}*")):
-				handler = handlers.RemoteSpeechHandler(self, fileName)
+				handler = handlers.RemoteSpeechHandler(fileName)
 			else:
 				raise RuntimeError(f"Unknown named pipe: {fileName}")
 			self._handlers[fileName] = handler
@@ -58,10 +58,15 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def terminate(self):
 		self._pipeWatcher.stop()
-		forhandler in self._handlers.values();
+		for handler in self._handlers.values():
 			handler.terminate()
 		self._handlers.clear()
 		super().terminate()
+
+	def event_gainFocus(self, obj, nextHandler):
+		for handler in self._handlers.values():
+			handler.event_gainFocus(obj)
+		nextHandler()
 
 
 GlobalPlugin = RDGlobalPlugin

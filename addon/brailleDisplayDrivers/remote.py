@@ -30,18 +30,16 @@ class RemoteBrailleDisplayDriver(driver.WTSRemoteDriver, braille.BrailleDisplayD
 		braille.BrailleDisplayDriver.__init__(self, port)
 		driver.WTSRemoteDriver.__init__(self, protocol.DriverType.BRAILLE)
 
-	@protocol.attributeSender(protocol.BrailleAttribute.NUM_CELLS, defaultValue=0)
-	def _handleNumCellsUpdate(self, payload: bytes):
-		if len(payload) == 0:
-			return 0
+	@protocol.attributeReceiver(protocol.BrailleAttribute.NUM_CELLS, defaultValue=0)
+	def _handleNumCellsUpdate(self, payload: bytes) -> int:
 		assert len(payload) == 1
 		return ord(payload)
 
 	def _get_numCells(self) -> int:
 		return self._attributeValueProcessors[protocol.BrailleAttribute.NUM_CELLS].value
 
-	@protocol.attributeSender(protocol.BrailleAttribute.GESTURE_MAP, defaultValue=GlobalGestureMap())
-	def _handleGestureMapUpdate(self, payload: bytes):
+	@protocol.attributeReceiver(protocol.BrailleAttribute.GESTURE_MAP, defaultValue=GlobalGestureMap())
+	def _handleGestureMapUpdate(self, payload: bytes) -> GlobalGestureMap:
 		assert len(payload) > 0
 		return self.unpickle(payload)
 

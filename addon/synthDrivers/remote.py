@@ -40,16 +40,15 @@ class remoteSynthDriver(driver.WTSRemoteDriver, synthDriverHandler.SynthDriver):
 	def pause(self, switch):
 		self.writeMessage(protocol.SpeechCommand.PAUSE, boolToByte(switch))
 
-	@protocol.attributeSender(protocol.SpeechAttribute.SUPPORTED_COMMANDS, defaultValue=frozenset())
-	def _handleSupportedCommandsUpdate(self, payLoad: bytes):
-		if len(payLoad) == 0:
-			return frozenset()
+	@protocol.attributeReceiver(protocol.SpeechAttribute.SUPPORTED_COMMANDS, defaultValue=frozenset())
+	def _handleSupportedCommandsUpdate(self, payLoad: bytes) -> frozenset:
+		assert len(payLoad) > 0
 		return self.unpickle(payLoad)
 
 	def _get_supportedCommands(self):
 		return self._attributeValueProcessors[protocol.SpeechAttribute.SUPPORTED_COMMANDS].value
 
-	@protocol.attributeSender(protocol.SpeechAttribute.SUPPORTED_SETTINGS, defaultValue=[])
+	@protocol.attributeReceiver(protocol.SpeechAttribute.SUPPORTED_SETTINGS, defaultValue=[])
 	def _handleSupportedSettingsUpdate(self, payLoad: bytes):
 		assert len(payLoad) > 0
 		return self.unpickle(payLoad)
