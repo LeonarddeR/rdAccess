@@ -2,7 +2,7 @@ import braille
 import typing
 import addonHandler
 from typing import List
-from inputCore import GlobalGestureMap
+import inputCore
 
 if typing.TYPE_CHECKING:
 	from ..lib import driver
@@ -37,13 +37,19 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 	def _get_numCells(self) -> int:
 		return self._attributeValueProcessors[protocol.BrailleAttribute.NUM_CELLS].value
 
-	@protocol.attributeReceiver(protocol.BrailleAttribute.GESTURE_MAP, defaultValue=GlobalGestureMap())
-	def _handleGestureMapUpdate(self, payload: bytes) -> GlobalGestureMap:
+	@protocol.attributeReceiver(protocol.BrailleAttribute.GESTURE_MAP, defaultValue=inputCore.GlobalGestureMap())
+	def _handleGestureMapUpdate(self, payload: bytes) -> inputCore.GlobalGestureMap:
 		assert len(payload) > 0
 		return self._unpickle(payload)
 
-	def _get_gestureMap(self) -> GlobalGestureMap:
+	def _get_gestureMap(self) -> inputCore.GlobalGestureMap:
 		return self._attributeValueProcessors[protocol.BrailleAttribute.GESTURE_MAP].value
+
+	@protocol.commandHandler(protocol.BrailleCommand.EXECUTE_GESTURE)
+	def _handleExecuteGesture(self, payload: bytes):
+		assert len(payload) > 0
+		gesture = self._unpickle(payload)
+		inputCore.manager.executeGesture(gesture)
 
 	def display(self, cells: List[int]):
 		# cells will already be padded up to numCells.

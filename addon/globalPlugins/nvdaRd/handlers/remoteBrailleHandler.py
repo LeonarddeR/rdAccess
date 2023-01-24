@@ -44,7 +44,7 @@ class RemoteBrailleHandler(RemoteHandler):
 	@protocol.commandHandler(protocol.BrailleCommand.DISPLAY)
 	def _handleDisplay(self, payload: bytes):
 		cells = list(payload)
-		if braille.handler.displaySize > 0:
+		if braille.handler.displaySize > 0 and self.hasFocus == RemoteFocusState.SESSION_FOCUSED:
 			# We use braille.handler._writeCells since this respects thread safe displays
 			# and automatically falls back to noBraille if desired
 			# Execute it on the main thread
@@ -52,10 +52,20 @@ class RemoteBrailleHandler(RemoteHandler):
 
 	def _handleExecuteGesture(self, gesture):
 		if (
-			isinstance(gesture, (braille.BrailleDisplayGesture, brailleInput.BrailleInputGesture))
+			isinstance(gesture, braille.BrailleDisplayGesture)
 			and self.hasFocus == RemoteFocusState.SESSION_FOCUSED
 		):
-			self.writeMessage(protocol.BrailleCommand.EXECUTE_GESTURE, self._pickle(gesture.normalizedIdentifiers))
+			kwargs = dict(
+				source=gesture.source,
+				id=gesture.id,
+				routingIndex=gesture.routingIndex,
+				model=self.model
+			)
+			if isinstance(gesture, brailleInput.BrailleInputGesture):
+				kwargs['dots'] = gesture.dots
+				kwargs['space'] = gesture.space
+			newGesture = protocol.braille.BrailleInputGesture(**kwargs)
+			self.writeMessage(protocol.BrailleCommand.EXECUTE_GESTURE, self._pickle(newGesture))
 			return False
 		return True
 

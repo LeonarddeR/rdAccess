@@ -15,7 +15,23 @@ class BrailleAttribute(IntEnum):
 
 
 class BrailleInputGesture(braille.BrailleDisplayGesture, brailleInput.BrailleInputGesture):
-	source: str
-	model: Optional[str] = None
-	id: str
-	routingIndex: Optional[int]
+
+	def __init__(
+			self,
+			source: str,
+			id: str,
+			routingIndex: Optional[int] = None,
+			model: Optional[str] = None,
+			dots: int = 0,
+			space: bool = False,
+			**kwargs
+	):
+		super().__init__()
+		self.source = source
+		self.id = id
+		self.routingIndex = routingIndex
+		self.model = model
+		self.dots = dots
+		self.space = space
+		for attr, val in kwargs.items():
+			setattr(self, attr, val)
