@@ -16,11 +16,10 @@ from threading import Lock
 import time
 from logHandler import log
 import pickle
-import speech
 from functools import wraps
-
-
-SPEECH_INDEX_OFFSET = speech.manager.SpeechManager.MAX_INDEX + 1
+import queueHandler
+from .speech import SpeechAttribute, SpeechCommand
+from .braille import BrailleAttribute, BrailleCommand, BrailleInputGesture
 
 
 class DriverType(IntEnum):
@@ -33,41 +32,8 @@ class GenericCommand(IntEnum):
 	INTERCEPT_GESTURE = ord(b'I')
 
 
-class BrailleCommand(IntEnum):
-	DISPLAY = ord(b'D')
-	EXECUTE_GESTURE = ord(b'G')
-
-
 class GenericAttribute(IntEnum):
 	HAS_FOCUS = ord(b"f")
-
-
-class BrailleAttribute(IntEnum):
-	NUM_CELLS = ord(b'C')
-	GESTURE_MAP = ord(b'G')
-
-
-class SpeechCommand(IntEnum):
-	SPEAK = ord(b'S')
-	CANCEL = ord(b'C')
-	PAUSE = ord(b'P')
-	INDEX_REACHED = ord(b'x')
-
-
-class SpeechAttribute(IntEnum):
-	SUPPORTED_COMMANDS = ord(b'C')
-	SUPPORTED_SETTINGS = ord(b'S')
-	LANGUAGE = ord(b'L')
-	AVAILABLE_LANGUAGES = ord(b'l')
-	RATE = ord(b'R')
-	PITCH = ord(b'P')
-	VOLUME = ord(b'o')
-	INFLECTION = ord(b'I')
-	VOICE = ord(b'V')
-	AVAILABLE_VOICES = ord(b'v')
-	VARIANT = ord(b'A')
-	AVAILABLE_VARIANTS = ord(b'a')
-	RATE_BOOST = ord(b'b')
 
 
 RemoteProtocolHandlerT = TypeVar("RemoteProtocolHandlerT", bound="RemoteProtocolHandler")
@@ -139,7 +105,7 @@ class AttributeValueProcessor(Generic[AttributeValueT]):
 
 class RemoteProtocolHandler((AutoPropertyObject)):
 	_dev: hwIo.IoBase
-	_driverType: DriverType
+	driverType: DriverType
 	_receiveBuffer: bytes
 	_commandHandlers: Dict[CommandT, CommandHandlerT]
 	_attributeSenders: Dict[AttributeT, attributeSenderT]
@@ -170,14 +136,14 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		}
 		return self
 
-	def __init__(self, driverType: DriverType):
-		self._driverType = driverType
+	def __init__(self):
+		super().__init__()
 		self._receiveBuffer = b""
 
 	def _onReceive(self, message: bytes):
 		if self._receiveBuffer:
 			message = self._receiveBuffer + message
-		if not message[0] == self._driverType:
+		if not message[0] == self.driverType:
 			raise RuntimeError(f"Unexpected payload: {message}")
 		command = cast(CommandT, message[1])
 		length = int.from_bytes(message[2:4], sys.byteorder)
@@ -211,7 +177,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 
 	def writeMessage(self, command: CommandT, payload: bytes = b""):
 		data = bytes((
-			self._driverType,
+			self.driverType,
 			command,
 			*len(payload).to_bytes(length=2, byteorder=sys.byteorder, signed=False),
 			*payload
@@ -219,9 +185,11 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		return self._dev.write(data)
 
 	def setRemoteAttribute(self, attribute: AttributeT, value: bytes):
+		log.debug(f"Setting remote attribute {attribute!r}")
 		return self.writeMessage(GenericCommand.ATTRIBUTE, bytes((attribute, *value)))
 
 	def REQUESTRemoteAttribute(self, attribute: AttributeT):
+		log.debug(f"Requesting remote attribute {attribute!r}")
 		return self.writeMessage(GenericCommand.ATTRIBUTE, hwIo.intToByte(attribute))
 
 	def _safeWait(self, predicate: Callable[[], bool], timeout: float = 3.0):
@@ -242,11 +210,16 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 			raise RuntimeError(f"No attribute value processor for attribute {attribute}")
 		self.REQUESTRemoteAttribute(attribute=attribute)
 		if self._safeWait(lambda: handler.hasNewValueSince(initialTime), timeout=timeout):
-			return handler.value
+			newValue = handler.value
+			log.debug(f"Received new value {newValue!r} for remote attribute {attribute!r}")
+			return newValue
 		raise TimeoutError(f"Wait for remote attribute {attribute} timed out")
 
-	def pickle(self, obj: Any):
+	def _pickle(self, obj: Any):
 		return pickle.dumps(obj, protocol=4)
 
-	def unpickle(self, payload: bytes) -> Any:
+	def _unpickle(self, payload: bytes) -> Any:
 		return pickle.loads(payload)
+
+	def _queueFunctionOnMainThread(self, func, *args, **kwargs):
+		queueHandler.queueFunction(queueHandler.eventQueue, func, *args, **kwargs)

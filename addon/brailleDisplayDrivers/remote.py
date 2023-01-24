@@ -13,11 +13,11 @@ else:
 	protocol = addon.loadModule("lib.protocol")
 
 
-class RemoteBrailleDisplayDriver(driver.WTSRemoteDriver, braille.BrailleDisplayDriver):
-	name = "remote"
+class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriver):
 	# Translators: Name for a remote braille display.
 	description = _("Remote Braille")
 	isThreadSafe = True
+	driverType = protocol.DriverType.BRAILLE
 
 	def _handleRemoteDisconnect(self):
 		# Raise an exception because handleDisplayUnavailable expects one
@@ -27,8 +27,7 @@ class RemoteBrailleDisplayDriver(driver.WTSRemoteDriver, braille.BrailleDisplayD
 			braille.handler.handleDisplayUnavailable()
 
 	def __init__(self, port="auto"):
-		braille.BrailleDisplayDriver.__init__(self, port)
-		driver.WTSRemoteDriver.__init__(self, protocol.DriverType.BRAILLE)
+		super().__init__()
 
 	@protocol.attributeReceiver(protocol.BrailleAttribute.NUM_CELLS, defaultValue=0)
 	def _handleNumCellsUpdate(self, payload: bytes) -> int:
@@ -41,7 +40,7 @@ class RemoteBrailleDisplayDriver(driver.WTSRemoteDriver, braille.BrailleDisplayD
 	@protocol.attributeReceiver(protocol.BrailleAttribute.GESTURE_MAP, defaultValue=GlobalGestureMap())
 	def _handleGestureMapUpdate(self, payload: bytes) -> GlobalGestureMap:
 		assert len(payload) > 0
-		return self.unpickle(payload)
+		return self._unpickle(payload)
 
 	def _get_gestureMap(self) -> GlobalGestureMap:
 		return self._attributeValueProcessors[protocol.BrailleAttribute.GESTURE_MAP].value

@@ -13,14 +13,13 @@ else:
 
 
 class RemoteSpeechHandler(RemoteHandler):
+	driverType = protocol.DriverType.SPEECH
 
 	def __init__(self, pipeAddress: str):
-		super().__init__(protocol.DriverType.SPEECH, pipeAddress)
 		self._indexesSpeaking = []
 		synthDriverHandler.synthIndexReached.register(self._onSynthIndexReached)
 		synthDriverHandler.synthDoneSpeaking.register(self._onSynthDoneSpeaking)
-		self._sendSupportedCommands()
-		self._sendSupportedSettings()
+		super().__init__(pipeAddress)
 
 	def terminate(self):
 		synthDriverHandler.synthDoneSpeaking.unregister(self._onSynthDoneSpeaking)
@@ -34,19 +33,19 @@ class RemoteSpeechHandler(RemoteHandler):
 
 	@protocol.attributeSender(protocol.SpeechAttribute.SUPPORTED_COMMANDS)
 	def _sendSupportedCommands(self) -> bytes:
-		return self.pickle(self._curSynth.supportedCommands)
+		return self._pickle(self._curSynth.supportedCommands)
 
 	@protocol.attributeSender(protocol.SpeechAttribute.SUPPORTED_SETTINGS)
 	def _sendSupportedSettings(self) -> bytes:
-		return self.pickle(self._curSynth.supportedSettings)
+		return self._pickle(self._curSynth.supportedSettings)
 
 	@protocol.commandHandler(protocol.SpeechCommand.SPEAK)
 	def _handleSpeak(self, payload: bytes):
-		sequence = self.unpickle(payload)
+		sequence = self._unpickle(payload)
 		for item in sequence:
 			if isinstance(item, IndexCommand):
 				self._indexesSpeaking.append(item.index)
-		# Queue speech to the manager directly because we don't want unnecessary processing to happen.
+		# Queue speech to the current synth directly because we don't want unnecessary processing to happen.
 		self._curSynth.speak(sequence)
 
 	@protocol.commandHandler(protocol.SpeechCommand.CANCEL)

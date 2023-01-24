@@ -8,6 +8,7 @@ from serial.win32 import FILE_FLAG_OVERLAPPED, INVALID_HANDLE_VALUE, OVERLAPPED,
 from enum import IntFlag, IntEnum
 from ctypes import windll, WinError, sizeof, byref, create_string_buffer
 from struct import unpack, calcsize
+from logHandler import log
 
 FILE_FLAG_BACKUP_SEMANTICS = 0x02000000
 
@@ -71,9 +72,9 @@ class DirectoryWatcher:
 	def stop(self) -> bool:
 		if not self._watching:
 			return False
+		self._watching = False
 		if hasattr(self, "_dirHandle") and not windll.kernel32.CancelIoEx(self._dirHandle, byref(self._overlapped)):
 			raise WinError()
-		self._watching = False
 		return True
 
 	def __del__(self):

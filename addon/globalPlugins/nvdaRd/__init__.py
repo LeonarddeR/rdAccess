@@ -8,6 +8,7 @@ from glob import glob
 from fnmatch import fnmatch
 from . import handlers
 from typing import Dict
+import bdDetect
 
 if typing.TYPE_CHECKING:
 	from ...lib import protocol
@@ -51,10 +52,10 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 				raise RuntimeError(f"Unknown named pipe: {fileName}")
 			self._handlers[fileName] = handler
 		elif action == directoryChanges.FileNotifyInformationAction.FILE_ACTION_REMOVED:
-			handler = self._handlers.pop(fileName, None)
+			handler = self._handlers.get(fileName, None)
 			if handler:
 				handler.terminate()
-				del handler
+				del self._handlers[fileName]
 
 	def terminate(self):
 		self._pipeWatcher.stop()
