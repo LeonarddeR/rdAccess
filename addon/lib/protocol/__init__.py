@@ -2,11 +2,12 @@ import sys
 import hwIo
 from baseObject import AutoPropertyObject
 import inspect
-from enum import IntEnum
+from enum import IntEnum, Enum
 from typing import (
 	Any,
 	Callable,
 	cast,
+	DefaultDict,
 	Dict,
 	Generic,
 	TypeVar,
@@ -19,7 +20,12 @@ import pickle
 from functools import wraps
 import queueHandler
 from .speech import SpeechAttribute, SpeechCommand
-from .braille import BrailleAttribute, BrailleCommand, BrailleInputGesture
+from .braille import BrailleAttribute, BrailleCommand
+from typing_extensions import ParamSpec
+from fnmatch import fnmatch
+
+
+handlerParamSpec = ParamSpec("handlerParamSpec")
 
 
 class DriverType(IntEnum):
@@ -32,8 +38,8 @@ class GenericCommand(IntEnum):
 	INTERCEPT_GESTURE = ord(b'I')
 
 
-class GenericAttribute(IntEnum):
-	HAS_FOCUS = ord(b"f")
+class GenericAttribute(bytes, Enum):
+	HAS_FOCUS = b"hasFocus"
 
 
 RemoteProtocolHandlerT = TypeVar("RemoteProtocolHandlerT", bound="RemoteProtocolHandler")
@@ -41,11 +47,13 @@ AttributeValueT = TypeVar("AttributeValueT")
 CommandT = Union[GenericCommand, SpeechCommand, BrailleCommand]
 CommandHandlerUnboundT = Callable[[RemoteProtocolHandlerT, bytes], None]
 CommandHandlerT = Callable[[bytes], None]
-AttributeT = Union[GenericAttribute, SpeechAttribute, BrailleAttribute]
+AttributeT = Union[GenericAttribute, SpeechAttribute, BrailleAttribute, bytes]
 attributeFetcherT = Callable[..., bytes]
 attributeSenderT = Callable[..., None]
 AttributeReceiverT = Callable[[bytes], AttributeValueT]
 AttributeReceiverUnboundT = Callable[[RemoteProtocolHandlerT, bytes], AttributeValueT]
+WildCardAttributeReceiverT = Callable[[bytes, bytes], AttributeValueT]
+WildCardAttributeReceiverUnboundT = Callable[[RemoteProtocolHandlerT, bytes, bytes], AttributeValueT]
 
 
 def commandHandler(command: CommandT):
@@ -62,8 +70,13 @@ def commandHandler(command: CommandT):
 def attributeSender(attribute: AttributeT):
 	def wrapper(func: attributeFetcherT):
 		@wraps(func)
-		def sender(self: "RemoteProtocolHandler", *args, **kwargs) -> None:
-			self.setRemoteAttribute(attribute=attribute, value=func(self, *args, **kwargs))
+		def sender(
+			self: "RemoteProtocolHandler",
+			*args: handlerParamSpec.args,
+			**kwargs: handlerParamSpec.kwargs
+		) -> None:
+			value = func(self, *args, **kwargs)
+			self.setRemoteAttribute(attribute=attribute, value=value)
 		sender._sendingAttribute = attribute
 		return sender
 	return wrapper
@@ -77,30 +90,32 @@ def attributeReceiver(attribute: AttributeT, defaultValue: AttributeValueT):
 	return wrapper
 
 
-class AttributeValueProcessor(Generic[AttributeValueT]):
+class AttributeValueProcessor:
+	_attributeReceivers: Dict[AttributeT, Union[AttributeReceiverT, WildCardAttributeReceiverT]]
+	_valueLocks: DefaultDict[AttributeT, Lock]
+	_valueTimes: DefaultDict[AttributeT, float]
+	_values: Dict[AttributeT, Any]
 
-	def __init__(self, attributeReceiver: AttributeReceiverT):
-		self._attributeReceiver = attributeReceiver
-		self._valueLock = Lock()
-		self._valueLastSet: float = time.time()
-		self._value: AttributeValueT = attributeReceiver._defaultValue
+	def __init__(self):
+		self._attributeReceivers = {}
+		self._valueLocks = DefaultDict(Lock)
+		self._values = {}
+		self._valueTimes = DefaultDict(time.time)
 
-	def hasNewValueSince(self, t: float) -> bool:
-		return t < self._valueLastSet
+	def hasNewValueSince(self, attribute: AttributeT, t: float) -> bool:
+		return t < self._valueTimes[attribute]
 
-	@property
-	def value(self) -> AttributeValueT:
-		with self._valueLock:
-			return self._value
+	def GetValue(self, attribute: AttributeT):
+		with self._valueLocks[attribute]:
+			return self._values[attribute]
 
-	@value.setter
-	def value(self, val: AttributeValueT):
-		with self._valueLock:
-			self._value = val
-			self._valueLastSet = time.time()
+	def SetValue(self, attribute: AttributeT, val):
+		with self._valueLocks[attribute]:
+			self._values[attribute] = val
+			self._valueTimes[attribute] = time.time()
 
-	def __call__(self, val: bytes):
-		self.value = self._attributeReceiver(val)
+	def __call__(self, attribute: AttributeT, val: bytes):
+		self.SetValue(attribute, self._attributeReceivers[attribute](val))
 
 
 class RemoteProtocolHandler((AutoPropertyObject)):
@@ -160,14 +175,20 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 
 	@commandHandler(GenericCommand.ATTRIBUTE)
 	def _handleAttributeChanges(self, payload: bytes):
-		attribute = cast(AttributeT, payload[0])
-		value = payload[1:]
+		attribute, value = payload[1:].split(b'`', 1)
 		if not value:
-			handler = self._attributeSenders.get(attribute)
+			match, handler = next(
+				((k, v) for k, v in self._attributeSenders.items() if fnmatch(attribute, k)),
+				(None, None)
+			)
 			if handler is None:
 				log.error(f"No attribute sender for attribute {attribute}")
 				return
-			handler()
+			catchAll = b'*' in match
+			if catchAll:
+				handler(attribute)
+			else:
+				handler()
 		else:
 			handler = self._attributeValueProcessors.get(attribute)
 			if handler is None:

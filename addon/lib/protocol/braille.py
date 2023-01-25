@@ -1,6 +1,6 @@
 import braille
 import brailleInput
-from enum import IntEnum
+from enum import IntEnum, Enum
 from typing import Optional
 
 
@@ -9,9 +9,9 @@ class BrailleCommand(IntEnum):
 	EXECUTE_GESTURE = ord(b'G')
 
 
-class BrailleAttribute(IntEnum):
-	NUM_CELLS = ord(b'C')
-	GESTURE_MAP = ord(b'G')
+class BrailleAttribute(bytes, Enum):
+	NUM_CELLS = b"numCells"
+	GESTURE_MAP = b"gestureMap"
 
 
 class BrailleInputGesture(braille.BrailleDisplayGesture, brailleInput.BrailleInputGesture):

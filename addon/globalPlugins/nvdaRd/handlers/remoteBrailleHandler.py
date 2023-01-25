@@ -59,7 +59,7 @@ class RemoteBrailleHandler(RemoteHandler):
 				source=gesture.source,
 				id=gesture.id,
 				routingIndex=gesture.routingIndex,
-				model=self.model
+				model=gesture.model
 			)
 			if isinstance(gesture, brailleInput.BrailleInputGesture):
 				kwargs['dots'] = gesture.dots

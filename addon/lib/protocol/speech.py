@@ -1,5 +1,5 @@
 import speech
-from enum import IntEnum
+from enum import IntEnum, Enum
 
 SPEECH_INDEX_OFFSET = speech.manager.SpeechManager.MAX_INDEX + 1
 
@@ -11,17 +11,6 @@ class SpeechCommand(IntEnum):
 	INDEX_REACHED = ord(b'x')
 
 
-class SpeechAttribute(IntEnum):
-	SUPPORTED_COMMANDS = ord(b'C')
-	SUPPORTED_SETTINGS = ord(b'S')
-	LANGUAGE = ord(b'L')
-	AVAILABLE_LANGUAGES = ord(b'l')
-	RATE = ord(b'R')
-	PITCH = ord(b'P')
-	VOLUME = ord(b'o')
-	INFLECTION = ord(b'I')
-	VOICE = ord(b'V')
-	AVAILABLE_VOICES = ord(b'v')
-	VARIANT = ord(b'A')
-	AVAILABLE_VARIANTS = ord(b'a')
-	RATE_BOOST = ord(b'b')
+class SpeechAttribute(bytes, Enum):
+	SUPPORTED_COMMANDS = b'supportedCommands'
+	SUPPORTED_SETTINGS = b'supportedSettings'
