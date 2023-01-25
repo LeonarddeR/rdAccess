@@ -89,7 +89,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		else:
 			raise RuntimeError("No remote device found")
 
-		for handler in self._attributeSenders.values():
+		for handler in self._attributeSenderStore.values():
 			handler()
 
 	def _handleExecuteGesture(self, gesture):

@@ -37,7 +37,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		except EnvironmentError:
 			raise
 
-		for handler in self._attributeSenders.values():
+		for handler in self._attributeSenderStore.values():
 			handler()
 
 	def _onReadError(self, error: int) -> bool:
@@ -61,7 +61,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		remoteProcessHasFocus = api.getFocusObject().processID == self._dev.pipeProcessId
 		if not remoteProcessHasFocus:
 			return RemoteFocusState.NONE
-		valueProcessor = self._attributeValueProcessors[protocol.GenericAttribute.HAS_FOCUS]
+		valueProcessor = self._attributeValueProcessor[protocol.GenericAttribute.HAS_FOCUS]
 		log.debug("Requesting focus information from remote driver")
 		if valueProcessor.hasNewValueSince(self._focusLastSet):
 			newValue = valueProcessor.value

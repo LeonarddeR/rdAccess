@@ -48,12 +48,13 @@ CommandT = Union[GenericCommand, SpeechCommand, BrailleCommand]
 CommandHandlerUnboundT = Callable[[RemoteProtocolHandlerT, bytes], None]
 CommandHandlerT = Callable[[bytes], None]
 AttributeT = Union[GenericAttribute, SpeechAttribute, BrailleAttribute, bytes]
+AttributeHandlerT = TypeVar("AttributeHandlerT")
 attributeFetcherT = Callable[..., bytes]
 attributeSenderT = Callable[..., None]
 AttributeReceiverT = Callable[[bytes], AttributeValueT]
 AttributeReceiverUnboundT = Callable[[RemoteProtocolHandlerT, bytes], AttributeValueT]
-WildCardAttributeReceiverT = Callable[[bytes, bytes], AttributeValueT]
-WildCardAttributeReceiverUnboundT = Callable[[RemoteProtocolHandlerT, bytes, bytes], AttributeValueT]
+WildCardAttributeReceiverT = Callable[[attributeT, bytes], AttributeValueT]
+WildCardAttributeReceiverUnboundT = Callable[[RemoteProtocolHandlerT, AttributeT, bytes], AttributeValueT]
 
 
 def commandHandler(command: CommandT):
@@ -71,13 +72,14 @@ def attributeSender(attribute: AttributeT):
 	def wrapper(func: attributeFetcherT):
 		@wraps(func)
 		def sender(
-			self: "RemoteProtocolHandler",
-			*args: handlerParamSpec.args,
-			**kwargs: handlerParamSpec.kwargs
+				self: "RemoteProtocolHandler",
+				*args: handlerParamSpec.args,
+				**kwargs: handlerParamSpec.kwargs
 		) -> None:
 			value = func(self, *args, **kwargs)
 			self.setRemoteAttribute(attribute=attribute, value=value)
 		sender._sendingAttribute = attribute
+		sender._catchAll = b'*' in attribute
 		return sender
 	return wrapper
 
@@ -85,22 +87,65 @@ def attributeSender(attribute: AttributeT):
 def attributeReceiver(attribute: AttributeT, defaultValue: AttributeValueT):
 	def wrapper(func: AttributeReceiverUnboundT):
 		func._receivingAttribute = attribute
-		func._defaultValue = defaultValue
+		func._defaultValueGetter = lambda attribute: defaultValue
+		func._catchAll = False
 		return func
 	return wrapper
 
 
-class AttributeValueProcessor:
-	_attributeReceivers: Dict[AttributeT, Union[AttributeReceiverT, WildCardAttributeReceiverT]]
+def wildCardAttributeReceiver(attribute: AttributeT, defaultValueGetter: Callable[[AttributeT], AttributeValueT):
+	def wrapper(func: WildCardAttributeReceiverUnboundT):
+		func._receivingAttribute = attribute
+		func._defaultValueGetter = defaultValueGetter
+		func._catchAll = b'*' in attribute
+		return func
+	return wrapper
+
+
+class AttributeHandlerStore(Generic[AttributeHandlerT]):
+	_attributeHandlers: Dict[AttributeT, AttributeHandlerT]
+
+	def __init__(self):
+		self._attributeHandlers = {}
+
+	def register(self, attribute: AttributeT, handler: AttributeHandlerT):
+		self._attributeHandlers[attribute] = handler
+
+	def _getHandler(self, attribute: AttributeT) -> AttributeHandlerT:
+		handler = next(
+			(v for k, v in self._attributeHandlers.items() if fnmatch(attribute, k)),
+			None
+		)
+		if handler is None:
+			raise NotImplementedError(f"No attribute sender for attribute {attribute}")
+		return handler
+
+
+class AttributeSenderStore(AttributeHandlerStore):
+
+	def __call__(self, attribute: AttributeT, *args, **kwargs):
+		handler = self._getHandler(attribute)
+		if handler._catchAll:
+			handler(attribute)
+		else:
+			handler()
+
+
+class AttributeValueProcessor(AttributeHandlerStore[Union[AttributeReceiverT, WildCardAttributeReceiverT]]):
 	_valueLocks: DefaultDict[AttributeT, Lock]
 	_valueTimes: DefaultDict[AttributeT, float]
 	_values: Dict[AttributeT, Any]
 
 	def __init__(self):
-		self._attributeReceivers = {}
+		super().__init__()
 		self._valueLocks = DefaultDict(Lock)
 		self._values = {}
 		self._valueTimes = DefaultDict(time.time)
+
+	def register(self, attribute: AttributeT, handler: Union[AttributeReceiverT, WildCardAttributeReceiverT]):
+		super().register(attribute, handler)
+		if not handler._catchAll:
+			self._values[attribute] = handler._defaultValue
 
 	def hasNewValueSince(self, attribute: AttributeT, t: float) -> bool:
 		return t < self._valueTimes[attribute]
@@ -115,7 +160,12 @@ class AttributeValueProcessor:
 			self._valueTimes[attribute] = time.time()
 
 	def __call__(self, attribute: AttributeT, val: bytes):
-		self.SetValue(attribute, self._attributeReceivers[attribute](val))
+		handler = self._getHandler(attribute)
+		if handler._catchAll:
+			value = handler(attribute, val)
+		else:
+			value = handler(val)
+		self.SetValue(attribute, value)
 
 
 class RemoteProtocolHandler((AutoPropertyObject)):
@@ -123,11 +173,13 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 	driverType: DriverType
 	_receiveBuffer: bytes
 	_commandHandlers: Dict[CommandT, CommandHandlerT]
-	_attributeSenders: Dict[AttributeT, attributeSenderT]
-	_attributeValueProcessors: Dict[AttributeT, AttributeValueProcessor]
+	_attributeSenderStore: AttributeSenderStore
+	_attributeValueProcessor: AttributeValueProcessor
 
 	def __new__(cls, *args, **kwargs):
 		self = super().__new__(cls, *args, **kwargs)
+		self._attributeSenderStore = AttributeSenderStore()
+		self._attributeValueProcessor = AttributeValueProcessor()
 		commandHandlers = inspect.getmembers(
 			cls,
 			predicate=lambda o: inspect.isfunction(o) and hasattr(o, "_command")
@@ -137,18 +189,14 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 			cls,
 			predicate=lambda o: inspect.isfunction(o) and hasattr(o, "_sendingAttribute")
 		)
-		self._attributeSenders = {
-			v._sendingAttribute: getattr(self, k)
-			for k, v in senders
-		}
+		for k, v in senders:
+			self._attributeSenderStore.register(v._sendingAttribute, getattr(self, k))
 		receivers = inspect.getmembers(
 			cls,
 			predicate=lambda o: inspect.isfunction(o) and hasattr(o, "_receivingAttribute")
 		)
-		self._attributeValueProcessors = {
-			v._receivingAttribute: AttributeValueProcessor(getattr(self, k))
-			for k, v in receivers
-		}
+		for k, v in receivers:
+			self._attributeValueProcessor.register(v._receivingAttribute, getattr(self, k))
 		return self
 
 	def __init__(self):
@@ -178,7 +226,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		attribute, value = payload[1:].split(b'`', 1)
 		if not value:
 			match, handler = next(
-				((k, v) for k, v in self._attributeSenders.items() if fnmatch(attribute, k)),
+				((k, v) for k, v in self._attributeSenderStore.items() if fnmatch(attribute, k)),
 				(None, None)
 			)
 			if handler is None:
@@ -190,7 +238,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 			else:
 				handler()
 		else:
-			handler = self._attributeValueProcessors.get(attribute)
+			handler = self._attributeValueProcessor.get(attribute)
 			if handler is None:
 				log.error(f"No attribute receiver for attribute {attribute}")
 				return
@@ -226,7 +274,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 
 	def getRemoteAttribute(self, attribute: AttributeT, timeout: float = 3.0):
 		initialTime = time.time()
-		handler = self._attributeValueProcessors.get(attribute)
+		handler = self._attributeValueProcessor.get(attribute)
 		if not handler or not isinstance(handler, AttributeValueProcessor):
 			raise RuntimeError(f"No attribute value processor for attribute {attribute}")
 		self.REQUESTRemoteAttribute(attribute=attribute)

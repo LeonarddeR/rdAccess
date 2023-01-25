@@ -35,7 +35,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		return ord(payload)
 
 	def _get_numCells(self) -> int:
-		return self._attributeValueProcessors[protocol.BrailleAttribute.NUM_CELLS].value
+		return self._attributeValueProcessor[protocol.BrailleAttribute.NUM_CELLS].value
 
 	@protocol.attributeReceiver(protocol.BrailleAttribute.GESTURE_MAP, defaultValue=inputCore.GlobalGestureMap())
 	def _handleGestureMapUpdate(self, payload: bytes) -> inputCore.GlobalGestureMap:
@@ -43,7 +43,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		return self._unpickle(payload)
 
 	def _get_gestureMap(self) -> inputCore.GlobalGestureMap:
-		return self._attributeValueProcessors[protocol.BrailleAttribute.GESTURE_MAP].value
+		return self._attributeValueProcessor[protocol.BrailleAttribute.GESTURE_MAP].value
 
 	@protocol.commandHandler(protocol.BrailleCommand.EXECUTE_GESTURE)
 	def _handleExecuteGesture(self, payload: bytes):

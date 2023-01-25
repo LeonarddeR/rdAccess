@@ -42,7 +42,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		return self._unpickle(payLoad)
 
 	def _get_supportedCommands(self):
-		return self._attributeValueProcessors[protocol.SpeechAttribute.SUPPORTED_COMMANDS].value
+		return self._attributeValueProcessor[protocol.SpeechAttribute.SUPPORTED_COMMANDS].value
 
 	@protocol.attributeReceiver(protocol.SpeechAttribute.SUPPORTED_SETTINGS, defaultValue=[])
 	def _handleSupportedSettingsUpdate(self, payLoad: bytes):
@@ -50,7 +50,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		return self._unpickle(payLoad)
 
 	def _get_supportedSettings(self):
-		return self._attributeValueProcessors[protocol.SpeechAttribute.SUPPORTED_SETTINGS].value
+		return self._attributeValueProcessor[protocol.SpeechAttribute.SUPPORTED_SETTINGS].value
 
 	@protocol.commandHandler(protocol.SpeechCommand.INDEX_REACHED)
 	def _handleIndexReached(self, incomingPayload: bytes):
