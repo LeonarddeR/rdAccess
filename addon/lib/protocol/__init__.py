@@ -23,6 +23,7 @@ from .speech import SpeechAttribute, SpeechCommand
 from .braille import BrailleAttribute, BrailleCommand
 from typing_extensions import ParamSpec
 from fnmatch import fnmatch
+from functools import partial
 
 
 handlerParamSpec = ParamSpec("handlerParamSpec")
@@ -53,7 +54,7 @@ attributeFetcherT = Callable[..., bytes]
 attributeSenderT = Callable[..., None]
 AttributeReceiverT = Callable[[bytes], AttributeValueT]
 AttributeReceiverUnboundT = Callable[[RemoteProtocolHandlerT, bytes], AttributeValueT]
-WildCardAttributeReceiverT = Callable[[attributeT, bytes], AttributeValueT]
+WildCardAttributeReceiverT = Callable[[AttributeT, bytes], AttributeValueT]
 WildCardAttributeReceiverUnboundT = Callable[[RemoteProtocolHandlerT, AttributeT, bytes], AttributeValueT]
 
 
@@ -68,20 +69,45 @@ def commandHandler(command: CommandT):
 	return wrapper
 
 
+class AttributeHandler(Generic[AttributeHandlerT]):
+	func: AttributeHandlerT
+	attribute: AttributeT = b''
+
+	@property
+	def isCatchAll(self) -> bool:
+		return b'*' in self.attribute
+
+	def __init__(self, attribute: AttributeT, func: AttributeHandlerT):
+		self.attribute = attribute
+		self.func = func
+
+
+class AttributeSender(AttributeHandler[attributeFetcherT]):
+
+	def __call__(self, protocolHandler: "RemoteProtocolHandler", *args, **kwargs):
+		value = self.func(self, *args, **kwargs)
+		protocolHandler.setRemoteAttribute(attribute=self.sendingAttribute, value=value)
+
+
 def attributeSender(attribute: AttributeT):
-	def wrapper(func: attributeFetcherT):
-		@wraps(func)
-		def sender(
-				self: "RemoteProtocolHandler",
-				*args: handlerParamSpec.args,
-				**kwargs: handlerParamSpec.kwargs
-		) -> None:
-			value = func(self, *args, **kwargs)
-			self.setRemoteAttribute(attribute=attribute, value=value)
-		sender._sendingAttribute = attribute
-		sender._catchAll = b'*' in attribute
-		return sender
-	return wrapper
+	return partial(AttributeSender, attribute)
+
+
+class AttributeReceiver:
+	func: Union[AttributeReceiverUnboundT, WildCardAttributeReceiverUnboundT]
+	receivingAttribute: AttributeT
+	defaultValueGetter: Callable[[AttributeT], Any]
+
+	@property
+	def isCatchAll(self) -> bool:
+		return b'*' in self.sendingAttribute
+
+	def __init__(self, sendingAttribute: AttributeT, func: attributeFetcherT, defaultValueGetter: ):
+		self.func = func
+
+	def __call__(self, protocolHandler: "RemoteProtocolHandler", *args, **kwargs):
+		value = self.func(self, *args, **kwargs)
+		protocolHandler.setRemoteAttribute(attribute=self.sendingAttribute, value=value)
 
 
 def attributeReceiver(attribute: AttributeT, defaultValue: AttributeValueT):
@@ -93,7 +119,10 @@ def attributeReceiver(attribute: AttributeT, defaultValue: AttributeValueT):
 	return wrapper
 
 
-def wildCardAttributeReceiver(attribute: AttributeT, defaultValueGetter: Callable[[AttributeT], AttributeValueT):
+def wildCardAttributeReceiver(
+		attribute: AttributeT,
+		defaultValueGetter: Callable[[AttributeT], AttributeValueT]
+):
 	def wrapper(func: WildCardAttributeReceiverUnboundT):
 		func._receivingAttribute = attribute
 		func._defaultValueGetter = defaultValueGetter
