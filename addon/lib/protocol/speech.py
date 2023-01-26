@@ -13,4 +13,3 @@ class SpeechCommand(IntEnum):
 
 class SpeechAttribute(bytes, Enum):
 	SUPPORTED_COMMANDS = b'supportedCommands'
-	SUPPORTED_SETTINGS = b'supportedSettings'

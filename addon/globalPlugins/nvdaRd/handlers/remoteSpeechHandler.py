@@ -35,7 +35,7 @@ class RemoteSpeechHandler(RemoteHandler):
 	def _sendSupportedCommands(self) -> bytes:
 		return self._pickle(self._curSynth.supportedCommands)
 
-	@protocol.attributeSender(protocol.SpeechAttribute.SUPPORTED_SETTINGS)
+	@protocol.attributeSender(protocol.GenericAttribute.SUPPORTED_SETTINGS)
 	def _sendSupportedSettings(self) -> bytes:
 		return self._pickle(self._curSynth.supportedSettings)
 

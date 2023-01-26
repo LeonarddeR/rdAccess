@@ -6,6 +6,7 @@ import time
 import keyboardHandler
 from logHandler import log
 from enum import Enum, auto
+from abc import abstractmethod
 
 if typing.TYPE_CHECKING:
 	from .. import protocol
@@ -37,7 +38,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		except EnvironmentError:
 			raise
 
-		for handler in self._attributeSenderStore.values():
+		for handler in self._attributeSenderStore.boundHandlers:
 			handler()
 
 	def _onReadError(self, error: int) -> bool:
@@ -61,10 +62,10 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		remoteProcessHasFocus = api.getFocusObject().processID == self._dev.pipeProcessId
 		if not remoteProcessHasFocus:
 			return RemoteFocusState.NONE
-		valueProcessor = self._attributeValueProcessor[protocol.GenericAttribute.HAS_FOCUS]
+		attribute = protocol.GenericAttribute.HAS_FOCUS
 		log.debug("Requesting focus information from remote driver")
-		if valueProcessor.hasNewValueSince(self._focusLastSet):
-			newValue = valueProcessor.value
+		if self._attributeValueProcessor.hasNewValueSince(attribute, self._focusLastSet):
+			newValue = self._attributeValueProcessor.getValue(attribute)
 			log.debug(f"Focus value changed since focus last set, set to {newValue}")
 			return RemoteFocusState.SESSION_FOCUSED if newValue else RemoteFocusState.CLIENT_FOCUSED
 		# Request an attribute update for next round
@@ -84,3 +85,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 	def _handleHasFocus(self, payload: bytes) -> bool:
 		assert len(payload) == 1
 		return bool.from_bytes(payload, byteorder=sys.byteorder)
+
+	@abstractmethod
+	def _sendSupportedSettings(self) -> bytes:
+		raise NotImplementedError

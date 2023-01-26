@@ -131,3 +131,11 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		initialTime = time.time()
 		result = self._safeWait(lambda: self._lastKeyboardGestureInputTime >= initialTime, timeout=self.timeout)
 		return result.to_bytes(1, sys.byteorder)
+
+	@protocol.attributeReceiver(protocol.GenericAttribute.SUPPORTED_SETTINGS, defaultValue=[])
+	def _handleSupportedSettingsUpdate(self, payLoad: bytes):
+		assert len(payLoad) > 0
+		return self._unpickle(payLoad)
+
+	def _get_supportedSettings(self):
+		return self._attributeValueProcessor.getValue(protocol.GenericAttribute.SUPPORTED_SETTINGS]

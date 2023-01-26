@@ -54,6 +54,10 @@ class RemoteBrailleHandler(RemoteHandler):
 			# Execute it on the main thread
 			self._queueFunctionOnMainThread(braille.handler._writeCells, cells)
 
+	@protocol.attributeSender(protocol.GenericAttribute.SUPPORTED_SETTINGS)
+	def _sendSupportedSettings(self) -> bytes:
+		return self._pickle(self._currentDisplay.supportedSettings)
+
 	def _handleExecuteGesture(self, gesture):
 		if (
 			isinstance(gesture, braille.BrailleDisplayGesture)
