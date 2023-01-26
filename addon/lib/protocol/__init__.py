@@ -10,6 +10,8 @@ from typing import (
 	DefaultDict,
 	Dict,
 	Generic,
+	Optional,
+	Set,
 	TypeVar,
 	Union,
 )
@@ -24,6 +26,7 @@ from .braille import BrailleAttribute, BrailleCommand
 from typing_extensions import ParamSpec
 from fnmatch import fnmatch
 from functools import partial
+from extensionPoints import HandlerRegistrar, HandlerT
 
 
 handlerParamSpec = ParamSpec("handlerParamSpec")
@@ -49,13 +52,13 @@ CommandT = Union[GenericCommand, SpeechCommand, BrailleCommand]
 CommandHandlerUnboundT = Callable[[RemoteProtocolHandlerT, bytes], None]
 CommandHandlerT = Callable[[bytes], None]
 AttributeT = Union[GenericAttribute, SpeechAttribute, BrailleAttribute, bytes]
-AttributeHandlerT = TypeVar("AttributeHandlerT")
 attributeFetcherT = Callable[..., bytes]
 attributeSenderT = Callable[..., None]
 AttributeReceiverT = Callable[[bytes], AttributeValueT]
 AttributeReceiverUnboundT = Callable[[RemoteProtocolHandlerT, bytes], AttributeValueT]
 WildCardAttributeReceiverT = Callable[[AttributeT, bytes], AttributeValueT]
 WildCardAttributeReceiverUnboundT = Callable[[RemoteProtocolHandlerT, AttributeT, bytes], AttributeValueT]
+AttributeHandlerT = TypeVar("AttributeHandlerT", attributeFetcherT, AttributeReceiverUnboundT, WildCardAttributeReceiverUnboundT)
 
 
 def commandHandler(command: CommandT):
@@ -70,79 +73,61 @@ def commandHandler(command: CommandT):
 
 
 class AttributeHandler(Generic[AttributeHandlerT]):
-	func: AttributeHandlerT
-	attribute: AttributeT = b''
+	_attribute: AttributeT = b''
+	_func: AttributeHandlerT
 
 	@property
 	def isCatchAll(self) -> bool:
-		return b'*' in self.attribute
+		return b'*' in self._attribute
 
 	def __init__(self, attribute: AttributeT, func: AttributeHandlerT):
-		self.attribute = attribute
-		self.func = func
+		self._attribute = attribute
+		self._func = func
+
+	def __call__(self, protocolHandler: "RemoteProtocolHandler", *args, **kwargs):
+		return self._func(protocolHandler, *args, **kwargs)
 
 
 class AttributeSender(AttributeHandler[attributeFetcherT]):
-
-	def __call__(self, protocolHandler: "RemoteProtocolHandler", *args, **kwargs):
-		value = self.func(self, *args, **kwargs)
-		protocolHandler.setRemoteAttribute(attribute=self.sendingAttribute, value=value)
+	...
 
 
 def attributeSender(attribute: AttributeT):
 	return partial(AttributeSender, attribute)
 
 
-class AttributeReceiver:
-	func: Union[AttributeReceiverUnboundT, WildCardAttributeReceiverUnboundT]
-	receivingAttribute: AttributeT
-	defaultValueGetter: Callable[[AttributeT], Any]
-
-	@property
-	def isCatchAll(self) -> bool:
-		return b'*' in self.sendingAttribute
-
-	def __init__(self, sendingAttribute: AttributeT, func: attributeFetcherT, defaultValueGetter: ):
-		self.func = func
-
-	def __call__(self, protocolHandler: "RemoteProtocolHandler", *args, **kwargs):
-		value = self.func(self, *args, **kwargs)
-		protocolHandler.setRemoteAttribute(attribute=self.sendingAttribute, value=value)
-
-
-def attributeReceiver(attribute: AttributeT, defaultValue: AttributeValueT):
-	def wrapper(func: AttributeReceiverUnboundT):
-		func._receivingAttribute = attribute
-		func._defaultValueGetter = lambda attribute: defaultValue
-		func._catchAll = False
-		return func
-	return wrapper
-
-
-def wildCardAttributeReceiver(
-		attribute: AttributeT,
-		defaultValueGetter: Callable[[AttributeT], AttributeValueT]
+class AttributeReceiver(
+	AttributeHandler[Union[AttributeReceiverUnboundT, WildCardAttributeReceiverUnboundT]],
+	Generic[AttributeValueT]
 ):
-	def wrapper(func: WildCardAttributeReceiverUnboundT):
-		func._receivingAttribute = attribute
-		func._defaultValueGetter = defaultValueGetter
-		func._catchAll = b'*' in attribute
+	_defaultValueGetter: Optional[Callable[["RemoteProtocolHandler", AttributeT], AttributeValueT]]
+
+	def __init__(
+		self,
+		attribute: AttributeT,
+		func: Union[AttributeReceiverUnboundT, WildCardAttributeReceiverUnboundT],
+		defaultValueGetter: Optional[Callable[["RemoteProtocolHandler", AttributeT], AttributeValueT]]
+	):
+		super().__init__(attribute, func)
+		self._defaultValueGetter = defaultValueGetter
+
+	def defaultValueGetter(self, func: Callable[["RemoteProtocolHandler", AttributeT], AttributeValueT]):
+		self._defaultValueGetter = func
 		return func
-	return wrapper
 
 
-class AttributeHandlerStore(Generic[AttributeHandlerT]):
-	_attributeHandlers: Dict[AttributeT, AttributeHandlerT]
+def attributeReceiver(attribute: AttributeT, defaultValue: AttributeValueT = NotImplemented):
+	kwargs = {}
+	if defaultValue is not NotImplemented:
+		kwargs["defaultValueGetter"] = lambda self, attribute: defaultValue
+	return partial(AttributeReceiver, attribute, **kwargs)
 
-	def __init__(self):
-		self._attributeHandlers = {}
 
-	def register(self, attribute: AttributeT, handler: AttributeHandlerT):
-		self._attributeHandlers[attribute] = handler
+class AttributeHandlerStore(HandlerRegistrar[AttributeHandler]):
 
-	def _getHandler(self, attribute: AttributeT) -> AttributeHandlerT:
+	def _getHandler(self, attribute: AttributeT) -> HandlerT:
 		handler = next(
-			(v for k, v in self._attributeHandlers.items() if fnmatch(attribute, k)),
+			(v for v in self.handlers if fnmatch(attribute, v._attribute)),
 			None
 		)
 		if handler is None:
@@ -154,13 +139,13 @@ class AttributeSenderStore(AttributeHandlerStore):
 
 	def __call__(self, attribute: AttributeT, *args, **kwargs):
 		handler = self._getHandler(attribute)
-		if handler._catchAll:
+		if handler.isCatchAll:
 			handler(attribute)
 		else:
 			handler()
 
 
-class AttributeValueProcessor(AttributeHandlerStore[Union[AttributeReceiverT, WildCardAttributeReceiverT]]):
+class AttributeValueProcessor(AttributeHandlerStore):
 	_valueLocks: DefaultDict[AttributeT, Lock]
 	_valueTimes: DefaultDict[AttributeT, float]
 	_values: Dict[AttributeT, Any]
@@ -171,10 +156,10 @@ class AttributeValueProcessor(AttributeHandlerStore[Union[AttributeReceiverT, Wi
 		self._values = {}
 		self._valueTimes = DefaultDict(time.time)
 
-	def register(self, attribute: AttributeT, handler: Union[AttributeReceiverT, WildCardAttributeReceiverT]):
-		super().register(attribute, handler)
+	def register(self, handler: Union[WildCardAttributeReceiverUnboundT, ]):
 		if not handler._catchAll:
-			self._values[attribute] = handler._defaultValue
+			self._values[handler._attribute] = handler._
+		return super().register(handler)
 
 	def hasNewValueSince(self, attribute: AttributeT, t: float) -> bool:
 		return t < self._valueTimes[attribute]
