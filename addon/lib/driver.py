@@ -138,4 +138,4 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		return self._unpickle(payLoad)
 
 	def _get_supportedSettings(self):
-		return self._attributeValueProcessor.getValue(protocol.GenericAttribute.SUPPORTED_SETTINGS]
+		return self._attributeValueProcessor.getValue(protocol.GenericAttribute.SUPPORTED_SETTINGS)
