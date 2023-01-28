@@ -1,9 +1,9 @@
 from abc import abstractmethod
 import driverHandler
-from .detection import bgScanRD, KEY_NAMED_PIPE_CLIENT, KEY_VIRTUAL_CHANNEL
-from . import protocol
-from . import wtsVirtualChannel
-from . import namedPipe
+from ..detection import bgScanRD, KEY_NAMED_PIPE_CLIENT, KEY_VIRTUAL_CHANNEL
+from .. import protocol
+from .. import wtsVirtualChannel
+from .. import namedPipe
 import inputCore
 import keyboardHandler
 import time
@@ -13,23 +13,21 @@ from typing import (
 	Iterable,
 	Iterator,
 	List,
+	Optional,
 	Union,
 )
 import bdDetect
 from logHandler import log
-from autoSettingsUtils.driverSetting import NumericDriverSetting, BooleanDriverSetting
-import re
+from .settingsAccessor import SettingsAccessorBase
 
 
-AVAILABLE_SETTINGS_PATTERN = re.compile(r"^available([A-Z][A-Za-z]+)s$", re.ASCII)
 MSG_XON = 0x11
 MSG_XOFF = 0x13
 
 
 class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	name = "remote"
-	_remotePropertyCache: Dict[str, Any]
-
+	_settingsAccessor: Optional[SettingsAccessorBase] = None
 
 	@classmethod
 	def check(cls):
@@ -51,7 +49,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 				yield match
 
 	def terminate(self):
-		inputCore.decide_executeGesture.unregister(self._command_executeGesture)
+		inputCore.decide_executeGesture.unregister(self._handleDecideExecuteGesture)
 		try:
 			super().terminate()
 		finally:
@@ -59,7 +57,6 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			self._dev.close()
 
 	def __init__(self, port="auto"):
-		self._remotePropertyCache = {}
 		super().__init__()
 		self._connected = False
 		self._lastKeyboardGestureInputTime = time.time()
@@ -86,7 +83,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 					if self._connected:
 						break
 				if self._connected:
-					inputCore.decide_executeGesture.register(self._command_executeGesture)
+					inputCore.decide_executeGesture.register(self._handleDecideExecuteGesture)
 					break
 			else:
 				self._connected = True
@@ -95,49 +92,26 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		else:
 			raise RuntimeError("No remote device found")
 
-		for handler in self._attributeSenderStore.values():
-			handler()
-
-	def invalidateCache(self):
-		self._remotePropertyCache.clear()
-		super().invalidateCache()
+		self._attributeSenderStore.sendKnownValues()
 
 	def __getattribute__(self, name: str) -> Any:
-		if self._connected:
+		getter = super().__getattribute__
+		accessor = getter("_settingsAccessor")
+		if accessor:
 			try:
-				return self._remotePropertyCache[name]
-			except KeyError:
-				if self.isSupported(name):
-					value = self._remotePropertyCache[name] = self.getRemoteAttribute(self._getSettingAttribute(name))
-					return value
-				elif name.startswith("available"):  # Check to avoid regexing
-					setting, n = AVAILABLE_SETTINGS_PATTERN.subn(
-						lambda pat: pat.group(1)[0].lower() + pat.group(1)[1:],
-						name
-					)
-					if n == 1 and self.isSupported(setting):
-						attribute = name.encode("ASCII")
-						try:
-							value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
-						except KeyError:
-							value = self.getRemoteAttribute(attribute)
-						self._remotePropertyCache[name] = value
-						return value
-		return super().__getattribute__(name)
-
-	def _getSettingAttributeName(self, name: str) -> protocol.AttributeT:
-		return protocol.SETTING_ATTRIBUTE_PREFIX + name.encode("ASCII")
+				return getattr(accessor, name)
+			except AttributeError:
+				pass
+		return getter(name)
 
 	def __setattr__(self, name: str, value: Any) -> None:
-		if self._connected and self.isSupported(name):
-			attribute = self._getSettingAttributeName(name)
-			self.setRemoteAttribute(attribute, self._pickle(name))
-			self._remotePropertyCache[name] = value
-			if self._attributeValueProcessor.isAttributeSupported(attribute):
-				self._attributeValueProcessor.SetValue(attribute, value)
-		return super().__setattr__(name, value)
+		getter = super().__getattribute__
+		accessor = getter("_settingsAccessor")
+		if accessor and getter("isSupported")(name):
+			setattr(accessor, name, value)
+		super().__setattr__(name, value)
 
-	def _command_executeGesture(self, gesture):
+	def _handleDecideExecuteGesture(self, gesture):
 		if isinstance(gesture, keyboardHandler.KeyboardInputGesture):
 			self._lastKeyboardGestureInputTime = time.time()
 			intercepting = next(
@@ -184,6 +158,10 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		for s in settings:
 			s.useConfig = False
 		return settings
+
+	@_incomingSupportedSettings.updateCallback
+	def _updateCallback_supportedSettings(self, attribute: protocol.AttributeT, settings):
+		self._settingsAccessor = SettingsAccessorBase.createFromSettings(self, settings)
 
 	def _get_supportedSettings(self):
 		return self._attributeValueProcessor.getValue(protocol.GenericAttribute.SUPPORTED_SETTINGS)

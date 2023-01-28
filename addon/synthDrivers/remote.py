@@ -7,7 +7,7 @@ import sys
 from speech.commands import IndexCommand
 
 if typing.TYPE_CHECKING:
-	from ..lib import driver
+	from ..lib.protocol import driver
 	from ..lib import protocol
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()

@@ -45,8 +45,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		except EnvironmentError:
 			raise
 
-		for handler in self._attributeSenderStore.boundHandlers:
-			handler()
+		self._attributeSenderStore.sendKnownValues()
 
 	def _onReadError(self, error: int) -> bool:
 		if error == 109:
@@ -96,11 +95,16 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 	def _outgoing_supportedSettings(self) -> bytes:
 		return self._pickle(self._driver.supportedSettings)
 
+	@protocol.attributeSender(b"available*s")
+	def _outgoing_availableSettingValues(self, attribute: protocol.AttributeT) -> bytes:
+		name = attribute.decode("ASCII")
+		return self._pickle(getattr(self._driver, name))
+
 	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
 	def _incoming_setting(self, attribute: protocol.AttributeT, payLoad: bytes):
 		assert len(payLoad) > 0
 		return self._unpickle(payLoad)
 
 	@_incoming_setting.updateCallback
-	def _setIncomingSettingOnDriver(self, attribute: protocol.AttributeT, value: protocol.AttributeValueT):
+	def _setIncomingSettingOnDriver(self, attribute: protocol.AttributeT, value: typing.Any):
 		setattr(self._driver, attribute.decode("ASCII"), value)

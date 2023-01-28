@@ -5,7 +5,7 @@ from typing import List
 import inputCore
 
 if typing.TYPE_CHECKING:
-	from ..lib import driver
+	from ..lib.protocol import driver
 	from ..lib import protocol
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
@@ -43,7 +43,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		return self._unpickle(payload)
 
 	@_incoming_gestureMapUpdate.defaultValueGetter
-	def _default_gestureMap(self, attribute: AttributeT):
+	def _default_gestureMap(self, attribute: protocol.AttributeT):
 		return inputCore.GlobalGestureMap()
 
 	def _get_gestureMap(self) -> inputCore.GlobalGestureMap:

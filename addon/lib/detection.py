@@ -12,8 +12,8 @@ KEY_NAMED_PIPE_CLIENT = "NamedPipeClient"
 
 
 def bgScanRD(
-	driverType: DriverType = DriverType.BRAILLE,
-	limitToDevices: Optional[List[str]] = None,
+		driverType: DriverType = DriverType.BRAILLE,
+		limitToDevices: Optional[List[str]] = None,
 ):
 	from .driver import RemoteDriver
 	if limitToDevices and RemoteDriver.name not in limitToDevices:
