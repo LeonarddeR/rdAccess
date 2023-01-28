@@ -18,7 +18,7 @@ else:
 class RemoteBrailleHandler(RemoteHandler):
 	driverType = protocol.DriverType.BRAILLE
 
-	_currentDisplay: braille.BrailleDisplayDriver
+	_driver: braille.BrailleDisplayDriver
 
 	def __init__(self, pipeName: str, isNamedPipeClient: bool = True):
 		super().__init__(pipeName, isNamedPipeClient)
@@ -30,19 +30,19 @@ class RemoteBrailleHandler(RemoteHandler):
 		inputCore.decide_executeGesture.unregister(self._handleExecuteGesture)
 		return super().terminate()
 
-	def _get__currentDisplay(self):
+	def _get__driver(self):
 		return braille.handler.display
 
 	@protocol.attributeSender(protocol.BrailleAttribute.NUM_CELLS)
-	def _sendNumCells(self) -> bytes:
-		return intToByte(self._currentDisplay.numCells)
+	def _outgoing_numCells(self) -> bytes:
+		return intToByte(self._driver.numCells)
 
 	@protocol.attributeSender(protocol.BrailleAttribute.GESTURE_MAP)
-	def _sendGestureMap(self) -> bytes:
-		return self._pickle(self._currentDisplay.gestureMap)
+	def _outgoing_gestureMap(self) -> bytes:
+		return self._pickle(self._driver.gestureMap)
 
 	@protocol.commandHandler(protocol.BrailleCommand.DISPLAY)
-	def _handleDisplay(self, payload: bytes):
+	def _command_display(self, payload: bytes):
 		cells = list(payload)
 		if (
 			braille.handler.displaySize > 0
@@ -53,10 +53,6 @@ class RemoteBrailleHandler(RemoteHandler):
 			# and automatically falls back to noBraille if desired
 			# Execute it on the main thread
 			self._queueFunctionOnMainThread(braille.handler._writeCells, cells)
-
-	@protocol.attributeSender(protocol.GenericAttribute.SUPPORTED_SETTINGS)
-	def _sendSupportedSettings(self) -> bytes:
-		return self._pickle(self._currentDisplay.supportedSettings)
 
 	def _handleExecuteGesture(self, gesture):
 		if (

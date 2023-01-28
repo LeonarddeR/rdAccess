@@ -4,11 +4,10 @@ from hwIo.base import LPOVERLAPPED_COMPLETION_ROUTINE
 from hwIo.ioThread import IoThread
 from extensionPoints import Action
 import winKernel
-from serial.win32 import FILE_FLAG_OVERLAPPED, INVALID_HANDLE_VALUE, OVERLAPPED, CreateFile
+from serial.win32 import FILE_FLAG_OVERLAPPED, OVERLAPPED, CreateFile, INVALID_HANDLE_VALUE
 from enum import IntFlag, IntEnum
 from ctypes import windll, WinError, sizeof, byref, create_string_buffer
 from struct import unpack, calcsize
-from logHandler import log
 
 FILE_FLAG_BACKUP_SEMANTICS = 0x02000000
 
@@ -36,10 +35,10 @@ class DirectoryWatcher:
 	directoryChanged: Action
 
 	def __init__(
-		self,
-		directory: str,
-		notifyFilter: FileNotifyFilter = FileNotifyFilter.FILE_NOTIFY_CHANGE_FILE_NAME,
-		watchSubtree: bool = False
+			self,
+			directory: str,
+			notifyFilter: FileNotifyFilter = FileNotifyFilter.FILE_NOTIFY_CHANGE_FILE_NAME,
+			watchSubtree: bool = False
 	):
 		self._watching = False
 		self._directory = directory

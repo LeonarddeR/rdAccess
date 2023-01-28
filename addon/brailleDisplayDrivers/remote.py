@@ -30,26 +30,27 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		super().__init__()
 
 	@protocol.attributeReceiver(protocol.BrailleAttribute.NUM_CELLS, defaultValue=0)
-	def _handleNumCellsUpdate(self, payload: bytes) -> int:
+	def _incoming_numCells(self, payload: bytes) -> int:
 		assert len(payload) == 1
 		return ord(payload)
 
 	def _get_numCells(self) -> int:
 		return self._attributeValueProcessor.getValue(protocol.BrailleAttribute.NUM_CELLS)
 
-	@protocol.attributeReceiver(
-		protocol.BrailleAttribute.GESTURE_MAP,
-		defaultValueGetter=lambda self, attribute: inputCore.GlobalGestureMap()
-	)
-	def _handleGestureMapUpdate(self, payload: bytes) -> inputCore.GlobalGestureMap:
+	@protocol.attributeReceiver(protocol.BrailleAttribute.GESTURE_MAP)
+	def _incoming_gestureMapUpdate(self, payload: bytes) -> inputCore.GlobalGestureMap:
 		assert len(payload) > 0
 		return self._unpickle(payload)
+
+	@_incoming_gestureMapUpdate.defaultValueGetter
+	def _default_gestureMap(self, attribute: AttributeT):
+		return inputCore.GlobalGestureMap()
 
 	def _get_gestureMap(self) -> inputCore.GlobalGestureMap:
 		return self._attributeValueProcessor.getValue(protocol.BrailleAttribute.GESTURE_MAP)
 
 	@protocol.commandHandler(protocol.BrailleCommand.EXECUTE_GESTURE)
-	def _handleExecuteGesture(self, payload: bytes):
+	def _command_executeGesture(self, payload: bytes):
 		assert len(payload) > 0
 		gesture = self._unpickle(payload)
 		inputCore.manager.executeGesture(gesture)

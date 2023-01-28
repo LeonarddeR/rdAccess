@@ -8,7 +8,6 @@ from glob import glob
 from fnmatch import fnmatch
 from . import handlers
 from typing import Dict
-import bdDetect
 
 if typing.TYPE_CHECKING:
 	from ...lib import protocol

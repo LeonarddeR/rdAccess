@@ -7,6 +7,7 @@ import keyboardHandler
 from logHandler import log
 from enum import Enum, auto
 from abc import abstractmethod
+from driverHandler import Driver
 
 if typing.TYPE_CHECKING:
 	from .. import protocol
@@ -28,6 +29,12 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 	_dev: namedPipe.NamedPipeBase
 	_focusLastSet: float
 	_focusTestGesture = keyboardHandler.KeyboardInputGesture.fromName("alt+control+shift+f24")
+
+	_driver: Driver
+	_abstract__driver = True
+
+	def _get__driver(self) -> Driver:
+		raise NotImplementedError
 
 	def __init__(self, pipeName: str, isNamedPipeClient: bool = True):
 		super().__init__()
@@ -56,7 +63,6 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		self._focusLastSet = time.time()
 
 	hasFocus: RemoteFocusState
-	_cache_hasFocus = True
 
 	def _get_hasFocus(self) -> RemoteFocusState:
 		remoteProcessHasFocus = api.getFocusObject().processID == self._dev.pipeProcessId
@@ -82,10 +88,19 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		return RemoteFocusState.SESSION_PENDING
 
 	@protocol.attributeReceiver(protocol.GenericAttribute.HAS_FOCUS, defaultValue=False)
-	def _handleHasFocus(self, payload: bytes) -> bool:
+	def _incoming_hasFocus(self, payload: bytes) -> bool:
 		assert len(payload) == 1
 		return bool.from_bytes(payload, byteorder=sys.byteorder)
 
-	@abstractmethod
-	def _sendSupportedSettings(self) -> bytes:
-		raise NotImplementedError
+	@protocol.attributeSender(protocol.GenericAttribute.SUPPORTED_SETTINGS)
+	def _outgoing_supportedSettings(self) -> bytes:
+		return self._pickle(self._driver.supportedSettings)
+
+	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
+	def _incoming_setting(self, attribute: protocol.AttributeT, payLoad: bytes):
+		assert len(payLoad) > 0
+		return self._unpickle(payLoad)
+
+	@_incoming_setting.updateCallback
+	def _setIncomingSettingOnDriver(self, attribute: protocol.AttributeT, value: protocol.AttributeValueT):
+		setattr(self._driver, attribute.decode("ASCII"), value)

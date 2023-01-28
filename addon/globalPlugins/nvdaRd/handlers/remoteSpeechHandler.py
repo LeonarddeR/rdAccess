@@ -14,6 +14,7 @@ else:
 
 class RemoteSpeechHandler(RemoteHandler):
 	driverType = protocol.DriverType.SPEECH
+	_driver: synthDriverHandler.SynthDriver
 
 	def __init__(self, pipeAddress: str):
 		self._indexesSpeaking = []
@@ -26,45 +27,39 @@ class RemoteSpeechHandler(RemoteHandler):
 		synthDriverHandler.synthIndexReached.unregister(self._onSynthIndexReached)
 		return super().terminate()
 
-	_curSynth: synthDriverHandler.SynthDriver
-
-	def _get__curSynth(self):
+	def _get__driver(self):
 		return synthDriverHandler.getSynth()
 
 	@protocol.attributeSender(protocol.SpeechAttribute.SUPPORTED_COMMANDS)
-	def _sendSupportedCommands(self) -> bytes:
-		return self._pickle(self._curSynth.supportedCommands)
-
-	@protocol.attributeSender(protocol.GenericAttribute.SUPPORTED_SETTINGS)
-	def _sendSupportedSettings(self) -> bytes:
-		return self._pickle(self._curSynth.supportedSettings)
+	def _outgoing_supportedCommands(self) -> bytes:
+		return self._pickle(self._driver.supportedCommands)
 
 	@protocol.commandHandler(protocol.SpeechCommand.SPEAK)
-	def _handleSpeak(self, payload: bytes):
+	def _command_speak(self, payload: bytes):
 		sequence = self._unpickle(payload)
 		for item in sequence:
 			if isinstance(item, IndexCommand):
 				self._indexesSpeaking.append(item.index)
 		# Queue speech to the current synth directly because we don't want unnecessary processing to happen.
-		self._curSynth.speak(sequence)
+		self._driver.speak(sequence)
 
 	@protocol.commandHandler(protocol.SpeechCommand.CANCEL)
-	def _handleCancel(self, payload: bytes = b''):
+	def _command_cancel(self, payload: bytes = b''):
 		self._indexesSpeaking.clear()
-		self._curSynth.cancel()
+		self._driver.cancel()
 
 	@protocol.commandHandler(protocol.SpeechCommand.PAUSE)
-	def _handlePause(self, payload: bytes):
+	def _command_pause(self, payload: bytes):
 		assert len(payload) == 1
 		switch = bool.from_bytes(payload, sys.byteorder)
-		self._curSynth.pause(switch)
+		self._driver.pause(switch)
 
 	def _onSynthIndexReached(
-		self,
-		synth: typing.Optional[synthDriverHandler.SynthDriver] = None,
-		index: typing.Optional[int] = None
+			self,
+			synth: typing.Optional[synthDriverHandler.SynthDriver] = None,
+			index: typing.Optional[int] = None
 	):
-		assert synth == self._curSynth
+		assert synth == self._driver
 		if index in self._indexesSpeaking:
 			indexBytes = typing.cast(int, index).to_bytes(
 				length=2,  # Bytes needed to encode speech._manager.MAX_INDEX

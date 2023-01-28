@@ -27,7 +27,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 	def speak(self, speechSequence):
 		for item in speechSequence:
 			if isinstance(item, IndexCommand):
-				item.index += protocol.SPEECH_INDEX_OFFSET
+				item.index += protocol.speech.SPEECH_INDEX_OFFSET
 		self.writeMessage(protocol.SpeechCommand.SPEAK, self._pickle(speechSequence))
 
 	def cancel(self):
@@ -37,18 +37,18 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		self.writeMessage(protocol.SpeechCommand.PAUSE, boolToByte(switch))
 
 	@protocol.attributeReceiver(protocol.SpeechAttribute.SUPPORTED_COMMANDS, defaultValue=frozenset())
-	def _handleSupportedCommandsUpdate(self, payLoad: bytes) -> frozenset:
+	def _incoming_supportedCommands(self, payLoad: bytes) -> frozenset:
 		assert len(payLoad) > 0
 		return self._unpickle(payLoad)
 
 	def _get_supportedCommands(self):
-		return self._attributeValueProcessor[protocol.SpeechAttribute.SUPPORTED_COMMANDS].value
+		return self._attributeValueProcessor.getValue(protocol.SpeechAttribute.SUPPORTED_COMMANDS)
 
 	@protocol.commandHandler(protocol.SpeechCommand.INDEX_REACHED)
-	def _handleIndexReached(self, incomingPayload: bytes):
+	def _command_indexReached(self, incomingPayload: bytes):
 		assert len(incomingPayload) == 2
 		index = int.from_bytes(incomingPayload, sys.byteorder)
-		index -= protocol.SPEECH_INDEX_OFFSET
+		index -= protocol.speech.SPEECH_INDEX_OFFSET
 		synthDriverHandler.synthIndexReached.notify(synth=self, index=index)
 
 
