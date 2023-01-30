@@ -18,6 +18,7 @@ from typing import (
 )
 import bdDetect
 from logHandler import log
+from autoSettingsUtils.driverSetting import DriverSetting
 from .settingsAccessor import SettingsAccessorBase
 
 
@@ -160,8 +161,12 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		return settings
 
 	@_incomingSupportedSettings.updateCallback
-	def _updateCallback_supportedSettings(self, attribute: protocol.AttributeT, settings):
-		self._settingsAccessor = SettingsAccessorBase.createFromSettings(self, settings)
+	def _updateCallback_supportedSettings(
+			self,
+			attribute: protocol.AttributeT,
+			settings: Iterable[DriverSetting]
+	):
+		self._settingsAccessor = SettingsAccessorBase.createFromSettings(self, settings) if settings else None
 
 	def _get_supportedSettings(self):
 		return self._attributeValueProcessor.getValue(protocol.GenericAttribute.SUPPORTED_SETTINGS)

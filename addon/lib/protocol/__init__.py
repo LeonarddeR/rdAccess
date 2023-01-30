@@ -104,7 +104,7 @@ class AttributeHandler(Generic[AttributeHandlerT]):
 			*args,
 			**kwargs
 	):
-		log.debug(f"Calling {self!r} for attribute {attribute!r}")
+		#log.debug(f"Calling {self!r} for attribute {attribute!r}")
 		if self._isCatchAll:
 			return self._func(protocolHandler, attribute, *args, **kwargs)
 		return self._func(protocolHandler, *args, **kwargs)
@@ -202,7 +202,7 @@ class AttributeHandlerStore(HandlerRegistrar, Generic[AttributeHandlerT]):
 class AttributeSenderStore(AttributeHandlerStore[attributeSenderT]):
 
 	def __call__(self, attribute: AttributeT, *args, **kwargs):
-		log.debug(f"Getting handler on {self!r} to process attribute {attribute!r}")
+		#log.debug(f"Getting handler on {self!r} to process attribute {attribute!r}")
 		handler = self._getHandler(attribute)
 		handler(*args, **kwargs)
 
@@ -230,22 +230,20 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 	def _getDefaultValue(self, attribute: AttributeT) -> AttributeValueT:
 		handler = self._getRawHandler(attribute)
 		getter = handler._defaultValueGetter.__get__(handler.__self__)
-		log.debug(f"Getting default value for attribute {attribute!r} on {self!r} using {getter!r}")
+		#log.debug(f"Getting default value for attribute {attribute!r} on {self!r} using {getter!r}")
 		return getter(attribute)
 
 	def _invokeUpdateCallback(self, attribute: AttributeT, value: AttributeValueT):
 		handler = self._getRawHandler(attribute)
 		if handler._updateCallback is not None:
 			callback = handler._updateCallback.__get__(handler.__self__)
-			log.debug(
-				f"Invoking update callback {callback!r} with value {value!r} for attribute {attribute!r} on {self!r}"
-			)
+			#log.debug(f"Invoking update callback {callback!r} for attribute {attribute!r} on {self!r}")
 			try:
 				callback(attribute, value)
 			except Exception:
 				log.error(
 					f"Error while invoking callback {callback!r} "
-					f"for attribute {attribute!r} and value {value!r}",
+					f"for attribute {attribute!r}",
 					exc_info=True
 				)
 
@@ -262,11 +260,11 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 			self._valueTimes[attribute] = time.time()
 			self._invokeUpdateCallback(attribute, value)
 
-	def __call__(self, attribute: AttributeT, val: bytes):
-		log.debug(f"Getting handler on {self!r} to process attribute {attribute!r}")
+	def __call__(self, attribute: AttributeT, rawValue: bytes):
+		#log.debug(f"Getting handler on {self!r} to process attribute {attribute!r}")
 		handler = self._getHandler(attribute)
-		value = handler(val)
-		log.debug(f"Handler on {self!r} returned value {value!r} for attribute {attribute!r}")
+		value = handler(rawValue)
+		#log.debug(f"Handler on {self!r} returned value {value!r} for attribute {attribute!r}")
 		self.SetValue(attribute, value)
 
 
@@ -323,25 +321,15 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		handler(payload)
 
 	@commandHandler(GenericCommand.ATTRIBUTE)
-	def _handleAttributeChanges(self, payload: bytes):
+	def _command_attribute(self, payload: bytes):
 		attribute, value = payload[1:].split(b'`', 1)
-		log.debug(f"Handling attribute {attribute!r} on {self!r}")
+		log.debug(f"Handling attribute {attribute!r} on {self!r}, value {value!r}")
 		if not value:
 			log.debug(f"No value sent for attribute {attribute!r} on {self!r}, direction outgoing")
-			try:
-				handler = self._attributeSenderStore._getHandler(attribute)
-			except NotImplementedError:
-				log.error(f"No attribute sender for attribute {attribute}")
-				return
-			handler()
+			self._attributeSenderStore(attribute)
 		else:
 			log.debug(f"Value of length {len(value)} sent for attribute {attribute!r} on {self!r}, direction incoming")
-			try:
-				handler = self._attributeValueProcessor._getHandler(attribute)
-			except NotImplementedError:
-				log.error(f"No attribute receiver for attribute {attribute}")
-				return
-			handler(value)
+			self._attributeValueProcessor(attribute, value)
 
 	@abstractmethod
 	def _incoming_setting(self, attribute: AttributeT, payLoad: bytes):
