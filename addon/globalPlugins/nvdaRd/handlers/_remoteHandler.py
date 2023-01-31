@@ -108,3 +108,8 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 	@_incoming_setting.updateCallback
 	def _setIncomingSettingOnDriver(self, attribute: protocol.AttributeT, value: typing.Any):
 		setattr(self._driver, attribute.decode("ASCII"), value)
+
+	@protocol.attributeSender(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
+	def _outgoing_setting(self, attribute: protocol.AttributeT):
+		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX):].decode("ASCII")
+		return self._pickle(getattr(self._driver, name))

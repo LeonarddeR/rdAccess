@@ -308,12 +308,12 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		if not message[0] == self.driverType:
 			raise RuntimeError(f"Unexpected payload: {message}")
 		command = cast(CommandT, message[1])
-		length = int.from_bytes(message[2:4], sys.byteorder)
+		expectedLength = int.from_bytes(message[2:4], sys.byteorder)
 		payload = message[4:]
-		if length < len(payload):
+		if expectedLength > len(payload):
 			self._receiveBuffer = message
 			return
-		assert length == len(payload)
+		assert expectedLength == len(payload)
 		handler = self._commandHandlers.get(command)
 		if not handler:
 			log.error(f"No handler for command {command}")
@@ -334,10 +334,6 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 	@abstractmethod
 	def _incoming_setting(self, attribute: AttributeT, payLoad: bytes):
 		raise NotImplementedError
-
-	@attributeSender(SETTING_ATTRIBUTE_PREFIX + b"*")
-	def _outgoingSetting(self, attribute: AttributeT, value: Any):
-		return self._pickle(value)
 
 	def writeMessage(self, command: CommandT, payload: bytes = b""):
 		data = bytes((

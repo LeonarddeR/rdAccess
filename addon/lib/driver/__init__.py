@@ -97,12 +97,11 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	def __getattribute__(self, name: str) -> Any:
 		getter = super().__getattribute__
+		if name.startswith("_") and not name.startswith("_get_"):
+			return getter(name)
 		accessor = getter("_settingsAccessor")
-		if accessor:
-			try:
-				return getattr(accessor, name)
-			except AttributeError:
-				pass
+		if accessor and name in dir(accessor):
+			return getattr(accessor, name)
 		return getter(name)
 
 	def __setattr__(self, name: str, value: Any) -> None:
@@ -174,4 +173,8 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
 	def _incoming_setting(self, attribute: protocol.AttributeT, payLoad: bytes):
 		assert len(payLoad) > 0
+		return self._unpickle(payLoad)
+
+	@protocol.attributeReceiver(b"available*s")
+	def _incoming_availableSettingValues(self, attribute: protocol.AttributeT, payLoad: bytes):
 		return self._unpickle(payLoad)

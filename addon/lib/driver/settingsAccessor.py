@@ -1,8 +1,9 @@
 from baseObject import AutoPropertyObject
 from .. import protocol
 import weakref
-from typing import Any, Iterable
+from typing import Any, Dict, Iterable
 from autoSettingsUtils import driverSetting
+from logHandler import log
 
 
 class SettingsAccessorBase(AutoPropertyObject):
@@ -11,12 +12,12 @@ class SettingsAccessorBase(AutoPropertyObject):
 
 	@classmethod
 	def createFromSettings(cls, driver: "RemoteDriver", settings: Iterable[driverSetting.DriverSetting]):
-		dct = {"__module__": __name__}
-		for setting in settings:
-			dct[f"_get_{setting.id}"] = lambda self: self._getSetting(setting)
-			dct[f"_set_{setting.id}"] = lambda self, value: self._setSetting(setting, value)
-			if not isinstance(setting, (driverSetting.BooleanDriverSetting, driverSetting.NumericDriverSetting)):
-				dct[cls._getAvailableSettingsPropertyName(setting.id)] = lambda self: self.__getAvailableSettings(setting)
+		dct: Dict[str, Any] = {"__module__": __name__}
+		for s in settings:
+			dct[f"_get_{s.id}"] = cls._makeGetSetting(s.id)
+			dct[f"_set_{s.id}"] = cls._makeSetSetting(s.id)
+			if not isinstance(s, (driverSetting.BooleanDriverSetting, driverSetting.NumericDriverSetting)):
+				dct[f"_get_{cls._getAvailableSettingsPropertyName(s.id)}"] = cls._makeGetAvailableSettings(s.id)
 		return type("SettingsAccessor", (SettingsAccessorBase, ), dct)(driver)
 
 	def _get_driver(self):
@@ -37,18 +38,29 @@ class SettingsAccessorBase(AutoPropertyObject):
 	def _getAvailableSettingsAttributeName(cls, setting: str) -> protocol.AttributeT:
 		return cls._getAvailableSettingsPropertyName(setting).encode("ASCII")
 
-	def _getSetting(self, name: str):
-		return self.driver.getRemoteAttribute(self._getSettingAttributeName(name))
+	@classmethod
+	def _makeGetSetting(cls, setting: str):
+		def _getSetting(self):
+			log.debug(f"Getting value for setting {setting}")
+			return self.driver.getRemoteAttribute(self._getSettingAttributeName(setting))
+		return _getSetting
 
-	def _setSetting(self, name: str, value: Any):
-		attribute = self._getSettingAttributeName(name)
-		self.driver.setRemoteAttribute(attribute, self.driver._pickle(name))
-		if self.driver._attributeValueProcessor.isAttributeSupported(attribute):
-			self.driver._attributeValueProcessor.SetValue(attribute, value)
+	@classmethod
+	def _makeSetSetting(cls, setting: str):
+		def _setSetting(self, value: Any):
+			log.debug(f"Setting value for setting {setting} to {value}")
+			attribute = self._getSettingAttributeName(setting)
+			self.driver.setRemoteAttribute(attribute, self.driver._pickle(value))
+			if self.driver._attributeValueProcessor.isAttributeSupported(attribute):
+				self.driver._attributeValueProcessor.SetValue(attribute, value)
+		return _setSetting
 
-	def _getAvailableSettings(self, setting: str):
-		attribute = self._getAvailableSettingsAttributeName(setting)
-		try:
-			return self.driver._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
-		except KeyError:
-			return self.driver.getRemoteAttribute(attribute)
+	@classmethod
+	def _makeGetAvailableSettings(cls, setting: str):
+		def _getAvailableSettings(self):
+			attribute = self._getAvailableSettingsAttributeName(setting)
+			try:
+				return self.driver._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
+			except KeyError:
+				return self.driver.getRemoteAttribute(attribute)
+		return _getAvailableSettings
