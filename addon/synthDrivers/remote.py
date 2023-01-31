@@ -51,5 +51,9 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		index -= protocol.speech.SPEECH_INDEX_OFFSET
 		synthDriverHandler.synthIndexReached.notify(synth=self, index=index)
 
+	def initSettings(self):
+		# Call change voice to ensure the settings ring is updated.
+		synthDriverHandler.changeVoice(self, None)
+		return super().initSettings()
 
 SynthDriver = remoteSynthDriver

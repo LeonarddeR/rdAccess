@@ -57,6 +57,18 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			# Make sure the device gets closed.
 			self._dev.close()
 
+	def initSettings(self):
+		"""Initializings ettings not supported on this driver."""
+		...
+
+	def loadSettings(self, onlyChanged: bool = False):
+		"""Loading settings not supported on this driver."""
+		...
+
+	def saveSettings(self):
+		"""Saving settings not supported on this driver."""
+		...
+
 	def __init__(self, port="auto"):
 		super().__init__()
 		self._connected = False
@@ -166,6 +178,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			settings: Iterable[DriverSetting]
 	):
 		self._settingsAccessor = SettingsAccessorBase.createFromSettings(self, settings) if settings else None
+		self.initSettings()
 
 	def _get_supportedSettings(self):
 		return self._attributeValueProcessor.getValue(protocol.GenericAttribute.SUPPORTED_SETTINGS)

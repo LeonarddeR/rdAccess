@@ -73,8 +73,6 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			newValue = self._attributeValueProcessor.getValue(attribute)
 			log.debug(f"Focus value changed since focus last set, set to {newValue}")
 			return RemoteFocusState.SESSION_FOCUSED if newValue else RemoteFocusState.CLIENT_FOCUSED
-		# Request an attribute update for next round
-		self._focusLastSet = time.time()
 		# Tell the remote system to intercept a incoming gesture.
 		log.debug("Instructing remote system to intercept gesture")
 		self.writeMessage(

@@ -275,7 +275,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 	_commandHandlers: Dict[CommandT, CommandHandlerT]
 	_attributeSenderStore: AttributeSenderStore
 	_attributeValueProcessor: AttributeValueProcessor
-	timeout: float = 0.5
+	timeout: float = 0.75
 	cachePropertiesByDefault = True
 
 	def __new__(cls, *args, **kwargs):
@@ -305,6 +305,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 	def _onReceive(self, message: bytes):
 		if self._receiveBuffer:
 			message = self._receiveBuffer + message
+			self._receiveBuffer = b""
 		if not message[0] == self.driverType:
 			raise RuntimeError(f"Unexpected payload: {message}")
 		command = cast(CommandT, message[1])
@@ -313,7 +314,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		if expectedLength > len(payload):
 			self._receiveBuffer = message
 			return
-		assert expectedLength == len(payload)
+		assert expectedLength == len(payload), f"expected {expectedLength} != actual {len(payload)}"
 		handler = self._commandHandlers.get(command)
 		if not handler:
 			log.error(f"No handler for command {command}")
