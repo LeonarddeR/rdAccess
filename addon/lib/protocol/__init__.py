@@ -104,7 +104,7 @@ class AttributeHandler(Generic[AttributeHandlerT]):
 			*args,
 			**kwargs
 	):
-		#log.debug(f"Calling {self!r} for attribute {attribute!r}")
+		# log.debug(f"Calling {self!r} for attribute {attribute!r}")
 		if self._isCatchAll:
 			return self._func(protocolHandler, attribute, *args, **kwargs)
 		return self._func(protocolHandler, *args, **kwargs)
@@ -192,25 +192,13 @@ class AttributeHandlerStore(HandlerRegistrar, Generic[AttributeHandlerT]):
 		except NotImplementedError:
 			return False
 
-	@property
-	def boundHandlers(self):
-		for handler in self.handlers:
-			if not handler._isCatchAll:
-				yield partial(handler, handler._attribute)
-
 
 class AttributeSenderStore(AttributeHandlerStore[attributeSenderT]):
 
 	def __call__(self, attribute: AttributeT, *args, **kwargs):
-		#log.debug(f"Getting handler on {self!r} to process attribute {attribute!r}")
+		# log.debug(f"Getting handler on {self!r} to process attribute {attribute!r}")
 		handler = self._getHandler(attribute)
 		handler(*args, **kwargs)
-
-	def sendKnownValues(self):
-		log.debug("Sending known values")
-		for handler in self.boundHandlers:
-			log.debug(f"Sending known value using {handler!r}")
-			handler()
 
 
 class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
@@ -230,14 +218,14 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 	def _getDefaultValue(self, attribute: AttributeT) -> AttributeValueT:
 		handler = self._getRawHandler(attribute)
 		getter = handler._defaultValueGetter.__get__(handler.__self__)
-		#log.debug(f"Getting default value for attribute {attribute!r} on {self!r} using {getter!r}")
+		# log.debug(f"Getting default value for attribute {attribute!r} on {self!r} using {getter!r}")
 		return getter(attribute)
 
 	def _invokeUpdateCallback(self, attribute: AttributeT, value: AttributeValueT):
 		handler = self._getRawHandler(attribute)
 		if handler._updateCallback is not None:
 			callback = handler._updateCallback.__get__(handler.__self__)
-			#log.debug(f"Invoking update callback {callback!r} for attribute {attribute!r} on {self!r}")
+			# log.debug(f"Invoking update callback {callback!r} for attribute {attribute!r} on {self!r}")
 			try:
 				callback(attribute, value)
 			except Exception:
@@ -261,10 +249,10 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 			self._invokeUpdateCallback(attribute, value)
 
 	def __call__(self, attribute: AttributeT, rawValue: bytes):
-		#log.debug(f"Getting handler on {self!r} to process attribute {attribute!r}")
+		# log.debug(f"Getting handler on {self!r} to process attribute {attribute!r}")
 		handler = self._getHandler(attribute)
 		value = handler(rawValue)
-		#log.debug(f"Handler on {self!r} returned value {value!r} for attribute {attribute!r}")
+		# log.debug(f"Handler on {self!r} returned value {value!r} for attribute {attribute!r}")
 		self.SetValue(attribute, value)
 
 
@@ -275,7 +263,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 	_commandHandlers: Dict[CommandT, CommandHandlerT]
 	_attributeSenderStore: AttributeSenderStore
 	_attributeValueProcessor: AttributeValueProcessor
-	timeout: float = 0.75
+	timeout: float = 1.0
 	cachePropertiesByDefault = True
 
 	def __new__(cls, *args, **kwargs):
@@ -369,7 +357,19 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 			timeout -= (time.time() - curTime)
 		return predicate()
 
-	def getRemoteAttribute(self, attribute: AttributeT, timeout: Optional[float] = None):
+	def getRemoteAttribute(
+			self,
+			attribute: AttributeT,
+			allowCache: bool = False,
+			allowDefault: bool = False,
+			timeout: Optional[float] = None,
+	):
+		if allowCache:
+			try:
+				return self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
+			except KeyError:
+				pass
+
 		initialTime = time.time()
 		self.REQUESTRemoteAttribute(attribute=attribute)
 		if self._safeWait(
@@ -379,6 +379,8 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 			newValue = self._attributeValueProcessor.getValue(attribute)
 			log.debug(f"Received new value {newValue!r} for remote attribute {attribute!r}")
 			return newValue
+		if allowDefault:
+			return self._attributeValueProcessor._getDefaultValue(attribute)
 		raise TimeoutError(f"Wait for remote attribute {attribute} timed out")
 
 	def _pickle(self, obj: Any):

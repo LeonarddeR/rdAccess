@@ -45,8 +45,6 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		except EnvironmentError:
 			raise
 
-		self._attributeSenderStore.sendKnownValues()
-
 	def _onReadError(self, error: int) -> bool:
 		if error == 109:
 			# Broken pipe error

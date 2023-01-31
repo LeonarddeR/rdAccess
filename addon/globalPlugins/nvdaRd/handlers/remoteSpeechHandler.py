@@ -39,6 +39,7 @@ class RemoteSpeechHandler(RemoteHandler):
 		sequence = self._unpickle(payload)
 		for item in sequence:
 			if isinstance(item, IndexCommand):
+				item.index += protocol.speech.SPEECH_INDEX_OFFSET
 				self._indexesSpeaking.append(item.index)
 		# Queue speech to the current synth directly because we don't want unnecessary processing to happen.
 		self._driver.speak(sequence)
@@ -61,7 +62,8 @@ class RemoteSpeechHandler(RemoteHandler):
 	):
 		assert synth == self._driver
 		if index in self._indexesSpeaking:
-			indexBytes = typing.cast(int, index).to_bytes(
+			subtractedIndex = index - protocol.speech.SPEECH_INDEX_OFFSET
+			indexBytes = subtractedIndex.to_bytes(
 				length=2,  # Bytes needed to encode speech._manager.MAX_INDEX
 				byteorder=sys.byteorder,  # for a single byte big/little endian does not matter.
 				signed=False

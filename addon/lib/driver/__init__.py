@@ -58,16 +58,16 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			self._dev.close()
 
 	def initSettings(self):
-		"""Initializings ettings not supported on this driver."""
-		...
+		"""Initializing settings not supported on this driver."""
+		return
 
 	def loadSettings(self, onlyChanged: bool = False):
 		"""Loading settings not supported on this driver."""
-		...
+		return
 
 	def saveSettings(self):
 		"""Saving settings not supported on this driver."""
-		...
+		return
 
 	def __init__(self, port="auto"):
 		super().__init__()
@@ -104,8 +104,6 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			self._dev.close()
 		else:
 			raise RuntimeError("No remote device found")
-
-		self._attributeSenderStore.sendKnownValues()
 
 	def __getattribute__(self, name: str) -> Any:
 		getter = super().__getattribute__
@@ -178,10 +176,9 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			settings: Iterable[DriverSetting]
 	):
 		self._settingsAccessor = SettingsAccessorBase.createFromSettings(self, settings) if settings else None
-		self.initSettings()
 
 	def _get_supportedSettings(self):
-		return self._attributeValueProcessor.getValue(protocol.GenericAttribute.SUPPORTED_SETTINGS)
+		return self.getRemoteAttribute(protocol.GenericAttribute.SUPPORTED_SETTINGS, allowCache=True)
 
 	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
 	def _incoming_setting(self, attribute: protocol.AttributeT, payLoad: bytes):

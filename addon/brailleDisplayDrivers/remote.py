@@ -5,7 +5,7 @@ from typing import List
 import inputCore
 
 if typing.TYPE_CHECKING:
-	from ..lib.protocol import driver
+	from ..lib import driver
 	from ..lib import protocol
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
@@ -35,7 +35,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		return ord(payload)
 
 	def _get_numCells(self) -> int:
-		return self._attributeValueProcessor.getValue(protocol.BrailleAttribute.NUM_CELLS)
+		return self.getRemoteAttribute(protocol.BrailleAttribute.NUM_CELLS, allowCache=True, allowDefault=True)
 
 	@protocol.attributeReceiver(protocol.BrailleAttribute.GESTURE_MAP)
 	def _incoming_gestureMapUpdate(self, payload: bytes) -> inputCore.GlobalGestureMap:
@@ -47,7 +47,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		return inputCore.GlobalGestureMap()
 
 	def _get_gestureMap(self) -> inputCore.GlobalGestureMap:
-		return self._attributeValueProcessor.getValue(protocol.BrailleAttribute.GESTURE_MAP)
+		return self.getRemoteAttribute(protocol.BrailleAttribute.GESTURE_MAP, allowCache=True, allowDefault=True)
 
 	@protocol.commandHandler(protocol.BrailleCommand.EXECUTE_GESTURE)
 	def _command_executeGesture(self, payload: bytes):

@@ -59,8 +59,5 @@ class SettingsAccessorBase(AutoPropertyObject):
 	def _makeGetAvailableSettings(cls, setting: str):
 		def _getAvailableSettings(self):
 			attribute = self._getAvailableSettingsAttributeName(setting)
-			try:
-				return self.driver._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
-			except KeyError:
-				return self.driver.getRemoteAttribute(attribute)
+			return self.driver.getRemoteAttribute(attribute, allowCache=True)
 		return _getAvailableSettings

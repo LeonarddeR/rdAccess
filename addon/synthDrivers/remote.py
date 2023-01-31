@@ -4,10 +4,9 @@ import synthDriverHandler
 import queueHandler
 from hwIo import boolToByte
 import sys
-from speech.commands import IndexCommand
 
 if typing.TYPE_CHECKING:
-	from ..lib.protocol import driver
+	from ..lib import driver
 	from ..lib import protocol
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
@@ -25,9 +24,6 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		queueHandler.queueFunction(queueHandler.eventQueue, synthDriverHandler.findAndSetNextSynth, self.name)
 
 	def speak(self, speechSequence):
-		for item in speechSequence:
-			if isinstance(item, IndexCommand):
-				item.index += protocol.speech.SPEECH_INDEX_OFFSET
 		self.writeMessage(protocol.SpeechCommand.SPEAK, self._pickle(speechSequence))
 
 	def cancel(self):
@@ -42,18 +38,18 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		return self._unpickle(payLoad)
 
 	def _get_supportedCommands(self):
-		return self._attributeValueProcessor.getValue(protocol.SpeechAttribute.SUPPORTED_COMMANDS)
+		return self.getRemoteAttribute(protocol.SpeechAttribute.SUPPORTED_COMMANDS, allowCache=True)
 
 	@protocol.commandHandler(protocol.SpeechCommand.INDEX_REACHED)
 	def _command_indexReached(self, incomingPayload: bytes):
 		assert len(incomingPayload) == 2
 		index = int.from_bytes(incomingPayload, sys.byteorder)
-		index -= protocol.speech.SPEECH_INDEX_OFFSET
 		synthDriverHandler.synthIndexReached.notify(synth=self, index=index)
 
 	def initSettings(self):
 		# Call change voice to ensure the settings ring is updated.
 		synthDriverHandler.changeVoice(self, None)
 		return super().initSettings()
+
 
 SynthDriver = remoteSynthDriver
