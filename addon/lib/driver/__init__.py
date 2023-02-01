@@ -4,15 +4,10 @@ from ..detection import bgScanRD, KEY_NAMED_PIPE_CLIENT, KEY_VIRTUAL_CHANNEL
 from .. import protocol
 from .. import wtsVirtualChannel
 from .. import namedPipe
-import inputCore
-import keyboardHandler
-import time
-import sys
 from typing import (
 	Any,
 	Iterable,
 	Iterator,
-	List,
 	Optional,
 	Union,
 )
@@ -50,7 +45,6 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 				yield match
 
 	def terminate(self):
-		inputCore.decide_executeGesture.unregister(self._handleDecideExecuteGesture)
 		try:
 			super().terminate()
 		finally:
@@ -58,8 +52,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			self._dev.close()
 
 	def initSettings(self):
-		"""Initializing settings not supported on this driver."""
-		return
+		super(driverHandler.Driver, self).initSettings()
 
 	def loadSettings(self, onlyChanged: bool = False):
 		"""Loading settings not supported on this driver."""
@@ -72,8 +65,6 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	def __init__(self, port="auto"):
 		super().__init__()
 		self._connected = False
-		self._lastKeyboardGestureInputTime = time.time()
-		self._gesturesToIntercept: List[List[str]] = []
 		for portType, portId, port, portInfo in self._getTryPorts(port):
 			try:
 				if portType == KEY_VIRTUAL_CHANNEL:
@@ -96,7 +87,6 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 					if self._connected:
 						break
 				if self._connected:
-					inputCore.decide_executeGesture.register(self._handleDecideExecuteGesture)
 					break
 			else:
 				self._connected = True
@@ -121,19 +111,6 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			setattr(accessor, name, value)
 		super().__setattr__(name, value)
 
-	def _handleDecideExecuteGesture(self, gesture):
-		if isinstance(gesture, keyboardHandler.KeyboardInputGesture):
-			self._lastKeyboardGestureInputTime = time.time()
-			intercepting = next(
-				(t for t in self._gesturesToIntercept if any(i for i in t if i in gesture.normalizedIdentifiers)),
-				None
-			)
-			if intercepting is not None:
-				self._gesturesToIntercept.remove(intercepting)
-				log.debug(f"Intercepted gesture, execution canceled: {intercepting!r}")
-				return False
-		return True
-
 	@abstractmethod
 	def _handleRemoteDisconnect(self):
 		raise NotImplementedError()
@@ -148,18 +125,6 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 				self._handleRemoteDisconnect()
 				return
 		super()._onReceive(message)
-
-	@protocol.commandHandler(protocol.GenericCommand.INTERCEPT_GESTURE)
-	def _interceptGesture(self, payload: bytes):
-		intercepting = self._unpickle(payload=payload)
-		log.debug(f"Instructed to intercept gesture {intercepting!r}")
-		self._gesturesToIntercept.append(intercepting)
-
-	@protocol.attributeSender(protocol.GenericAttribute.HAS_FOCUS)
-	def _sendHasFocus(self) -> bytes:
-		initialTime = time.time()
-		result = self._safeWait(lambda: self._lastKeyboardGestureInputTime >= initialTime, timeout=self.timeout)
-		return result.to_bytes(1, sys.byteorder)
 
 	@protocol.attributeReceiver(protocol.GenericAttribute.SUPPORTED_SETTINGS, defaultValue=[])
 	def _incomingSupportedSettings(self, payLoad: bytes):

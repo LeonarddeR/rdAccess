@@ -3,6 +3,8 @@ import typing
 import synthDriverHandler
 from speech.commands import IndexCommand
 import sys
+import tones
+import nvwave
 
 if typing.TYPE_CHECKING:
 	from .. import protocol
@@ -34,6 +36,10 @@ class RemoteSpeechHandler(RemoteHandler):
 	def _outgoing_supportedCommands(self) -> bytes:
 		return self._pickle(self._driver.supportedCommands)
 
+	@protocol.attributeSender(protocol.SpeechAttribute.LANGUAGE)
+	def _outgoing_language(self) -> bytes:
+		return self._pickle(self._driver.language)
+
 	@protocol.commandHandler(protocol.SpeechCommand.SPEAK)
 	def _command_speak(self, payload: bytes):
 		sequence = self._unpickle(payload)
@@ -54,6 +60,16 @@ class RemoteSpeechHandler(RemoteHandler):
 		assert len(payload) == 1
 		switch = bool.from_bytes(payload, sys.byteorder)
 		self._driver.pause(switch)
+
+	@protocol.commandHandler(protocol.SpeechCommand.BEEP)
+	def _command_beep(self, payload: bytes):
+		kwargs = self._unpickle(payload)
+		tones.beep(**kwargs)
+
+	@protocol.commandHandler(protocol.SpeechCommand.PLAY_WAVE_FILE)
+	def _command_playWaveFile(self, payload: bytes):
+		kwargs = self._unpickle(payload)
+		nvwave.playWaveFile(**kwargs)
 
 	def _onSynthIndexReached(
 			self,

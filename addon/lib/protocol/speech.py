@@ -9,7 +9,10 @@ class SpeechCommand(IntEnum):
 	CANCEL = ord(b'C')
 	PAUSE = ord(b'P')
 	INDEX_REACHED = ord(b'x')
+	BEEP = ord(b"B")
+	PLAY_WAVE_FILE = ord(b"W")
 
 
 class SpeechAttribute(bytes, Enum):
 	SUPPORTED_COMMANDS = b'supportedCommands'
+	LANGUAGE = b"language"

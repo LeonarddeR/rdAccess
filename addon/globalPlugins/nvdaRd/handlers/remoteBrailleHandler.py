@@ -5,6 +5,10 @@ from hwIo import intToByte
 import typing
 import inputCore
 from ._remoteHandler import RemoteFocusState
+import time
+import sys
+import api
+from logHandler import log
 
 
 if typing.TYPE_CHECKING:
@@ -22,6 +26,7 @@ class RemoteBrailleHandler(RemoteHandler):
 
 	def __init__(self, pipeName: str, isNamedPipeClient: bool = True):
 		super().__init__(pipeName, isNamedPipeClient)
+		self._focusLastSet = time.time()
 		inputCore.decide_executeGesture.register(self._handleExecuteGesture)
 		braille.decide_enabled.register(self._handleBrailleHandlerEnabled)
 
@@ -53,6 +58,37 @@ class RemoteBrailleHandler(RemoteHandler):
 			# and automatically falls back to noBraille if desired
 			# Execute it on the main thread
 			self._queueFunctionOnMainThread(braille.handler._writeCells, cells)
+
+	def event_gainFocus(self, obj):
+		self._focusLastSet = time.time()
+
+	hasFocus: RemoteFocusState
+
+	def _get_hasFocus(self) -> RemoteFocusState:
+		remoteProcessHasFocus = api.getFocusObject().processID == self._dev.pipeProcessId
+		if not remoteProcessHasFocus:
+			return RemoteFocusState.NONE
+		attribute = protocol.GenericAttribute.HAS_FOCUS
+		log.debug("Requesting focus information from remote driver")
+		if self._attributeValueProcessor.hasNewValueSince(attribute, self._focusLastSet):
+			newValue = self._attributeValueProcessor.getValue(attribute)
+			log.debug(f"Focus value changed since focus last set, set to {newValue}")
+			return RemoteFocusState.SESSION_FOCUSED if newValue else RemoteFocusState.CLIENT_FOCUSED
+		# Tell the remote system to intercept a incoming gesture.
+		log.debug("Instructing remote system to intercept gesture")
+		self.writeMessage(
+			protocol.GenericCommand.INTERCEPT_GESTURE,
+			self._pickle(self._focusTestGesture.normalizedIdentifiers)
+		)
+		self.REQUESTRemoteAttribute(protocol.GenericAttribute.HAS_FOCUS)
+		log.debug("Sending focus test gesture")
+		self._focusTestGesture.send()
+		return RemoteFocusState.SESSION_PENDING
+
+	@protocol.attributeReceiver(protocol.GenericAttribute.HAS_FOCUS, defaultValue=False)
+	def _incoming_hasFocus(self, payload: bytes) -> bool:
+		assert len(payload) == 1
+		return bool.from_bytes(payload, byteorder=sys.byteorder)
 
 	def _handleExecuteGesture(self, gesture):
 		if (
