@@ -25,15 +25,15 @@ class RemoteBrailleHandler(RemoteHandler):
 	_driver: braille.BrailleDisplayDriver
 
 	def __init__(self, pipeName: str, isNamedPipeClient: bool = True):
-		super().__init__(pipeName, isNamedPipeClient)
 		self._focusLastSet = time.time()
 		inputCore.decide_executeGesture.register(self._handleExecuteGesture)
 		braille.decide_enabled.register(self._handleBrailleHandlerEnabled)
+		super().__init__(pipeName, isNamedPipeClient)
 
 	def terminate(self):
-		braille.decide_enabled.unregister(self._handleBrailleHandlerEnabled)
+		super().terminate()
 		inputCore.decide_executeGesture.unregister(self._handleExecuteGesture)
-		return super().terminate()
+		braille.decide_enabled.unregister(self._handleBrailleHandlerEnabled)
 
 	def _get__driver(self):
 		return braille.handler.display
@@ -80,7 +80,7 @@ class RemoteBrailleHandler(RemoteHandler):
 			protocol.GenericCommand.INTERCEPT_GESTURE,
 			self._pickle(self._focusTestGesture.normalizedIdentifiers)
 		)
-		self.REQUESTRemoteAttribute(protocol.GenericAttribute.HAS_FOCUS)
+		self.requestRemoteAttribute(protocol.GenericAttribute.HAS_FOCUS)
 		log.debug("Sending focus test gesture")
 		self._focusTestGesture.send()
 		return RemoteFocusState.SESSION_PENDING

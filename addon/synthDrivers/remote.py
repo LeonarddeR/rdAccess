@@ -25,14 +25,14 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 	driverType = protocol.DriverType.SPEECH
 
 	def __init__(self, port="auto"):
-		super().__init__(port)
 		tones.decide_beep.register(self.handle_decideBeep)
 		nvwave.decide_playWaveFile.register(self.handle_decidePlayWaveFile)
+		super().__init__(port)
 
 	def terminate(self):
+		super().terminate()
 		tones.decide_beep.unregister(self.handle_decideBeep)
 		nvwave.decide_playWaveFile.unregister(self.handle_decidePlayWaveFile)
-		super().terminate()
 
 	def handle_decideBeep(self, **kwargs):
 		self.writeMessage(protocol.SpeechCommand.BEEP, self._pickle(kwargs))
@@ -60,7 +60,10 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		return self._unpickle(payLoad)
 
 	def _get_supportedCommands(self):
-		return self.getRemoteAttribute(protocol.SpeechAttribute.SUPPORTED_COMMANDS, allowCache=True)
+		attribute = protocol.SpeechAttribute.SUPPORTED_COMMANDS
+		value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=True)
+		self.requestRemoteAttribute(attribute)
+		return value
 
 	@protocol.attributeReceiver(protocol.SpeechAttribute.LANGUAGE, defaultValue=None)
 	def _incoming_language(self, payload: bytes) -> Optional[str]:
@@ -68,7 +71,12 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		return self._unpickle(payload)
 
 	def _get_language(self):
-		return self.getRemoteAttribute(protocol.SpeechAttribute.LANGUAGE, allowCache=True)
+		attribute = protocol.SpeechAttribute.LANGUAGE
+		try:
+			value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
+		except KeyError:
+			value = self.getRemoteAttribute(attribute)
+		return value
 
 	@protocol.commandHandler(protocol.SpeechCommand.INDEX_REACHED)
 	def _command_indexReached(self, incomingPayload: bytes):

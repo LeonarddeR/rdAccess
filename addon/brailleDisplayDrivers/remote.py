@@ -56,14 +56,14 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		return True
 
 	def __init__(self, port="auto"):
-		super().__init__()
 		self._lastKeyboardGestureInputTime = time.time()
 		self._gesturesToIntercept: List[List[str]] = []
 		inputCore.decide_executeGesture.register(self._handleDecideExecuteGesture)
+		super().__init__()
 
 	def terminate(self):
+		super().terminate()
 		inputCore.decide_executeGesture.unregister(self._handleDecideExecuteGesture)
-		return super().terminate()
 
 	@protocol.attributeReceiver(protocol.BrailleAttribute.NUM_CELLS, defaultValue=0)
 	def _incoming_numCells(self, payload: bytes) -> int:
@@ -71,7 +71,13 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		return ord(payload)
 
 	def _get_numCells(self) -> int:
-		return self.getRemoteAttribute(protocol.BrailleAttribute.NUM_CELLS, allowCache=True, fallBackToDefault=True)
+		attribute = protocol.BrailleAttribute.NUM_CELLS
+		try:
+			value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
+		except KeyError:
+			value = self._attributeValueProcessor._getDefaultValue(attribute)
+			self.requestRemoteAttribute(attribute)
+		return value
 
 	@protocol.attributeReceiver(protocol.BrailleAttribute.GESTURE_MAP)
 	def _incoming_gestureMapUpdate(self, payload: bytes) -> inputCore.GlobalGestureMap:
@@ -83,7 +89,13 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		return inputCore.GlobalGestureMap()
 
 	def _get_gestureMap(self) -> inputCore.GlobalGestureMap:
-		return self.getRemoteAttribute(protocol.BrailleAttribute.GESTURE_MAP, allowCache=True, fallBackToDefault=True)
+		attribute = protocol.BrailleAttribute.GESTURE_MAP
+		try:
+			value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
+		except KeyError:
+			value = self._attributeValueProcessor._getDefaultValue(attribute)
+			self.requestRemoteAttribute(attribute)
+		return value
 
 	@protocol.commandHandler(protocol.BrailleCommand.EXECUTE_GESTURE)
 	def _command_executeGesture(self, payload: bytes):

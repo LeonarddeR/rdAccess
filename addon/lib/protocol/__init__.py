@@ -270,7 +270,7 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 					exc_info=True
 				)
 
-	def getValue(self, attribute: AttributeT, fallBackToDefault: bool = True):
+	def getValue(self, attribute: AttributeT, fallBackToDefault: bool = False):
 		with self._valueLocks[attribute]:
 			if fallBackToDefault and attribute not in self._values:
 				log.debug(f"No value for attribute {attribute!r} on {self!r}, falling back to default")
@@ -386,7 +386,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 			ATTRIBUTE_SEPARATOR + attribute + ATTRIBUTE_SEPARATOR + value
 		)
 
-	def REQUESTRemoteAttribute(self, attribute: AttributeT):
+	def requestRemoteAttribute(self, attribute: AttributeT):
 		log.debug(f"Requesting remote attribute {attribute!r}")
 		return self.writeMessage(GenericCommand.ATTRIBUTE, ATTRIBUTE_SEPARATOR + attribute + ATTRIBUTE_SEPARATOR)
 
@@ -406,32 +406,28 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 	def getRemoteAttribute(
 			self,
 			attribute: AttributeT,
-			allowCache: bool = False,
-			fallBackToDefault: bool = False,
-			refreshCache: bool = False,
 			timeout: Optional[float] = None,
 	):
-		if allowCache:
-			try:
-				value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
-				if refreshCache:
-					self.REQUESTRemoteAttribute(attribute=attribute)
-				return value
-			except KeyError:
-				pass
-
-		self.REQUESTRemoteAttribute(attribute=attribute)
 		initialTime = time.time()
-		if self._safeWait(
-			lambda: self._attributeValueProcessor.hasNewValueSince(attribute, initialTime),
-			timeout=timeout
-		):
+		self.requestRemoteAttribute(attribute=attribute)
+		if self._waitForAttributeUpdate(attribute, initialTime, timeout):
 			newValue = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
 			log.debug(f"Received new value {newValue!r} for remote attribute {attribute!r}")
 			return newValue
-		if fallBackToDefault:
-			return self._attributeValueProcessor._getDefaultValue(attribute)
 		raise TimeoutError(f"Wait for remote attribute {attribute} timed out")
+
+	def _waitForAttributeUpdate(
+			self,
+			attribute: AttributeT,
+			initialTime: Optional[float] = None,
+			timeout: Optional[float] = None,
+	):
+		if initialTime is None:
+			initialTime = time.time()
+		return self._safeWait(
+			lambda: self._attributeValueProcessor.hasNewValueSince(attribute, initialTime),
+			timeout=timeout
+		)
 
 	def _pickle(self, obj: Any):
 		return pickle.dumps(obj, protocol=4)

@@ -15,7 +15,7 @@ import bdDetect
 from logHandler import log
 from autoSettingsUtils.driverSetting import DriverSetting
 from .settingsAccessor import SettingsAccessorBase
-
+import time
 
 MSG_XON = 0x11
 MSG_XOFF = 0x13
@@ -64,6 +64,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	def __init__(self, port="auto"):
 		super().__init__()
+		initTime = time.time()
 		self._connected = False
 		for portType, portId, port, portInfo in self._getTryPorts(port):
 			try:
@@ -82,11 +83,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 				continue
 			if portType == KEY_VIRTUAL_CHANNEL:
 				# Wait for RdPipe at the other end to send a XON
-				for i in range(3):
-					self._dev.waitForRead(self.timeout)
-					if self._connected:
-						break
-				if self._connected:
+				if self._safeWait(lambda: self._connected, self.timeout * 3):
 					break
 			else:
 				self._connected = True
@@ -143,7 +140,11 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		self._settingsAccessor = SettingsAccessorBase.createFromSettings(self, settings) if settings else None
 
 	def _get_supportedSettings(self):
-		return self.getRemoteAttribute(protocol.GenericAttribute.SUPPORTED_SETTINGS, allowCache=True)
+		attribute = protocol.GenericAttribute.SUPPORTED_SETTINGS
+		try:
+			return self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
+		except KeyError:
+			return self.getRemoteAttribute(attribute)
 
 	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
 	def _incoming_setting(self, attribute: protocol.AttributeT, payLoad: bytes):

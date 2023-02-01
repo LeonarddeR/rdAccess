@@ -25,9 +25,9 @@ class RemoteSpeechHandler(RemoteHandler):
 		super().__init__(pipeAddress)
 
 	def terminate(self):
+		super().terminate()
 		synthDriverHandler.synthDoneSpeaking.unregister(self._onSynthDoneSpeaking)
 		synthDriverHandler.synthIndexReached.unregister(self._onSynthIndexReached)
-		return super().terminate()
 
 	def _get__driver(self):
 		return synthDriverHandler.getSynth()
