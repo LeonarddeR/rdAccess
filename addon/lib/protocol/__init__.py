@@ -218,15 +218,15 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 
 	def _getDefaultValue(self, attribute: AttributeT) -> AttributeValueT:
 		handler = self._getRawHandler(attribute)
+		log.debug(f"Getting default value for attribute {attribute!r} on {self!r} using {handler._defaultValueGetter!r}")
 		getter = handler._defaultValueGetter.__get__(handler.__self__)
-		log.debug(f"Getting default value for attribute {attribute!r} on {self!r} using {getter!r}")
 		return getter(attribute)
 
 	def _invokeUpdateCallback(self, attribute: AttributeT, value: AttributeValueT):
 		handler = self._getRawHandler(attribute)
 		if handler._updateCallback is not None:
+			log.debug(f"Invoking update callback {handler._updateCallback!r} for attribute {attribute!r} on {self!r}")
 			callback = handler._updateCallback.__get__(handler.__self__)
-			log.debug(f"Invoking update callback {callback!r} for attribute {attribute!r} on {self!r}")
 			try:
 				callback(attribute, value)
 			except Exception:
@@ -264,7 +264,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 	_commandHandlers: Dict[CommandT, CommandHandlerT]
 	_attributeSenderStore: AttributeSenderStore
 	_attributeValueProcessor: AttributeValueProcessor
-	timeout: float = 2.0
+	timeout: float = 1.0
 	cachePropertiesByDefault = True
 
 	def __new__(cls, *args, **kwargs):
