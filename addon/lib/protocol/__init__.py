@@ -302,7 +302,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		payload = message[4:]
 		actualLength = len(payload)
 		remainder: optional[bytes] = None
-		if expectedLength is not actualLength:
+		if expectedLength != actualLength:
 			log.debugWarning(
 				f"Expected payload of length {expectedLength}, actual length of payload {payload!r} is {actualLength}"
 			)
