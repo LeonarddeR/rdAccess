@@ -48,6 +48,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 
 	def terminate(self):
 		# Make sure the device gets closed.
+		self._dev._onReadError = None
 		self._dev.close()
 
 	def event_gainFocus(self, obj):

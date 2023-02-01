@@ -18,7 +18,6 @@ from threading import Lock
 import time
 from logHandler import log
 import pickle
-from functools import wraps
 import queueHandler
 from .speech import SpeechAttribute, SpeechCommand
 from .braille import BrailleAttribute, BrailleCommand
@@ -50,6 +49,7 @@ class GenericAttribute(bytes, Enum):
 
 
 RemoteProtocolHandlerT = TypeVar("RemoteProtocolHandlerT", bound="RemoteProtocolHandler")
+HandlerFuncT = TypeVar("HandlerFuncT", bound=Callable)
 AttributeValueT = TypeVar("AttributeValueT")
 CommandT = Union[GenericCommand, SpeechCommand, BrailleCommand]
 CommandHandlerUnboundT = Callable[[RemoteProtocolHandlerT, bytes], None]
@@ -71,32 +71,52 @@ DefaultValueGetterT = Callable[[RemoteProtocolHandlerT, AttributeT], AttributeVa
 AttributeValueUpdateCallbackT = Callable[[RemoteProtocolHandlerT, AttributeT, AttributeValueT], None]
 
 
+class HandlerDecoratorBase(Generic[HandlerFuncT]):
+	_func: HandlerFuncT
+
+	def __init__(self, func: HandlerFuncT):
+		self._func = func
+		update_wrapper(self, func, assigned=('__module__', '__name__', '__qualname__', '__doc__'))
+
+	def __set_name__(self, owner, name):
+		log.debug(f'Decorated {name!r} on {owner!r} with {self!r}')
+
+	def __get__(self, obj, objtype=None):
+		if obj is None:
+			return self
+		return types.MethodType(self, obj)
+
+
+class CommandHandler(HandlerDecoratorBase[CommandHandlerT]):
+	_command: CommandT
+
+	def __init__(self, command: CommandT, func: CommandHandlerT):
+		super().__init__(func)
+		self._command = command
+
+	def __call__(
+			self,
+			protocolHandler: "RemoteProtocolHandler",
+			payload: bytes
+	):
+		log.debug(f"Calling {self!r} for command {self._command!r}")
+		return self._func(protocolHandler, payload)
+
+
 def commandHandler(command: CommandT):
-	def wrapper(func: CommandHandlerUnboundT):
-		@wraps(func)
-		def handler(self, payload: bytes):
-			log.debug(f"Handling command {command}")
-			return func(self, payload)
-		handler._command = command
-		return handler
-	return wrapper
+	return partial(CommandHandler, command)
 
 
-class AttributeHandler(Generic[AttributeHandlerT]):
+class AttributeHandler(HandlerDecoratorBase, Generic[AttributeHandlerT]):
 	_attribute: AttributeT = b''
-	_func: AttributeHandlerT
 
 	@property
 	def _isCatchAll(self) -> bool:
 		return b'*' in self._attribute
 
 	def __init__(self, attribute: AttributeT, func: AttributeHandlerT):
+		super().__init__(func)
 		self._attribute = attribute
-		self._func = func
-		update_wrapper(self, func, assigned=('__module__', '__name__', '__qualname__', '__doc__'))
-
-	def __set_name__(self, owner, name):
-		log.debug(f'Decorated {name!r} on {owner!r} with {self!r}')
 
 	def __call__(
 			self,
@@ -109,11 +129,6 @@ class AttributeHandler(Generic[AttributeHandlerT]):
 		if self._isCatchAll:
 			return self._func(protocolHandler, attribute, *args, **kwargs)
 		return self._func(protocolHandler, *args, **kwargs)
-
-	def __get__(self, obj, objtype=None):
-		if obj is None:
-			return self
-		return types.MethodType(self, obj)
 
 
 class AttributeSender(AttributeHandler[attributeFetcherT]):
@@ -173,6 +188,23 @@ def attributeReceiver(
 	)
 
 
+class CommandHandlerStore(HandlerRegistrar):
+
+	def _getHandler(self, command: CommandT) -> CommandHandlerT:
+		handler = next(
+			(v for v in self.handlers if command == v._command),
+			None
+		)
+		if handler is None:
+			raise NotImplementedError(f"No command handler for command {command!r}")
+		return handler
+
+	def __call__(self, command: CommandT, payload: bytes):
+		log.debug(f"Getting handler on {self!r} to process command {command!r}")
+		handler = self._getHandler(command)
+		handler(payload)
+
+
 class AttributeHandlerStore(HandlerRegistrar, Generic[AttributeHandlerT]):
 
 	def _getRawHandler(self, attribute: AttributeT) -> AttributeHandlerT:
@@ -218,7 +250,9 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 
 	def _getDefaultValue(self, attribute: AttributeT) -> AttributeValueT:
 		handler = self._getRawHandler(attribute)
-		log.debug(f"Getting default value for attribute {attribute!r} on {self!r} using {handler._defaultValueGetter!r}")
+		log.debug(
+			f"Getting default value for attribute {attribute!r} on {self!r} using {handler._defaultValueGetter!r}"
+		)
 		getter = handler._defaultValueGetter.__get__(handler.__self__)
 		return getter(attribute)
 
@@ -261,7 +295,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 	_dev: hwIo.IoBase
 	driverType: DriverType
 	_receiveBuffer: bytes
-	_commandHandlers: Dict[CommandT, CommandHandlerT]
+	_commandHandlerStore: CommandHandlerStore
 	_attributeSenderStore: AttributeSenderStore
 	_attributeValueProcessor: AttributeValueProcessor
 	timeout: float = 1.0
@@ -269,13 +303,15 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 
 	def __new__(cls, *args, **kwargs):
 		self = super().__new__(cls, *args, **kwargs)
+		self._commandHandlerStore = CommandHandlerStore()
 		self._attributeSenderStore = AttributeSenderStore()
 		self._attributeValueProcessor = AttributeValueProcessor()
 		commandHandlers = inspect.getmembers(
 			cls,
-			predicate=lambda o: inspect.isfunction(o) and hasattr(o, "_command")
+			predicate=lambda o: isinstance(o, CommandHandler)
 		)
-		self._commandHandlers = {v._command: getattr(self, k) for k, v in commandHandlers}
+		for k, v in commandHandlers:
+			self._commandHandlerStore.register(getattr(self, k))
 		attributeHandlers = inspect.getmembers(
 			cls,
 			predicate=lambda o: isinstance(o, AttributeHandler)
@@ -301,7 +337,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		expectedLength = int.from_bytes(message[2:4], sys.byteorder)
 		payload = message[4:]
 		actualLength = len(payload)
-		remainder: optional[bytes] = None
+		remainder: Optional[bytes] = None
 		if expectedLength != actualLength:
 			log.debugWarning(
 				f"Expected payload of length {expectedLength}, actual length of payload {payload!r} is {actualLength}"
@@ -314,11 +350,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 				payload = payload[:expectedLength]
 
 		try:
-			handler = self._commandHandlers.get(command)
-			if not handler:
-				log.error(f"No handler for command {command}")
-				return
-			handler(payload)
+			self._commandHandlerStore(command, payload)
 		finally:
 			if remainder:
 				self._onReceive(remainder)
