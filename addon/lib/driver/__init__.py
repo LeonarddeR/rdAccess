@@ -44,13 +44,6 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			for match in cls._getAutoPorts():
 				yield match
 
-	def terminate(self):
-		try:
-			super().terminate()
-		finally:
-			# Make sure the device gets closed.
-			self._dev.close()
-
 	def initSettings(self):
 		super(driverHandler.Driver, self).initSettings()
 

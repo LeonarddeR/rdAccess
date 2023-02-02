@@ -327,6 +327,15 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		super().__init__()
 		self._receiveBuffer = b""
 
+	def terminate(self):
+		try:
+			superTerminate = getattr(super(), "terminate", None)
+			if superTerminate:
+				superTerminate()
+		finally:
+			# Make sure the device gets closed.
+			self._dev.close()
+
 	def _onReceive(self, message: bytes):
 		if self._receiveBuffer:
 			message = self._receiveBuffer + message
