@@ -245,6 +245,11 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 		self._values = {}
 		self._valueTimes = DefaultDict(getStartTime)
 
+	def clearCache(self):
+		self._values.clear()
+		self._valueTimes.clear()
+		self._valueLocks.clear()
+
 	def hasNewValueSince(self, attribute: AttributeT, t: float) -> bool:
 		return t < self._valueTimes[attribute]
 
@@ -306,18 +311,14 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		self._commandHandlerStore = CommandHandlerStore()
 		self._attributeSenderStore = AttributeSenderStore()
 		self._attributeValueProcessor = AttributeValueProcessor()
-		commandHandlers = inspect.getmembers(
+		handlers = inspect.getmembers(
 			cls,
-			predicate=lambda o: isinstance(o, CommandHandler)
+			predicate=lambda o: isinstance(o, HandlerDecoratorBase)
 		)
-		for k, v in commandHandlers:
-			self._commandHandlerStore.register(getattr(self, k))
-		attributeHandlers = inspect.getmembers(
-			cls,
-			predicate=lambda o: isinstance(o, AttributeHandler)
-		)
-		for k, v in attributeHandlers:
-			if isinstance(v, AttributeSender):
+		for k, v in handlers:
+			if isinstance(v, CommandHandler):
+				self._commandHandlerStore.register(getattr(self, k))
+			elif isinstance(v, AttributeSender):
 				self._attributeSenderStore.register(getattr(self, k))
 			elif isinstance(v, AttributeReceiver):
 				self._attributeValueProcessor.register(getattr(self, k))
@@ -335,6 +336,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		finally:
 			# Make sure the device gets closed.
 			self._dev.close()
+			self._attributeValueProcessor.clearCache()
 
 	def _onReceive(self, message: bytes):
 		if self._receiveBuffer:
