@@ -26,25 +26,31 @@ class RemoteBrailleHandler(RemoteHandler):
 
 	def __init__(self, pipeName: str, isNamedPipeClient: bool = True):
 		self._focusLastSet = time.time()
-		inputCore.decide_executeGesture.register(self._handleExecuteGesture)
 		braille.decide_enabled.register(self._handleBrailleHandlerEnabled)
+		braille.displayChanged.register(self._handledisplayChanged)
+		inputCore.decide_executeGesture.register(self._handleExecuteGesture)
 		super().__init__(pipeName, isNamedPipeClient)
 
 	def terminate(self):
 		super().terminate()
 		inputCore.decide_executeGesture.unregister(self._handleExecuteGesture)
+		braille.displayChanged.unregister(self._handledisplayChanged)
 		braille.decide_enabled.unregister(self._handleBrailleHandlerEnabled)
 
 	def _get__driver(self):
 		return braille.handler.display
 
 	@protocol.attributeSender(protocol.BrailleAttribute.NUM_CELLS)
-	def _outgoing_numCells(self) -> bytes:
-		return intToByte(self._driver.numCells)
+	def _outgoing_numCells(self, numCells=None) -> bytes:
+		if numCells is None:
+			numCells = self._driver.numCells
+		return intToByte(numCells)
 
 	@protocol.attributeSender(protocol.BrailleAttribute.GESTURE_MAP)
-	def _outgoing_gestureMap(self) -> bytes:
-		return self._pickle(self._driver.gestureMap)
+	def _outgoing_gestureMap(self, gestureMap: typing.Optional[inputCore.GlobalGestureMap] = None) -> bytes:
+		if gestureMap is None:
+			gestureMap = self._driver.gestureMap
+		return self._pickle(gestureMap)
 
 	@protocol.commandHandler(protocol.BrailleCommand.DISPLAY)
 	def _command_display(self, payload: bytes):
@@ -112,3 +118,8 @@ class RemoteBrailleHandler(RemoteHandler):
 
 	def _handleBrailleHandlerEnabled(self):
 		return self.hasFocus != RemoteFocusState.SESSION_FOCUSED
+
+	def _handledisplayChanged(self, display: braille.BrailleDisplayDriver):
+		self._attributeSenderStore(protocol.BrailleAttribute.NUM_CELLS, numCells=display.numCells	)
+		self._attributeSenderStore(protocol.BrailleAttribute.GESTURE_MAP, gestureMap=display.gestureMap)
+		self._attributeSenderStore(protocol.GenericAttribute.SUPPORTED_SETTINGS, settings=display.supportedSettings)

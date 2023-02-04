@@ -50,8 +50,10 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		return
 
 	@protocol.attributeSender(protocol.GenericAttribute.SUPPORTED_SETTINGS)
-	def _outgoing_supportedSettings(self) -> bytes:
-		return self._pickle(self._driver.supportedSettings)
+	def _outgoing_supportedSettings(self, settings=None) -> bytes:
+		if settings is None:
+			settings = self._driver.supportedSettings
+		return self._pickle(settings)
 
 	@protocol.attributeSender(b"available*s")
 	def _outgoing_availableSettingValues(self, attribute: protocol.AttributeT) -> bytes:
