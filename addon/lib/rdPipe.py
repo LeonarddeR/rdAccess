@@ -64,16 +64,23 @@ def addToRegistry(
 	if not channelNamesOnly:
 		try:
 			path, regType = winreg.QueryValueEx(handle, NAME_VALUE_NAME)
-			expandedPath = winreg.ExpandEnvironmentStrings(path)
+			if regType == winreg.REG_EXPAND_SZ:
+				path = winreg.ExpandEnvironmentStrings(path)
 			if (
-				expandedPath != winreg.ExpandEnvironmentStrings(expectedPath)
-				and not os.path.isfile(expandedPath)
+				path != winreg.ExpandEnvironmentStrings(expectedPath)
+				and not os.path.isfile(path)
 			):
 				raise FileNotFoundError
 		except FileNotFoundError:
 			path = None
 		if path is None:
-			winreg.SetValueEx(handle, NAME_VALUE_NAME, 0, winreg.REG_EXPAND_SZ, expectedPath)
+			winreg.SetValueEx(
+				handle,
+				NAME_VALUE_NAME,
+				0,
+				winreg.REG_EXPAND_SZ if 'appdata%' in expectedPath else winreg.REG_SZ,
+				expectedPath
+			)
 			res |= KeyComponents.NAME_VALUE
 	try:
 		channels, regType = winreg.QueryValueEx(handle, CHANNEL_NAMES_VALUE_NAME)
