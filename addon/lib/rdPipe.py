@@ -23,9 +23,9 @@ class KeyComponents(IntFlag):
 	CHANNEL_NAMES_VALUE_UNKNOWN = auto()
 
 
-def keyExists(key, subKey: str) -> bool:
+def keyExists(key) -> bool:
 	try:
-		with winreg.OpenKey(key, subKey, winreg.KEY_READ | winreg.KEY_WOW64_64KEY) as key:
+		with winreg.OpenKey(key, RD_PIPE_FOLDER, winreg.KEY_READ | winreg.KEY_WOW64_64KEY) as key:
 			return True
 	except FileNotFoundError:
 	    return False
@@ -33,20 +33,24 @@ def keyExists(key, subKey: str) -> bool:
 
 def getDllPath() -> str:
 	addon = addonHandler.getCodeAddon()
-	expectedPath = os.path.join(addon.path, "dll", f"rd_pipe_{platform.architecture}.dll")
+	expectedPath = os.path.join(addon.path, "dll", f"rd_pipe_{platform.machine().lower()}.dll")
 
 	if not os.path.isfile(expectedPath):
 		raise FileNotFoundError(expectedPath)
 	roamingAppData = shlobj.SHGetKnownFolderPath(shlobj.FolderId.ROAMING_APP_DATA)
 	localAppData = shlobj.SHGetKnownFolderPath(shlobj.FolderId.LOCAL_APP_DATA)
 	if expectedPath.startswith(roamingAppData):
-		expectedPath.replace(roamingAppData, "%appdata%")
+		expectedPath = expectedPath.replace(roamingAppData, "%appdata%")
 	elif expectedPath.startswith(localAppData):
-		expectedPath.replace(localAppData, "%localappdata%")
+		expectedPath = expectedPath.replace(localAppData, "%localappdata%")
 	return expectedPath
 
 
-def addToRegistry(key, persistent: bool = False) -> KeyComponents:
+def addToRegistry(
+		key,
+		persistent: bool = False,
+		channelNamesOnly: bool = False
+) -> KeyComponents:
 	expectedPath = getDllPath()
 	res = KeyComponents(0)
 	subKey = RD_PIPE_FOLDER
@@ -57,19 +61,20 @@ def addToRegistry(key, persistent: bool = False) -> KeyComponents:
 	except FileNotFoundError:
 		handle = winreg.CreateKeyEx(key, subKey, 0, openFlags)
 		res |= KeyComponents.RD_PIPE_KEY
-	try:
-		path, regType = winreg.QueryValueEx(handle, NAME_VALUE_NAME)
-		expandedPath = winreg.ExpandEnvironmentStrings(path)
-		if (
-			expandedPath != winreg.ExpandEnvironmentStrings(expectedPath)
-			and not os.path.isfile(expandedPath)
-		):
-			raise FileNotFoundError
-	except FileNotFoundError:
-		path = None
-	if path is None:
-		winreg.SetValueEx(handle, NAME_VALUE_NAME, 0, winreg.REG_EXPAND_SZ, expectedPath)
-		res |= KeyComponents.NAME_VALUE
+	if not channelNamesOnly:
+		try:
+			path, regType = winreg.QueryValueEx(handle, NAME_VALUE_NAME)
+			expandedPath = winreg.ExpandEnvironmentStrings(path)
+			if (
+				expandedPath != winreg.ExpandEnvironmentStrings(expectedPath)
+				and not os.path.isfile(expandedPath)
+			):
+				raise FileNotFoundError
+		except FileNotFoundError:
+			path = None
+		if path is None:
+			winreg.SetValueEx(handle, NAME_VALUE_NAME, 0, winreg.REG_EXPAND_SZ, expectedPath)
+			res |= KeyComponents.NAME_VALUE
 	try:
 		channels, regType = winreg.QueryValueEx(handle, CHANNEL_NAMES_VALUE_NAME)
 		if not isinstance(channels, list) or regType != winreg.REG_MULTI_SZ:
@@ -94,10 +99,24 @@ def addToRegistry(key, persistent: bool = False) -> KeyComponents:
 	return res
 
 
-def deleteFromRegistry(key, components: KeyComponents):
+def deleteFromRegistry(key, components: KeyComponents, undoregisterAtExit: bool = True):
+	if undoregisterAtExit:
+		atexit.unregister(deleteFromRegistry)
+	openFlags = winreg.KEY_READ | winreg.KEY_WRITE | winreg.KEY_WOW64_64KEY
 	if (
 		KeyComponents.RD_PIPE_KEY & components
 		or KeyComponents.NAME_VALUE & components
 	):
-		winreg.DeleteKey(key, RD_PIPE_FOLDER)
+		winreg.DeleteKeyEx(key, RD_PIPE_FOLDER, openFlags)
 		return
+	if (
+		KeyComponents.CHANNEL_NAMES_VALUE_SPEECH & components
+		or KeyComponents.CHANNEL_NAMES_VALUE_BRAILLE & components
+	):
+		handle = winreg.OpenKeyEx(key, RD_PIPE_FOLDER, 0, openFlags)
+		channels, regType = winreg.QueryValueEx(handle, CHANNEL_NAMES_VALUE_NAME)
+		if KeyComponents.CHANNEL_NAMES_VALUE_SPEECH & components and CHANNEL_NAMES_VALUE_SPEECH in channels:
+			channels.remove(CHANNEL_NAMES_VALUE_SPEECH)
+		if KeyComponents.CHANNEL_NAMES_VALUE_BRAILLE & components and CHANNEL_NAMES_VALUE_BRAILLE in channels:
+			channels.remove(CHANNEL_NAMES_VALUE_BRAILLE)
+		winreg.SetValueEx(handle, CHANNEL_NAMES_VALUE_NAME, 0, winreg.REG_MULTI_SZ, channels)

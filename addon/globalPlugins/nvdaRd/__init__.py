@@ -8,14 +8,17 @@ from glob import glob
 from fnmatch import fnmatch
 from . import handlers
 from typing import Dict
+from winreg import HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE
 
 if typing.TYPE_CHECKING:
 	from ...lib import protocol
 	from ...lib import namedPipe
+	from ...lib import rdPipe
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	protocol = addon.loadModule("lib.protocol")
 	namedPipe = addon.loadModule("lib.namedPipe")
+	rdPipe = addon.loadModule("lib.rdPipe")
 
 
 PIPE_DIRECTORY = "\\\\?\\pipe\\"
@@ -26,6 +29,12 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def __init__(self):
 		super().__init__()
+		isInLocalMachine = rdPipe.keyExists(HKEY_LOCAL_MACHINE)
+		self._rdPipeAddedToRegistry = rdPipe.addToRegistry(
+			HKEY_CURRENT_USER,
+			persistent=False,
+			channelNamesOnly=isInLocalMachine
+		)
 		self._handlers: Dict[str, handlers.RemoteHandler] = {}
 		self._pipeWatcher = directoryChanges.DirectoryWatcher(
 			PIPE_DIRECTORY,
@@ -61,6 +70,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		for handler in self._handlers.values():
 			handler.terminate()
 		self._handlers.clear()
+		rdPipe.deleteFromRegistry(HKEY_CURRENT_USER, self._rdPipeAddedToRegistry)
 		super().terminate()
 
 	def event_gainFocus(self, obj, nextHandler):
