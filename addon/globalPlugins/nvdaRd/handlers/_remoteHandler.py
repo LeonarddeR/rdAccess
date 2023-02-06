@@ -16,7 +16,7 @@ else:
 	namedPipe = addon.loadModule("lib.namedPipe")
 
 
-MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS = 100
+MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS = 200
 
 
 class RemoteFocusState(Enum):

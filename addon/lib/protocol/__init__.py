@@ -124,7 +124,7 @@ class AttributeHandler(HandlerDecoratorBase, Generic[AttributeHandlerT]):
 			*args,
 			**kwargs
 	):
-		log.debug(f"Calling {self!r} for attribute {attribute!r}, args {args!r}, kwargs {kwargs!r}")
+		log.debug(f"Calling {self!r} for attribute {attribute!r}")
 		if self._isCatchAll:
 			return self._func(protocolHandler, attribute, *args, **kwargs)
 		return self._func(protocolHandler, *args, **kwargs)
@@ -390,7 +390,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		return self._dev.write(data)
 
 	def setRemoteAttribute(self, attribute: AttributeT, value: bytes):
-		log.debug(f"Setting remote attribute {attribute!r}")
+		log.debug(f"Setting remote attribute {attribute!r} to raw value {value!r}")
 		return self.writeMessage(
 			GenericCommand.ATTRIBUTE,
 			ATTRIBUTE_SEPARATOR + attribute + ATTRIBUTE_SEPARATOR + value
