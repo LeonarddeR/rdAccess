@@ -40,11 +40,10 @@ class DriverType(IntEnum):
 
 class GenericCommand(IntEnum):
 	ATTRIBUTE = ord(b'@')
-	INTERCEPT_GESTURE = ord(b'I')
 
 
 class GenericAttribute(bytes, Enum):
-	HAS_FOCUS = b"hasFocus"
+	TIME_SINCE_INPUT = b"hasFocus"
 	SUPPORTED_SETTINGS = b'supportedSettings'
 
 

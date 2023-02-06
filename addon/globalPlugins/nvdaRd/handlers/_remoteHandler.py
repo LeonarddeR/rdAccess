@@ -1,8 +1,11 @@
 import typing
 import addonHandler
-import keyboardHandler
 from enum import Enum, auto
 from driverHandler import Driver
+import api
+from logHandler import log
+import sys
+import time
 
 if typing.TYPE_CHECKING:
 	from .. import protocol
@@ -11,6 +14,9 @@ else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	protocol = addon.loadModule("lib.protocol")
 	namedPipe = addon.loadModule("lib.namedPipe")
+
+
+MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS = 100
 
 
 class RemoteFocusState(Enum):
@@ -23,7 +29,6 @@ class RemoteFocusState(Enum):
 class RemoteHandler(protocol.RemoteProtocolHandler):
 	_dev: namedPipe.NamedPipeBase
 	_focusLastSet: float
-	_focusTestGesture = keyboardHandler.KeyboardInputGesture.fromName("alt+control+shift+f24")
 
 	_driver: Driver
 	_abstract__driver = True
@@ -47,7 +52,8 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		return False
 
 	def event_gainFocus(self, obj):
-		return
+		self._focusLastSet = time.time()
+		self._get_hasFocus()
 
 	@protocol.attributeSender(protocol.GenericAttribute.SUPPORTED_SETTINGS)
 	def _outgoing_supportedSettings(self, settings=None) -> bytes:
@@ -74,3 +80,27 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 	def _outgoing_setting(self, attribute: protocol.AttributeT):
 		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX):].decode("ASCII")
 		return self._pickle(getattr(self._driver, name))
+
+	hasFocus: RemoteFocusState
+
+	def _get_hasFocus(self) -> RemoteFocusState:
+		remoteProcessHasFocus = api.getFocusObject().processID == self._dev.pipeProcessId
+		if not remoteProcessHasFocus:
+			return RemoteFocusState.NONE
+		attribute = protocol.GenericAttribute.TIME_SINCE_INPUT
+		log.debug("Requesting time since input from remote driver")
+		if self._attributeValueProcessor.hasNewValueSince(attribute, self._focusLastSet):
+			newValue = self._attributeValueProcessor.getValue(attribute)
+			log.debug(f"New time since input, set to {newValue}")
+			return (
+				RemoteFocusState.SESSION_FOCUSED
+				if newValue < MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS
+				else RemoteFocusState.CLIENT_FOCUSED
+			)
+		self.requestRemoteAttribute(protocol.GenericAttribute.TIME_SINCE_INPUT)
+		return RemoteFocusState.SESSION_PENDING
+
+	@protocol.attributeReceiver(protocol.GenericAttribute.TIME_SINCE_INPUT, defaultValue=False)
+	def _incoming_timeSinceInput(self, payload: bytes) -> int:
+		assert len(payload) == 4
+		return int.from_bytes(payload, byteorder=sys.byteorder, signed=False)

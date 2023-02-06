@@ -1,7 +1,7 @@
 from abc import abstractmethod
 import driverHandler
 from ..detection import bgScanRD, KEY_NAMED_PIPE_CLIENT, KEY_VIRTUAL_CHANNEL
-from .. import protocol
+from .. import protocol, inputTime
 from .. import wtsVirtualChannel
 from .. import namedPipe
 from typing import (
@@ -15,7 +15,8 @@ import bdDetect
 from logHandler import log
 from autoSettingsUtils.driverSetting import DriverSetting
 from .settingsAccessor import SettingsAccessorBase
-import time
+import sys
+
 
 MSG_XON = 0x11
 MSG_XOFF = 0x13
@@ -57,7 +58,6 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	def __init__(self, port="auto"):
 		super().__init__()
-		initTime = time.time()
 		self._connected = False
 		for portType, portId, port, portInfo in self._getTryPorts(port):
 			try:
@@ -147,3 +147,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	@protocol.attributeReceiver(b"available*s")
 	def _incoming_availableSettingValues(self, attribute: protocol.AttributeT, payLoad: bytes):
 		return self._unpickle(payLoad)
+
+	@protocol.attributeSender(protocol.GenericAttribute.TIME_SINCE_INPUT)
+	def _outgoing_timeSinceInput(self) -> bytes:
+		return inputTime.getTimeSinceInput().to_bytes(4, sys.byteorder, signed=False)
