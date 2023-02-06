@@ -8,6 +8,8 @@ from serial.win32 import FILE_FLAG_OVERLAPPED, OVERLAPPED, CreateFile, INVALID_H
 from enum import IntFlag, IntEnum
 from ctypes import windll, WinError, sizeof, byref, create_string_buffer
 from struct import unpack, calcsize
+import queueHandler
+
 
 FILE_FLAG_BACKUP_SEMANTICS = 0x02000000
 
@@ -57,7 +59,7 @@ class DirectoryWatcher:
 		if dirHandle == INVALID_HANDLE_VALUE:
 			raise WinError()
 		self._dirHandle = dirHandle
-		self._buffer = create_string_buffer(1024)
+		self._buffer = create_string_buffer(4096)
 		self._overlapped = OVERLAPPED()
 		self._ioDoneInst = LPOVERLAPPED_COMPLETION_ROUTINE(self._ioDone)
 
@@ -101,20 +103,27 @@ class DirectoryWatcher:
 		if not self._watching:
 			# We stopped watching
 			return
+		if numberOfBytes == 0:
+			raise RuntimeError("No bytes received, probably internal buffer overflow")
 		if error != 0:
 			raise WinError(error)
+		data = self._buffer.raw[:numberOfBytes]
+		self._asyncWatch()
+		queueHandler.queueFunction(queueHandler.eventQueue, self._handleChanges, data)
+
+	def _handleChanges(self, data: bytes):
 		nextOffset = 0
 		while True:
 			fileNameLength = int.from_bytes(
-				# fileName is the third DWORD in the FILE_NOTIFY_INFORMATION struct
-				self._buffer[nextOffset + 8: nextOffset + 12],
+				# fileNameLength is the third DWORD in the FILE_NOTIFY_INFORMATION struct
+				data[nextOffset + 8: nextOffset + 12],
 				byteorder=sys.byteorder,
 				signed=False
 			)
 			format = f"@3I{fileNameLength}s"
 			nextOffset, action, fileNameLength, fileNameBytes = unpack(
 				format,
-				self._buffer.raw[nextOffset: nextOffset + calcsize(format)]
+				data[nextOffset: nextOffset + calcsize(format)]
 			)
 			fileName = fileNameBytes.decode("utf-16")
 			self.directoryChanged.notify(
@@ -123,4 +132,3 @@ class DirectoryWatcher:
 			)
 			if nextOffset == 0:
 				break
-		self._asyncWatch()
