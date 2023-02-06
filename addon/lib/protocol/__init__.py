@@ -43,7 +43,7 @@ class GenericCommand(IntEnum):
 
 
 class GenericAttribute(bytes, Enum):
-	TIME_SINCE_INPUT = b"hasFocus"
+	TIME_SINCE_INPUT = b"timeSinceInput"
 	SUPPORTED_SETTINGS = b'supportedSettings'
 
 
@@ -124,7 +124,7 @@ class AttributeHandler(HandlerDecoratorBase, Generic[AttributeHandlerT]):
 			*args,
 			**kwargs
 	):
-		log.debug(f"Calling {self!r} for attribute {attribute!r}")
+		log.debug(f"Calling {self!r} for attribute {attribute!r}, args {args!r}, kwargs {kwargs!r}")
 		if self._isCatchAll:
 			return self._func(protocolHandler, attribute, *args, **kwargs)
 		return self._func(protocolHandler, *args, **kwargs)
@@ -349,7 +349,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		actualLength = len(payload)
 		remainder: Optional[bytes] = None
 		if expectedLength != actualLength:
-			log.debugWarning(
+			log.debug(
 				f"Expected payload of length {expectedLength}, actual length of payload {payload!r} is {actualLength}"
 			)
 			if expectedLength > actualLength:
