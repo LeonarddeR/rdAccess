@@ -53,7 +53,6 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 
 	def event_gainFocus(self, obj):
 		self._focusLastSet = time.time()
-		self._get_hasFocus()
 
 	@protocol.attributeSender(protocol.GenericAttribute.SUPPORTED_SETTINGS)
 	def _outgoing_supportedSettings(self, settings=None) -> bytes:

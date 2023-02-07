@@ -48,23 +48,23 @@ class RemoteSpeechHandler(RemoteHandler):
 				item.index += protocol.speech.SPEECH_INDEX_OFFSET
 				self._indexesSpeaking.append(item.index)
 		# Queue speech to the current synth directly because we don't want unnecessary processing to happen.
-		self._driver.speak(sequence)
+		self._queueFunctionOnMainThread(self._driver.speak, sequence)
 
 	@protocol.commandHandler(protocol.SpeechCommand.CANCEL)
 	def _command_cancel(self, payload: bytes = b''):
 		self._indexesSpeaking.clear()
-		self._driver.cancel()
+		self._queueFunctionOnMainThread(self._driver.cancel)
 
 	@protocol.commandHandler(protocol.SpeechCommand.PAUSE)
 	def _command_pause(self, payload: bytes):
 		assert len(payload) == 1
 		switch = bool.from_bytes(payload, sys.byteorder)
-		self._driver.pause(switch)
+		self._queueFunctionOnMainThread(self._driver.pause, switch)
 
 	@protocol.commandHandler(protocol.SpeechCommand.BEEP)
 	def _command_beep(self, payload: bytes):
 		kwargs = self._unpickle(payload)
-		tones.beep(**kwargs)
+		self._queueFunctionOnMainThread(tones.beep, **kwargs)
 
 	@protocol.commandHandler(protocol.SpeechCommand.PLAY_WAVE_FILE)
 	def _command_playWaveFile(self, payload: bytes):
@@ -88,3 +88,7 @@ class RemoteSpeechHandler(RemoteHandler):
 
 	def _onSynthDoneSpeaking(self, synth: typing.Optional[synthDriverHandler.SynthDriver] = None):
 		self._indexesSpeaking.clear()
+
+	def event_gainFocus(self, obj):
+		super().event_gainFocus(obj)
+		self._get_hasFocus()

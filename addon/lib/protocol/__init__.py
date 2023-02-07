@@ -263,16 +263,11 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 	def _invokeUpdateCallback(self, attribute: AttributeT, value: AttributeValueT):
 		handler = self._getRawHandler(attribute)
 		if handler._updateCallback is not None:
-			log.debug(f"Invoking update callback {handler._updateCallback!r} for attribute {attribute!r} on {self!r}")
+			log.debug(
+				f"Queuing update callback {handler._updateCallback!r} for attribute {attribute!r} to main thread"
+			)
 			callback = handler._updateCallback.__get__(handler.__self__)
-			try:
-				callback(attribute, value)
-			except Exception:
-				log.error(
-					f"Error while invoking callback {callback!r} "
-					f"for attribute {attribute!r}",
-					exc_info=True
-				)
+			queueHandler.queueFunction(queueHandler.eventQueue, callback, attribute, value)
 
 	def getValue(self, attribute: AttributeT, fallBackToDefault: bool = False):
 		with self._valueLocks[attribute]:
