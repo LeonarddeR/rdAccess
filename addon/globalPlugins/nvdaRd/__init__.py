@@ -9,6 +9,7 @@ from fnmatch import fnmatch
 from . import handlers
 from typing import Dict
 from winreg import HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE
+from logHandler import log
 
 if typing.TYPE_CHECKING:
 	from ...lib import protocol
@@ -53,17 +54,20 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			return
 		if action == directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED:
 			if fnmatch(fileName, globPattern.replace("*", f"{protocol.DriverType.BRAILLE.name}*")):
+				log.debug(f"Creating remote braille handler for {fileName!r}")
 				handler = handlers.RemoteBrailleHandler(fileName)
 			elif fnmatch(fileName, globPattern.replace("*", f"{protocol.DriverType.SPEECH.name}*")):
+				log.debug(f"Creating remote speech handler for {fileName!r}")
 				handler = handlers.RemoteSpeechHandler(fileName)
 			else:
 				raise RuntimeError(f"Unknown named pipe: {fileName}")
 			self._handlers[fileName] = handler
 		elif action == directoryChanges.FileNotifyInformationAction.FILE_ACTION_REMOVED:
-			handler = self._handlers.get(fileName, None)
+			log.debug(f"Pipe with name {fileName!r} removed")
+			handler = self._handlers.pop(fileName, None)
 			if handler:
+				log.debug(f"Terminating handler {handler!r} for Pipe with name {fileName!r}")
 				handler.terminate()
-				del self._handlers[fileName]
 
 	def terminate(self):
 		self._pipeWatcher.stop()

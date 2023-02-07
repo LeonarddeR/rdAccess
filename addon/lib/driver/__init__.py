@@ -16,6 +16,7 @@ from logHandler import log
 from autoSettingsUtils.driverSetting import DriverSetting
 from .settingsAccessor import SettingsAccessorBase
 import sys
+from baseObject import AutoPropertyObject
 
 
 MSG_XON = 0x11
@@ -87,7 +88,10 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	def __getattribute__(self, name: str) -> Any:
 		getter = super().__getattribute__
-		if name.startswith("_") and not name.startswith("_get_"):
+		if (
+			(name.startswith("_") and not name.startswith("_get_"))
+			or name in (n for n in dir(AutoPropertyObject) if not n.startswith("_"))
+		):
 			return getter(name)
 		accessor = getter("_settingsAccessor")
 		if accessor and name in dir(accessor):
