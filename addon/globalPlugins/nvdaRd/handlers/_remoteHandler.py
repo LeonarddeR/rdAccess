@@ -21,17 +21,10 @@ else:
 MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS = 200
 
 
-class RemoteFocusState(Enum):
-	NONE = auto()
-	CLIENT_FOCUSED = auto()
-	SESSION_PENDING = auto()
-	SESSION_FOCUSED = auto()
-
-
 class RemoteHandler(protocol.RemoteProtocolHandler):
 	_dev: namedPipe.NamedPipeBase
-	_focusLastSet: float
 	decide_remoteDisconnect = Decider()
+	_remoteSessionhasFocus: typing.Optional[bool] = None
 
 	_driver: Driver
 	_abstract__driver = True
@@ -53,7 +46,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			raise
 
 	def event_gainFocus(self, obj):
-		self._focusLastSet = time.time()
+		self._remoteSessionhasFocus = None
 		# Invalidate the property cache to ensure that hasFocus will be fetched again.
 		# Normally, hasFocus should be cached since it is pretty expensive
 		# and should never try to fetch the time since input from the remote driver
@@ -88,28 +81,33 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX):].decode("ASCII")
 		return self._pickle(getattr(self._driver, name))
 
-	hasFocus: RemoteFocusState
+	hasFocus: bool
 
-	def _get_hasFocus(self) -> RemoteFocusState:
+	def _get_hasFocus(self) -> bool:
 		remoteProcessHasFocus = api.getFocusObject().processID == self._dev.pipeProcessId
 		if not remoteProcessHasFocus:
-			return RemoteFocusState.NONE
+			return remoteProcessHasFocus
 		attribute = protocol.GenericAttribute.TIME_SINCE_INPUT
-		if self._attributeValueProcessor.hasNewValueSince(attribute, self._focusLastSet):
-			newValue = self._attributeValueProcessor.getValue(attribute)
-			return (
-				RemoteFocusState.SESSION_FOCUSED
-				if newValue < MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS
-				else RemoteFocusState.CLIENT_FOCUSED
-			)
+		if self._remoteSessionhasFocus is not None:
+			return self._remoteSessionhasFocus
 		log.debug("Requesting time since input from remote driver")
-		self.requestRemoteAttribute(protocol.GenericAttribute.TIME_SINCE_INPUT)
-		return RemoteFocusState.SESSION_PENDING
+		self.requestRemoteAttribute(attribute)
+		return False
 
 	@protocol.attributeReceiver(protocol.GenericAttribute.TIME_SINCE_INPUT, defaultValue=False)
 	def _incoming_timeSinceInput(self, payload: bytes) -> int:
 		assert len(payload) == 4
 		return int.from_bytes(payload, byteorder=sys.byteorder, signed=False)
+
+	@_incoming_timeSinceInput.updateCallback
+	def _post_timeSinceInput(self, attribute: protocol.AttributeT, value: int):
+		assert attribute == protocol.GenericAttribute.TIME_SINCE_INPUT
+		self._remoteSessionhasFocus = value <= MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS
+		if self._remoteSessionhasFocus:
+			self._handleRemoteSessionGainFocus()
+
+	def _handleRemoteSessionGainFocus(self):
+		return
 
 	def _onReadError(self, error: int) -> bool:
 		return self.decide_remoteDisconnect.decide(handler=self, pipeName=self.pipeName, error=error)

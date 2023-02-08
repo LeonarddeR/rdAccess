@@ -4,8 +4,7 @@ import brailleInput
 from hwIo import intToByte
 import typing
 import inputCore
-import time
-from ._remoteHandler import RemoteFocusState
+import threading
 
 if typing.TYPE_CHECKING:
 	from .. import protocol
@@ -18,9 +17,11 @@ else:
 class RemoteBrailleHandler(RemoteHandler):
 	driverType = protocol.DriverType.BRAILLE
 	_driver: braille.BrailleDisplayDriver
+	_queuedWrite: typing.Optional[typing.List[int]] = None
+	_queuedWriteLock: threading.Lock
 
 	def __init__(self, pipeName: str, isNamedPipeClient: bool = True):
-		self._focusLastSet = time.time()
+		self._queuedWriteLock = threading.Lock()
 		braille.decide_enabled.register(self._handleBrailleHandlerEnabled)
 		braille.displayChanged.register(self._handledisplayChanged)
 		inputCore.decide_executeGesture.register(self._handleExecuteGesture)
@@ -51,19 +52,29 @@ class RemoteBrailleHandler(RemoteHandler):
 	def _command_display(self, payload: bytes):
 		cells = list(payload)
 		if braille.handler.displaySize > 0:
-			if not braille.handler.enabled and self.hasFocus == RemoteFocusState.SESSION_FOCUSED:
-				# We use braille.handler._writeCells since this respects thread safe displays
-				# and automatically falls back to noBraille if desired
-				# Execute it on the main thread
-				self._queueFunctionOnMainThread(braille.handler._writeCells, cells)
-			elif self.hasFocus == RemoteFocusState.CLIENT_FOCUSED:
+			with self._queuedWriteLock:
+				self._queuedWrite = cells
+			if not braille.handler.enabled and self.hasFocus:
+				self._queueFunctionOnMainThread(self._performLocalWriteCells)
+			elif self._remoteSessionhasFocus is False:
 				self.requestRemoteAttribute(protocol.GenericAttribute.TIME_SINCE_INPUT)
+
+	def _performLocalWriteCells(self):
+		with self._queuedWriteLock:
+			data = self._queuedWrite
+			self._queuedWrite = None
+		if data:
+			braille.handler._writeCells(data)
+
+	def _handleRemoteSessionGainFocus(self):
+		super()._handleRemoteSessionGainFocus()
+		self._queueFunctionOnMainThread(self._performLocalWriteCells)
 
 	def _handleExecuteGesture(self, gesture):
 		if (
 			isinstance(gesture, braille.BrailleDisplayGesture)
 			and not braille.handler.enabled
-			and self.hasFocus == RemoteFocusState.SESSION_FOCUSED
+			and self.hasFocus
 		):
 			kwargs = dict(
 				source=gesture.source,
@@ -80,7 +91,7 @@ class RemoteBrailleHandler(RemoteHandler):
 		return True
 
 	def _handleBrailleHandlerEnabled(self):
-		return self.hasFocus != RemoteFocusState.SESSION_FOCUSED
+		return not self.hasFocus
 
 	def _handledisplayChanged(self, display: braille.BrailleDisplayDriver):
 		self._attributeSenderStore(protocol.BrailleAttribute.NUM_CELLS, numCells=display.numCells	)
