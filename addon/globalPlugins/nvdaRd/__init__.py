@@ -40,7 +40,12 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def chooseNVDAObjectOverlayClasses(self, obj: NVDAObject, clsList: List[Type[NVDAObject]]):
 		if not isinstance(obj, IAccessible):
 			return
-		if obj.windowClassName == 'IHWindowClass':
+		if (
+			obj.windowClassName == 'IHWindowClass'
+			and obj.simpleParent
+			and obj.simpleParent.simpleParent
+			and obj.simpleParent.simpleParent.windowClassName == 'TscShellContainerClass'
+		):
 			clsList.append(RemoteDesktopControl)
 
 	def __init__(self):

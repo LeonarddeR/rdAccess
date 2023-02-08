@@ -26,7 +26,7 @@ from extensionPoints import HandlerRegistrar
 import types
 from abc import abstractmethod
 from NVDAState import getStartTime
-import wx
+import queueHandler
 
 
 ATTRIBUTE_SEPARATOR = b'`'
@@ -449,4 +449,4 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 				func(*args, **kwargs)
 			except Exception:
 				log.debug(f"Error executing {func!r}({args!r}, {kwargs!r}) on main thread", exc_info=True)
-		wx.CallAfter(wrapper, *args, **kwargs)
+		queueHandler.queueFunction(queueHandler.eventQueue, wrapper, *args, **kwargs)
