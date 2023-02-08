@@ -7,13 +7,16 @@ import typing
 from glob import glob
 from fnmatch import fnmatch
 from . import handlers
-from typing import Dict
+from typing import Dict, List, Type
 from winreg import HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE
 from logHandler import log
 from .synthDetect import _SynthDetector
 from utils.security import post_sessionLockStateChanged
 import braille
 from ctypes import WinError
+from NVDAObjects import NVDAObject
+from NVDAObjects.IAccessible import IAccessible
+from .objects import RemoteDesktopControl
 
 if typing.TYPE_CHECKING:
 	from ...lib import protocol
@@ -34,6 +37,11 @@ ERROR_BROKEN_PIPE = 0x6d
 
 
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
+	def chooseNVDAObjectOverlayClasses(self, obj: NVDAObject, clsList: List[Type[NVDAObject]]):
+		if not isinstance(obj, IAccessible):
+			return
+		if obj.windowClassName == 'IHWindowClass':
+			clsList.append(RemoteDesktopControl)
 
 	def __init__(self):
 		super().__init__()

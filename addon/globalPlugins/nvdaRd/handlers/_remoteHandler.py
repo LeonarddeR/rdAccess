@@ -7,6 +7,7 @@ from logHandler import log
 import sys
 import time
 from extensionPoints import Decider
+from ..objects import RemoteDesktopControl
 
 
 if typing.TYPE_CHECKING:
@@ -46,7 +47,10 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			raise
 
 	def event_gainFocus(self, obj):
-		self._remoteSessionhasFocus = None
+		if isinstance(obj, RemoteDesktopControl) and obj.processID == self._dev.pipeProcessId:
+			self._remoteSessionhasFocus = True
+		else:
+			self._remoteSessionhasFocus = None
 		# Invalidate the property cache to ensure that hasFocus will be fetched again.
 		# Normally, hasFocus should be cached since it is pretty expensive
 		# and should never try to fetch the time since input from the remote driver
