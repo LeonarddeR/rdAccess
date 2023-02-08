@@ -18,7 +18,7 @@ from .settingsAccessor import SettingsAccessorBase
 import sys
 from baseObject import AutoPropertyObject
 
-
+ERROR_PIPE_NOT_CONNECTED = 0xe9
 MSG_XON = 0x11
 MSG_XOFF = 0x13
 
@@ -65,7 +65,8 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 				if portType == KEY_VIRTUAL_CHANNEL:
 					self._dev = wtsVirtualChannel.WTSVirtualChannel(
 						port,
-						onReceive=self._onReceive
+						onReceive=self._onReceive,
+						onReadError=self._onReadError
 					)
 				elif portType == KEY_NAMED_PIPE_CLIENT:
 					self._dev = namedPipe.NamedPipeClient(
@@ -105,9 +106,15 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			setattr(accessor, name, value)
 		super().__setattr__(name, value)
 
+	def _onReadError(self, error: int) -> bool:
+		if error == ERROR_PIPE_NOT_CONNECTED:
+			self._handleRemoteDisconnect()
+			return True
+		return False
+
 	@abstractmethod
 	def _handleRemoteDisconnect(self):
-		raise NotImplementedError()
+		self.terminate()
 
 	def _onReceive(self, message: bytes):
 		if isinstance(self._dev, wtsVirtualChannel.WTSVirtualChannel) and len(message) == 1:

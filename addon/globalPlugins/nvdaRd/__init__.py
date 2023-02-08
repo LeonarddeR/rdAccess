@@ -10,6 +10,10 @@ from . import handlers
 from typing import Dict
 from winreg import HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE
 from logHandler import log
+from .synthDetect import _SynthDetector
+from utils.security import post_sessionLockStateChanged
+import braille
+from ctypes import WinError
 
 if typing.TYPE_CHECKING:
 	from ...lib import protocol
@@ -25,11 +29,18 @@ else:
 PIPE_DIRECTORY = "\\\\?\\pipe\\"
 globPattern = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
 
+ERROR_INVALID_HANDLE = 0x6
+ERROR_BROKEN_PIPE = 0x6d
+
 
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def __init__(self):
 		super().__init__()
+		handlers.RemoteHandler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
+		post_sessionLockStateChanged.register(self._handleLockStateChanged)
+		self._synthDetector = _SynthDetector()
+		self._synthDetector._queueBgScan()
 		isInLocalMachine = rdPipe.keyExists(HKEY_LOCAL_MACHINE)
 		self._rdPipeAddedToRegistry = rdPipe.addToRegistry(
 			HKEY_CURRENT_USER,
@@ -70,12 +81,29 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 				handler.terminate()
 
 	def terminate(self):
+		self._synthDetector.terminate()
 		self._pipeWatcher.stop()
 		for handler in self._handlers.values():
 			handler.terminate()
 		self._handlers.clear()
 		rdPipe.deleteFromRegistry(HKEY_CURRENT_USER, self._rdPipeAddedToRegistry)
+		post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
+		handlers.RemoteHandler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
 		super().terminate()
+
+	def _handleLockStateChanged(self, isNowLocked):
+		if not isNowLocked:
+			self._synthDetector.rescan()
+			if braille.handler._detector is not None:
+				braille.handler._detector.rescan()
+
+	def _handleRemoteDisconnect(self, handler: handlers.RemoteHandler, pipeName: str, error: int) -> bool:
+		if isinstance(WinError(error), BrokenPipeError):
+			handler.terminate()
+			if pipeName in self._handlers:
+				del self._handlers[pipeName]
+			return True
+		return False
 
 	def event_gainFocus(self, obj, nextHandler):
 		for handler in self._handlers.values():

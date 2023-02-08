@@ -23,7 +23,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 	def _handleRemoteDisconnect(self):
 		# Raise an exception because handleDisplayUnavailable expects one
 		try:
-			raise RuntimeError("XOFF received, remote client disconnected")
+			raise RuntimeError("remote client disconnected")
 		except RuntimeError:
 			braille.handler.handleDisplayUnavailable()
 

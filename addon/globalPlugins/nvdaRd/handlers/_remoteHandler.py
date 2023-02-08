@@ -6,6 +6,8 @@ import api
 from logHandler import log
 import sys
 import time
+from extensionPoints import Decider
+from functools import partial
 
 if typing.TYPE_CHECKING:
 	from .. import protocol
@@ -29,6 +31,7 @@ class RemoteFocusState(Enum):
 class RemoteHandler(protocol.RemoteProtocolHandler):
 	_dev: namedPipe.NamedPipeBase
 	_focusLastSet: float
+	decide_remoteDisconnect = Decider()
 
 	_driver: Driver
 	_abstract__driver = True
@@ -38,18 +41,16 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 
 	def __init__(self, pipeName: str, isNamedPipeClient: bool = True):
 		super().__init__()
+		self.pipeName = pipeName
 		try:
 			IO = namedPipe.NamedPipeClient if isNamedPipeClient else namedPipe.NamedPipeServer
-			self._dev = IO(pipeName=pipeName, onReceive=self._onReceive, onReadError=self._onReadError)
+			self._dev = IO(
+				pipeName=pipeName,
+				onReceive=self._onReceive,
+				onReadError=self._onReadError
+			)
 		except EnvironmentError:
 			raise
-
-	def _onReadError(self, error: int) -> bool:
-		if error == 109:
-			# Broken pipe error
-			self.terminate()
-			return True
-		return False
 
 	def event_gainFocus(self, obj):
 		self._focusLastSet = time.time()
@@ -103,3 +104,6 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 	def _incoming_timeSinceInput(self, payload: bytes) -> int:
 		assert len(payload) == 4
 		return int.from_bytes(payload, byteorder=sys.byteorder, signed=False)
+
+	def _onReadError(self, error: int) -> bool:
+		return self.decide_remoteDisconnect.decide(handler=self, pipeName=self.pipeName, error=error)

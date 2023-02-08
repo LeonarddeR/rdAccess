@@ -7,6 +7,8 @@ import sys
 import tones
 import nvwave
 from typing import Optional
+from extensionPoints import Action
+from logHandler import log
 
 
 if typing.TYPE_CHECKING:
@@ -23,6 +25,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 	description = _("Remote speech")
 	supportedNotifications = {synthDriverHandler.synthIndexReached, synthDriverHandler.synthDoneSpeaking}
 	driverType = protocol.DriverType.SPEECH
+	synthRemoteDisconnected = Action()
 
 	def __init__(self, port="auto"):
 		tones.decide_beep.register(self.handle_decideBeep)
@@ -43,13 +46,17 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		return False
 
 	def _handleRemoteDisconnect(self):
-		queueHandler.queueFunction(queueHandler.eventQueue, synthDriverHandler.findAndSetNextSynth, self.name)
+		super()._handleRemoteDisconnect()
+		self.synthRemoteDisconnected.notify(synth=self)
 
 	def speak(self, speechSequence):
 		self.writeMessage(protocol.SpeechCommand.SPEAK, self._pickle(speechSequence))
 
 	def cancel(self):
-		self.writeMessage(protocol.SpeechCommand.CANCEL)
+		try:
+			self.writeMessage(protocol.SpeechCommand.CANCEL)
+		except WindowsError:
+			log.error("Error cancelling speech", exc_info=True)
 
 	def pause(self, switch):
 		self.writeMessage(protocol.SpeechCommand.PAUSE, boolToByte(switch))
