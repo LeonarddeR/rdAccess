@@ -50,15 +50,14 @@ class RemoteBrailleHandler(RemoteHandler):
 	@protocol.commandHandler(protocol.BrailleCommand.DISPLAY)
 	def _command_display(self, payload: bytes):
 		cells = list(payload)
-		if (
-			braille.handler.displaySize > 0
-			and not braille.handler.enabled
-			and self.hasFocus == RemoteFocusState.SESSION_FOCUSED
-		):
-			# We use braille.handler._writeCells since this respects thread safe displays
-			# and automatically falls back to noBraille if desired
-			# Execute it on the main thread
-			self._queueFunctionOnMainThread(braille.handler._writeCells, cells)
+		if braille.handler.displaySize > 0:
+			if not braille.handler.enabled and self.hasFocus == RemoteFocusState.SESSION_FOCUSED:
+				# We use braille.handler._writeCells since this respects thread safe displays
+				# and automatically falls back to noBraille if desired
+				# Execute it on the main thread
+				self._queueFunctionOnMainThread(braille.handler._writeCells, cells)
+			elif self.hasFocus == RemoteFocusState.CLIENT_FOCUSED:
+				self.requestRemoteAttribute(protocol.GenericAttribute.TIME_SINCE_INPUT)
 
 	def _handleExecuteGesture(self, gesture):
 		if (

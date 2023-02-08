@@ -20,6 +20,9 @@ def getLastInputInfo() -> int:
 	return lastINPUTINFO.dwTime
 
 
+windll.kernel32.GetTickCount.restype = DWORD
+
+
 def getTickCount() -> int:
 	return windll.kernel32.GetTickCount()
 
