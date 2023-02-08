@@ -17,15 +17,21 @@ from ctypes import WinError
 from NVDAObjects import NVDAObject
 from NVDAObjects.IAccessible import IAccessible
 from .objects import RemoteDesktopControl
+import config
+import gui
 
 if typing.TYPE_CHECKING:
-	from ...lib import protocol
+	from ...lib import configuration
+	from ...lib import dialogs
 	from ...lib import namedPipe
+	from ...lib import protocol
 	from ...lib import rdPipe
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
-	protocol = addon.loadModule("lib.protocol")
+	configuration = addon.loadModule("lib.configuration")
+	dialogs = addon.loadModule("lib.dialogs")
 	namedPipe = addon.loadModule("lib.namedPipe")
+	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
 
 
@@ -48,12 +54,13 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		):
 			clsList.append(RemoteDesktopControl)
 
-	def __init__(self):
-		super().__init__()
-		handlers.RemoteHandler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
-		post_sessionLockStateChanged.register(self._handleLockStateChanged)
+	def initializeOperatingModeServer(self):
 		self._synthDetector = _SynthDetector()
 		self._synthDetector._queueBgScan()
+		post_sessionLockStateChanged.register(self._handleLockStateChanged)
+
+	def initializeOperatingModeClient(self):
+		handlers.RemoteHandler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
 		isInLocalMachine = rdPipe.keyExists(HKEY_LOCAL_MACHINE)
 		self._rdPipeAddedToRegistry = rdPipe.addToRegistry(
 			HKEY_CURRENT_USER,
@@ -68,6 +75,17 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._pipeWatcher.directoryChanged.register(self._handleNewPipe)
 		self._pipeWatcher.start(hwIo.bgThread)
 		self._initializeExistingPipes()
+
+	def __init__(self):
+		super().__init__()
+		configuration.initializeConfig()
+		self._configuredOperatingMode = configuration.OperatingMode(configuration.config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME])
+		config.post_configProfileSwitch.register(self._handlePostConfigProfileSwitch)
+		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(dialogs.NvdaRDSettingsPanel)
+		if self._configuredOperatingMode & configuration.OperatingMode.SERVER:
+			self.initializeOperatingModeServer()
+		if self._configuredOperatingMode & configuration.OperatingMode.CLIENT:
+			self.initializeOperatingModeClient()
 
 	def _initializeExistingPipes(self):
 		for match in glob(globPattern):
@@ -93,16 +111,52 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 				log.debug(f"Terminating handler {handler!r} for Pipe with name {fileName!r}")
 				handler.terminate()
 
-	def terminate(self):
+	def terminateOperatingModeServer(self):
+		post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
 		self._synthDetector.terminate()
+
+	def terminateOperatingModeClient(self):
 		self._pipeWatcher.stop()
 		for handler in self._handlers.values():
 			handler.terminate()
 		self._handlers.clear()
 		rdPipe.deleteFromRegistry(HKEY_CURRENT_USER, self._rdPipeAddedToRegistry)
-		post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
 		handlers.RemoteHandler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
+
+	def terminate(self):
+		if self._initializedOperatingMode & configuration.OperatingMode.SERVER:
+			self.terminateOperatingModeServer()
+		if self._initializedOperatingMode & configuration.OperatingMode.CLIENT:
+			self.terminateOperatingModeClient()
+		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(dialogs.NvdaRDSettingsPanel)
+		config.post_configProfileSwitch.unregister(self._handlePostConfigProfileSwitch)
 		super().terminate()
+
+	def _handlePostConfigProfileSwitch(self, ):
+		oldoperatingMode = self._configuredOperatingMode
+		newOperatingMode = self._configuredOperatingMode = configuration.OperatingMode(configuration.config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME])
+		if oldoperatingMode == newOperatingMode:
+			return
+		if (
+			oldoperatingMode & configuration.OperatingMode.SERVER
+			and not newOperatingMode & configuration.OperatingMode.SERVER
+		):
+			self.terminateOperatingModeServer()
+		elif (
+			not oldoperatingMode & configuration.OperatingMode.SERVER
+			and newOperatingMode & configuration.OperatingMode.SERVER
+		):
+			self.initializeOperatingModeServer()
+		if (
+			oldoperatingMode & configuration.OperatingMode.CLIENT
+			and not newOperatingMode & configuration.OperatingMode.CLIENT
+		):
+			self.terminateOperatingModeClient()
+		elif (
+			not oldoperatingMode & configuration.OperatingMode.CLIENT
+			and newOperatingMode & configuration.OperatingMode.CLIENT
+		):
+			self.initializeOperatingModeClient()
 
 	def _handleLockStateChanged(self, isNowLocked):
 		if not isNowLocked:
