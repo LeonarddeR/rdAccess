@@ -88,15 +88,14 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		if not remoteProcessHasFocus:
 			return RemoteFocusState.NONE
 		attribute = protocol.GenericAttribute.TIME_SINCE_INPUT
-		log.debug("Requesting time since input from remote driver")
 		if self._attributeValueProcessor.hasNewValueSince(attribute, self._focusLastSet):
 			newValue = self._attributeValueProcessor.getValue(attribute)
-			log.debug(f"New time since input, set to {newValue}")
 			return (
 				RemoteFocusState.SESSION_FOCUSED
 				if newValue < MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS
 				else RemoteFocusState.CLIENT_FOCUSED
 			)
+		log.debug("Requesting time since input from remote driver")
 		self.requestRemoteAttribute(protocol.GenericAttribute.TIME_SINCE_INPUT)
 		return RemoteFocusState.SESSION_PENDING
 

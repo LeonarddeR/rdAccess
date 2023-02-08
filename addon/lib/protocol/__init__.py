@@ -18,15 +18,15 @@ from threading import Lock
 import time
 from logHandler import log
 import pickle
-import queueHandler
 from .speech import SpeechAttribute, SpeechCommand
 from .braille import BrailleAttribute, BrailleCommand
 from fnmatch import fnmatch
-from functools import partial, update_wrapper
+from functools import partial, wraps, update_wrapper
 from extensionPoints import HandlerRegistrar
 import types
 from abc import abstractmethod
 from NVDAState import getStartTime
+import wx
 
 
 ATTRIBUTE_SEPARATOR = b'`'
@@ -442,4 +442,11 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		return pickle.loads(payload)
 
 	def _queueFunctionOnMainThread(self, func, *args, **kwargs):
-		queueHandler.queueFunction(queueHandler.eventQueue, func, *args, **kwargs)
+		@wraps(func)
+		def wrapper(*args, **kwargs):
+			log.debug(f"Executing {func!r}({args!r}, {kwargs!r}) on main thread")
+			try:
+				func(*args, **kwargs)
+			except Exception:
+				log.debug(f"Error executing {func!r}({args!r}, {kwargs!r}) on main thread", exc_info=True)
+		wx.CallAfter(wrapper, *args, **kwargs)
