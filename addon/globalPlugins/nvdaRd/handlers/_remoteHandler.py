@@ -7,7 +7,7 @@ from logHandler import log
 import sys
 import time
 from extensionPoints import Decider
-from functools import partial
+
 
 if typing.TYPE_CHECKING:
 	from .. import protocol
@@ -54,6 +54,13 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 
 	def event_gainFocus(self, obj):
 		self._focusLastSet = time.time()
+		# Invalidate the property cache to ensure that hasFocus will be fetched again.
+		# Normally, hasFocus should be cached since it is pretty expensive
+		# and should never try to fetch the time since input from the remote driver
+		# more than once per core cycle.
+		# However, if we don't clear the cache here, the braille handler won't be enabled correctly
+		# for the first focus outside the remote window.
+		self.invalidateCache()
 
 	@protocol.attributeSender(protocol.GenericAttribute.SUPPORTED_SETTINGS)
 	def _outgoing_supportedSettings(self, settings=None) -> bytes:
