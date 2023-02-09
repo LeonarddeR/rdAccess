@@ -63,7 +63,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
 			self._monkeyPatcher = MonkeyPatcher()
 		self._synthDetector = _SynthDetector()
-		self._synthDetector._queueBgScan()
+		self._triggerBackgroundDetectRescan()
 		post_sessionLockStateChanged.register(self._handleLockStateChanged)
 
 	def initializeOperatingModeClient(self):
