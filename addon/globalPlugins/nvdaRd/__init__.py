@@ -89,6 +89,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._configuredOperatingMode = configuration.OperatingMode(configuration.config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME])
 		config.post_configProfileSwitch.register(self._handlePostConfigProfileSwitch)
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(dialogs.NvdaRDSettingsPanel)
+		dialogs.NvdaRDSettingsPanel.post_onSave.register(self._handlePostConfigProfileSwitch)
 		if self._configuredOperatingMode & configuration.OperatingMode.SERVER:
 			self.initializeOperatingModeServer()
 		if self._configuredOperatingMode & configuration.OperatingMode.CLIENT:
@@ -139,6 +140,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self.terminateOperatingModeServer()
 		if self._configuredOperatingMode & configuration.OperatingMode.CLIENT:
 			self.terminateOperatingModeClient()
+		dialogs.NvdaRDSettingsPanel.post_onSave.unregister(self._handlePostConfigProfileSwitch)
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(dialogs.NvdaRDSettingsPanel)
 		config.post_configProfileSwitch.unregister(self._handlePostConfigProfileSwitch)
 		super().terminate()

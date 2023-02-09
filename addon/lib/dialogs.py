@@ -4,6 +4,7 @@ from gui import guiHelper
 from gui.settingsDialogs import SettingsPanel
 import config
 from .configuration import CONFIG_SECTION_NAME, OperatingMode, OPERATING_MODE_SETTING_NAME
+from extensionPoints import Action
 
 
 addonHandler.initTranslation()
@@ -11,6 +12,7 @@ addonHandler.initTranslation()
 
 class NvdaRDSettingsPanel(SettingsPanel):
 	title = _("NVDA Remote Desktop")
+	post_onSave = Action()
 
 	def makeSettings(self, settingsSizer):
 		sizer_helper = guiHelper.BoxSizerHelper(self, sizer=settingsSizer)
@@ -26,3 +28,4 @@ class NvdaRDSettingsPanel(SettingsPanel):
 
 	def onSave(self):
 		config.conf[CONFIG_SECTION_NAME][OPERATING_MODE_SETTING_NAME] = self.operatingModeList.Selection + 1
+		self.post_onSave.notify()
