@@ -124,9 +124,9 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		handlers.RemoteHandler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
 
 	def terminate(self):
-		if self._initializedOperatingMode & configuration.OperatingMode.SERVER:
+		if self._configuredOperatingMode & configuration.OperatingMode.SERVER:
 			self.terminateOperatingModeServer()
-		if self._initializedOperatingMode & configuration.OperatingMode.CLIENT:
+		if self._configuredOperatingMode & configuration.OperatingMode.CLIENT:
 			self.terminateOperatingModeClient()
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(dialogs.NvdaRDSettingsPanel)
 		config.post_configProfileSwitch.unregister(self._handlePostConfigProfileSwitch)

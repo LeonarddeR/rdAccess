@@ -1,7 +1,7 @@
 import addonHandler
 import gui
 import wx
-impor ttyping
+import typing
 
 if typing.TYPE_CHECKING:
 	from .. import protocol
