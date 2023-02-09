@@ -19,6 +19,7 @@ from NVDAObjects.IAccessible import IAccessible
 from .objects import RemoteDesktopControl
 import config
 import gui
+import api
 
 if typing.TYPE_CHECKING:
 	from ...lib import configuration
@@ -43,6 +44,8 @@ ERROR_BROKEN_PIPE = 0x6d
 
 
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
+	_synthDetector: typing.Optional[_SynthDetector]
+
 	def chooseNVDAObjectOverlayClasses(self, obj: NVDAObject, clsList: List[Type[NVDAObject]]):
 		if not isinstance(obj, IAccessible):
 			return
@@ -98,9 +101,11 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			if fnmatch(fileName, globPattern.replace("*", f"{protocol.DriverType.BRAILLE.name}*")):
 				log.debug(f"Creating remote braille handler for {fileName!r}")
 				handler = handlers.RemoteBrailleHandler(fileName)
+				handler.event_gainFocus(api.getFocusObject())
 			elif fnmatch(fileName, globPattern.replace("*", f"{protocol.DriverType.SPEECH.name}*")):
 				log.debug(f"Creating remote speech handler for {fileName!r}")
 				handler = handlers.RemoteSpeechHandler(fileName)
+				handler.event_gainFocus(api.getFocusObject())
 			else:
 				raise RuntimeError(f"Unknown named pipe: {fileName}")
 			self._handlers[fileName] = handler
@@ -173,8 +178,12 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		return False
 
 	def event_gainFocus(self, obj, nextHandler):
-		for handler in self._handlers.values():
-			handler.event_gainFocus(obj)
+		if self._configuredOperatingMode & configuration.OperatingMode.CLIENT:
+			for handler in self._handlers.values():
+				handler.event_gainFocus(obj)
+		if self._configuredOperatingMode & configuration.OperatingMode.SERVER:
+			if self._synthDetector:
+				self._synthDetector.rescan()
 		nextHandler()
 
 
