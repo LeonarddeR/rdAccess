@@ -1,51 +1,44 @@
-import synthDriverHandler
 import bdDetect
-import versionInfo
 import typing
 import braille
 
 if typing.TYPE_CHECKING:
 	from ...lib import detection
 else:
+	import addonHandler
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	detection = addon.loadModule("lib.detection")
 
 
 class MonkeyPatcher:
 
+	@staticmethod
 	def _bgScan(
-			self,
-			detector: bdDetect.Detector,
+			self: bdDetect.Detector,
 			detectUsb: bool,
 			detectBluetooth: bool,
 			limitToDevices: typing.Optional[typing.List[str]]
 	):
-		detector._stopEvent.clear()
+		self._stopEvent.clear()
 		for driver, match in detection.bgScanRD(limitToDevices=limitToDevices):
-			if detector._stopEvent.isSet():
+			if self._stopEvent.isSet():
 				return
 			if limitToDevices and driver not in limitToDevices:
 				continue
 			if braille.handler.setDisplayByName(driver, detected=match):
 				return
-	self._originalBgScan(detector, )
+		bdDetect.Detector._bgScan._origin(self, detectUsb, detectBluetooth, limitToDevices)
 
 	def patchBdDetect(self):
-
+		self._bgScan._origin = bdDetect.Detector._bgScan
+		bdDetect.Detector._bgScan = self._bgScan
 
 	def unpatchBdDetect(self):
-		...
-
-	def patchSynthDriverHandler(self):
-		...
-
-	def unpatchSynthDriverHandler(self):
-		...
+		bdDetect.Detector._bgScan = self._bgScan._origin
+		del self._bgScan._origin
 
 	def __init__(self):
 		self.patchBdDetect()
-		self.patchSynthDriverHandler()
 
-	def terminate(self):
-		self.unpatchSynthDriverHandler()
+	def __del__(self):
 		self.unpatchBdDetect()

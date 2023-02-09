@@ -20,6 +20,8 @@ from .objects import RemoteDesktopControl
 import config
 import gui
 import api
+import versionInfo
+from .monkeyPatcher import MonkeyPatcher
 
 if typing.TYPE_CHECKING:
 	from ...lib import configuration
@@ -58,6 +60,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			clsList.append(RemoteDesktopControl)
 
 	def initializeOperatingModeServer(self):
+		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
+			self._monkeyPatcher = MonkeyPatcher()
 		self._synthDetector = _SynthDetector()
 		self._synthDetector._queueBgScan()
 		post_sessionLockStateChanged.register(self._handleLockStateChanged)
@@ -119,6 +123,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def terminateOperatingModeServer(self):
 		post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
 		self._synthDetector.terminate()
+		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
+			del self._monkeyPatcher
 
 	def terminateOperatingModeClient(self):
 		self._pipeWatcher.stop()
@@ -165,9 +171,13 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def _handleLockStateChanged(self, isNowLocked):
 		if not isNowLocked:
+			self._triggerBackgroundDetectRescan()
+
+	def _triggerBackgroundDetectRescan(self):
+		if self._synthDetector:
 			self._synthDetector.rescan()
-			if braille.handler._detector is not None:
-				braille.handler._detector.rescan()
+		if braille.handler._detector is not None:
+			braille.handler._detector.rescan()
 
 	def _handleRemoteDisconnect(self, handler: handlers.RemoteHandler, pipeName: str, error: int) -> bool:
 		if isinstance(WinError(error), BrokenPipeError):
@@ -182,8 +192,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			for handler in self._handlers.values():
 				handler.event_gainFocus(obj)
 		if self._configuredOperatingMode & configuration.OperatingMode.SERVER:
-			if self._synthDetector:
-				self._synthDetector.rescan()
+			self._triggerBackgroundDetectRescan()
 		nextHandler()
 
 
