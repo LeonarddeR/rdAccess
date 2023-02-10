@@ -7,17 +7,18 @@
     ],
     "python.linting.flake8Enabled": true,
     "python.linting.pylintEnabled": false,
-    "python.autoComplete.extraPaths": [
-        "${workspaceFolder}/addon",
-        "${workspaceFolder}/../nvda/source",
-        "${workspaceFolder}/../nvda/miscDeps/python"
+    "python.autoComplete.include": [
+        "addon",
+        "../nvda/source",
+        "../nvda/miscDeps/python"
     ],
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
     "editor.insertSpaces": false,
+    "python.defaultInterpreterPath": "${workspaceFolder}/../nvda/.venv/Scripts/python.exe",
     "python.analysis.extraPaths": [
-        "${workspaceFolder}/addon",
-        "${workspaceFolder}/../nvda/source",
-        "${workspaceFolder}/../nvda/miscDeps/python"
+        "addon",
+        "../nvda/source",
+        "../nvda/miscDeps/python"
     ]
 }
