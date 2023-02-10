@@ -1,22 +1,22 @@
 import typing
 import addonHandler
-from enum import Enum, auto
 from driverHandler import Driver
 import api
 from logHandler import log
 import sys
-import time
 from extensionPoints import Decider
 from ..objects import RemoteDesktopControl
 
 
 if typing.TYPE_CHECKING:
-	from .. import protocol
+	from .. import ioBaseThreadMixin
 	from .. import namedPipe
+	from .. import protocol
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
-	protocol = addon.loadModule("lib.protocol")
+	ioBaseThreadMixin = addon.loadModule("lib.ioBaseThreadMixin")
 	namedPipe = addon.loadModule("lib.namedPipe")
+	protocol = addon.loadModule("lib.protocol")
 
 
 MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS = 200
@@ -38,6 +38,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		self.pipeName = pipeName
 		try:
 			IO = namedPipe.NamedPipeClient if isNamedPipeClient else namedPipe.NamedPipeServer
+			IO = type(f"{IO.__name__}ThreadWrapper", (ioBaseThreadMixin.IoBaseThreadMixin, IO), {})
 			self._dev = IO(
 				pipeName=pipeName,
 				onReceive=self._onReceive,
