@@ -1,7 +1,7 @@
 from ._remoteHandler import RemoteHandler
 import braille
 import brailleInput
-from hwIo import intToByte
+from hwIo import intToByte, IoThread
 import typing
 import inputCore
 import threading
@@ -20,12 +20,12 @@ class RemoteBrailleHandler(RemoteHandler):
 	_queuedWrite: typing.Optional[typing.List[int]] = None
 	_queuedWriteLock: threading.Lock
 
-	def __init__(self, pipeName: str, isNamedPipeClient: bool = True):
+	def __init__(self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool = True):
 		self._queuedWriteLock = threading.Lock()
 		braille.decide_enabled.register(self._handleBrailleHandlerEnabled)
 		braille.displayChanged.register(self._handledisplayChanged)
 		inputCore.decide_executeGesture.register(self._handleExecuteGesture)
-		super().__init__(pipeName, isNamedPipeClient)
+		super().__init__(ioThread, pipeName, isNamedPipeClient=isNamedPipeClient)
 
 	def terminate(self):
 		super().terminate()

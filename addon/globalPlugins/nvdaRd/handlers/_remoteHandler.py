@@ -6,15 +6,14 @@ from logHandler import log
 import sys
 from extensionPoints import Decider
 from ..objects import RemoteDesktopControl
+from hwIo.ioThread import IoThread
 
 
 if typing.TYPE_CHECKING:
-	from .. import ioBaseThreadMixin
 	from .. import namedPipe
 	from .. import protocol
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
-	ioBaseThreadMixin = addon.loadModule("lib.ioBaseThreadMixin")
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")
 
@@ -33,16 +32,21 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 	def _get__driver(self) -> Driver:
 		raise NotImplementedError
 
-	def __init__(self, pipeName: str, isNamedPipeClient: bool = True):
+	def __init__(
+			self,
+			ioThread: IoThread,
+			pipeName: str,
+			isNamedPipeClient: bool = True,
+	):
 		super().__init__()
 		self.pipeName = pipeName
 		try:
 			IO = namedPipe.NamedPipeClient if isNamedPipeClient else namedPipe.NamedPipeServer
-			IO = type(f"{IO.__name__}ThreadWrapper", (ioBaseThreadMixin.IoBaseThreadMixin, IO), {})
 			self._dev = IO(
 				pipeName=pipeName,
 				onReceive=self._onReceive,
-				onReadError=self._onReadError
+				onReadError=self._onReadError,
+				ioThread=ioThread
 			)
 		except EnvironmentError:
 			raise

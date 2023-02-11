@@ -46,7 +46,8 @@ ERROR_BROKEN_PIPE = 0x6d
 
 
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
-	_synthDetector: typing.Optional[_SynthDetector]
+	_synthDetector: typing.Optional[_SynthDetector] = None
+	_ioThread: typing.Optional[hwIo.ioThread.IoThread] = None
 
 	def chooseNVDAObjectOverlayClasses(self, obj: NVDAObject, clsList: List[Type[NVDAObject]]):
 		if not isinstance(obj, IAccessible):
@@ -75,6 +76,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			channelNamesOnly=isInLocalMachine
 		)
 		self._handlers: Dict[str, handlers.RemoteHandler] = {}
+		self._ioThread = hwIo.ioThread.IoThread()
+		self._ioThread.start()
 		self._pipeWatcher = directoryChanges.DirectoryWatcher(
 			PIPE_DIRECTORY,
 			directoryChanges.FileNotifyFilter.FILE_NOTIFY_CHANGE_FILE_NAME
@@ -104,15 +107,14 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			return
 		if action == directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED:
 			if fnmatch(fileName, globPattern.replace("*", f"{protocol.DriverType.BRAILLE.name}*")):
-				log.debug(f"Creating remote braille handler for {fileName!r}")
-				handler = handlers.RemoteBrailleHandler(fileName)
-				handler.event_gainFocus(api.getFocusObject())
+				HandlerClass = handlers.RemoteBrailleHandler
 			elif fnmatch(fileName, globPattern.replace("*", f"{protocol.DriverType.SPEECH.name}*")):
-				log.debug(f"Creating remote speech handler for {fileName!r}")
-				handler = handlers.RemoteSpeechHandler(fileName)
-				handler.event_gainFocus(api.getFocusObject())
+				HandlerClass = handlers.RemoteSpeechHandler
 			else:
 				raise RuntimeError(f"Unknown named pipe: {fileName}")
+			log.debug(f"Creating {HandlerClass.__name__} for {fileName!r}")
+			handler = HandlerClass(self._ioThread, fileName)
+			handler.event_gainFocus(api.getFocusObject())
 			self._handlers[fileName] = handler
 		elif action == directoryChanges.FileNotifyInformationAction.FILE_ACTION_REMOVED:
 			log.debug(f"Pipe with name {fileName!r} removed")
@@ -129,9 +131,12 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def terminateOperatingModeClient(self):
 		self._pipeWatcher.stop()
+		self._pipeWatcher = None
 		for handler in self._handlers.values():
 			handler.terminate()
 		self._handlers.clear()
+		self._ioThread.stop()
+		self._ioThread = None
 		rdPipe.deleteFromRegistry(HKEY_CURRENT_USER, self._rdPipeAddedToRegistry)
 		handlers.RemoteHandler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
 

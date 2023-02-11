@@ -1,7 +1,6 @@
 import typing
 import addonHandler
 import synthDriverHandler
-import queueHandler
 from hwIo import boolToByte
 import sys
 import tones
@@ -9,11 +8,12 @@ import nvwave
 from typing import Optional
 from extensionPoints import Action
 from logHandler import log
-
+from . import synthThread
+import queueHandler
 
 if typing.TYPE_CHECKING:
-	from ..lib import driver
-	from ..lib import protocol
+	from ...lib import driver
+	from ...lib import protocol
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	driver = addon.loadModule("lib.driver")
@@ -30,12 +30,14 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 	def __init__(self, port="auto"):
 		tones.decide_beep.register(self.handle_decideBeep)
 		nvwave.decide_playWaveFile.register(self.handle_decidePlayWaveFile)
+		synthThread.initialize()
 		super().__init__(port)
 
 	def terminate(self):
 		super().terminate()
 		tones.decide_beep.unregister(self.handle_decideBeep)
 		nvwave.decide_playWaveFile.unregister(self.handle_decidePlayWaveFile)
+		queueHandler.queueFunction(queueHandler.eventQueue, synthThread.terminate())
 
 	def handle_decideBeep(self, **kwargs):
 		self.writeMessage(protocol.SpeechCommand.BEEP, self._pickle(kwargs))
