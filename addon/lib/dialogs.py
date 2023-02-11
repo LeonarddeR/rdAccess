@@ -11,7 +11,7 @@ addonHandler.initTranslation()
 
 
 class NvdaRDSettingsPanel(SettingsPanel):
-	title = _("NVDA Remote Desktop")
+	title = _("Remote Desktop")
 	post_onSave = Action()
 
 	def makeSettings(self, settingsSizer):

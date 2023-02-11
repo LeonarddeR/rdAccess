@@ -234,23 +234,24 @@ class AttributeSenderStore(AttributeHandlerStore[attributeSenderT]):
 
 
 class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
-	_valueLocks: DefaultDict[AttributeT, Lock]
+	_valuesLock: Lock
 	_valueTimes: DefaultDict[AttributeT, float]
 	_values: Dict[AttributeT, Any]
 
 	def __init__(self):
 		super().__init__()
-		self._valueLocks = DefaultDict(Lock)
+		self._valuesLock = Lock()
 		self._values = {}
 		self._valueTimes = DefaultDict(getStartTime)
 
 	def clearCache(self):
-		self._values.clear()
-		self._valueTimes.clear()
-		self._valueLocks.clear()
+		with self._valuesLock:
+			self._values.clear()
+			self._valueTimes.clear()
 
 	def hasNewValueSince(self, attribute: AttributeT, t: float) -> bool:
-		return t < self._valueTimes[attribute]
+		with self._valuesLock:
+			return t < self._valueTimes[attribute]
 
 	def _getDefaultValue(self, attribute: AttributeT) -> AttributeValueT:
 		handler = self._getRawHandler(attribute)
@@ -271,17 +272,17 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 				log.error(f"Error calling {callback!r} for attribute {attribute!r}", exc_info=True)
 
 	def getValue(self, attribute: AttributeT, fallBackToDefault: bool = False):
-		with self._valueLocks[attribute]:
+		with self._valuesLock:
 			if fallBackToDefault and attribute not in self._values:
 				log.debug(f"No value for attribute {attribute!r} on {self!r}, falling back to default")
 				self._values[attribute] = self._getDefaultValue(attribute)
 			return self._values[attribute]
 
 	def SetValue(self, attribute: AttributeT, value):
-		with self._valueLocks[attribute]:
+		with self._valuesLock:
 			self._values[attribute] = value
 			self._valueTimes[attribute] = time.time()
-			self._invokeUpdateCallback(attribute, value)
+		self._invokeUpdateCallback(attribute, value)
 
 	def __call__(self, attribute: AttributeT, rawValue: bytes):
 		log.debug(f"Getting handler on {self!r} to process attribute {attribute!r}")

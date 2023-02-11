@@ -37,7 +37,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		super().terminate()
 		tones.decide_beep.unregister(self.handle_decideBeep)
 		nvwave.decide_playWaveFile.unregister(self.handle_decidePlayWaveFile)
-		queueHandler.queueFunction(queueHandler.eventQueue, synthThread.terminate())
+		queueHandler.queueFunction(queueHandler.eventQueue, synthThread.terminate)
 
 	def handle_decideBeep(self, **kwargs):
 		self.writeMessage(protocol.SpeechCommand.BEEP, self._pickle(kwargs))
