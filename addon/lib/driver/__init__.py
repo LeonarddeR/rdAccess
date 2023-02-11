@@ -117,7 +117,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	@abstractmethod
 	def _handleRemoteDisconnect(self):
-		self.terminate()
+		return
 
 	def _onReceive(self, message: bytes):
 		if isinstance(self._dev, wtsVirtualChannel.WTSVirtualChannel) and len(message) == 1:

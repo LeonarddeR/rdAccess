@@ -46,7 +46,7 @@ class _SynthDetector(AutoPropertyObject):
 
 	def _fallbackToPrevSynth(self):
 		if self._prevSynth is not None:
-			synthDriverHandler.setSynth(self._prevSynth)
+			synthDriverHandler.setSynth(self._prevSynth, isFallback=True)
 			self._prevSynth = None
 		else:
 			synthDriverHandler.findAndSetNextSynth(remoteSynthDriver.name)
