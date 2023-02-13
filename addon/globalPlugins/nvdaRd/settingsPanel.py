@@ -4,7 +4,7 @@ from gui import guiHelper
 from gui.dpiScalingHelper import DpiScalingHelperMixinWithoutInit
 from gui.settingsDialogs import SettingsPanel
 import config
-from .configuration import (
+from ...lib.configuration import (
     CONFIG_SECTION_NAME,
     OperatingMode,
     OPERATING_MODE_SETTING_NAME,
@@ -55,19 +55,3 @@ class NvdaRDSettingsPanel(SettingsPanel):
 			else False
 		)
 		self.post_onSave.notify()
-
-
-class NvdaRDInstallSettingsDialog(DpiScalingHelperMixinWithoutInit, wx.Dialog):
-	def __init__(self, parent):
-		super().__init__(
-			parent,
-			title=_("Installing NVDA Remote Desktop")
-		)
-		mainSizer = wx.BoxSizer(wx.VERTICAL)
-		sHelper = guiHelper.BoxSizerHelper(self, orientation=wx.VERTICAL)
-		dialogCaption = _("")
-		sHelper.addItem(NvdaRDSettingsPanel(self), , flag=wx.ALL | wx.EXPAND)
-		mainSizer.Add(sHelper.sizer, border=gui.guiHelper.BORDER_FOR_DIALOGS, flag=wx.ALL)
-		self.Sizer = mainSizer
-		mainSizer.Fit(self)
-		self.CentreOnScreen()

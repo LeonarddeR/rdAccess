@@ -2,7 +2,7 @@ import os
 import globalPluginHandler
 import addonHandler
 import hwIo
-from . import directoryChanges
+from . import directoryChanges, settingsPanel
 import typing
 from glob import glob
 from fnmatch import fnmatch
@@ -25,14 +25,12 @@ from .monkeyPatcher import MonkeyPatcher
 
 if typing.TYPE_CHECKING:
 	from ...lib import configuration
-	from ...lib import dialogs
 	from ...lib import namedPipe
 	from ...lib import protocol
 	from ...lib import rdPipe
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	configuration = addon.loadModule("lib.configuration")
-	dialogs = addon.loadModule("lib.dialogs")
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
@@ -95,8 +93,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._configuredOperatingMode = configuration.OperatingMode(configuration.config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME])
 		self._configuredPersistentRegistration: bool = config.conf[configuration.CONFIG_SECTION_NAME][configuration.PERSISTENT_REGISTRATION_SETTING_NAME]
 		config.post_configProfileSwitch.register(self._handlePostConfigProfileSwitch)
-		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(dialogs.NvdaRDSettingsPanel)
-		dialogs.NvdaRDSettingsPanel.post_onSave.register(self._handlePostConfigProfileSwitch)
+		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(settingsPanel.NvdaRDSettingsPanel)
+		settingsPanel.NvdaRDSettingsPanel.post_onSave.register(self._handlePostConfigProfileSwitch)
 		if self._configuredOperatingMode & configuration.OperatingMode.SERVER:
 			self.initializeOperatingModeServer()
 		if self._configuredOperatingMode & configuration.OperatingMode.CLIENT:
@@ -156,8 +154,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self.terminateOperatingModeServer()
 		if self._configuredOperatingMode & configuration.OperatingMode.CLIENT:
 			self.terminateOperatingModeClient()
-		dialogs.NvdaRDSettingsPanel.post_onSave.unregister(self._handlePostConfigProfileSwitch)
-		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(dialogs.NvdaRDSettingsPanel)
+		settingsPanel.NvdaRDSettingsPanel.post_onSave.unregister(self._handlePostConfigProfileSwitch)
+		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(settingsPanel.NvdaRDSettingsPanel)
 		config.post_configProfileSwitch.unregister(self._handlePostConfigProfileSwitch)
 		super().terminate()
 
