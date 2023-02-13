@@ -1,16 +1,16 @@
 import wx
 import addonHandler
 from gui import guiHelper
-from gui.dpiScalingHelper import DpiScalingHelperMixinWithoutInit
 from gui.settingsDialogs import SettingsPanel
 import config
-from ...lib.configuration import (
+from .configuration import (
     CONFIG_SECTION_NAME,
     OperatingMode,
     OPERATING_MODE_SETTING_NAME,
     PERSISTENT_REGISTRATION_SETTING_NAME
 )
 from extensionPoints import Action
+from typing import Union
 
 
 addonHandler.initTranslation()
@@ -36,6 +36,7 @@ class NvdaRDSettingsPanel(SettingsPanel):
 			)
 		)
 		self.operatingModeRadioBox.Selection = config.conf[CONFIG_SECTION_NAME][OPERATING_MODE_SETTING_NAME] - 1
+		self.operatingModeRadioBox.Bind(wx.EVT_RADIOBOX, self.onoperatingModeChange)
 		if config.isInstalledCopy():
 			# Translators: The label for a setting in NVDA RD settings to enable
 			# persistent registration of RD Pipe to the Windows registry.
@@ -46,12 +47,15 @@ class NvdaRDSettingsPanel(SettingsPanel):
 				label=persistentRegistrationText
 			))
 			self.persistentRegistrationCheckbox.Value = config.conf[CONFIG_SECTION_NAME][PERSISTENT_REGISTRATION_SETTING_NAME]
+			self.onoperatingModeChange(self.operatingModeRadioBox)
+
+	def onoperatingModeChange(self, evt: Union[wx.CommandEvent, wx.RadioBox]):
+		self.persistentRegistrationCheckbox.Enable(OperatingMode(evt.Selection + 1) & OperatingMode.CLIENT)
 
 	def onSave(self):
 		config.conf[CONFIG_SECTION_NAME][OPERATING_MODE_SETTING_NAME] = self.operatingModeRadioBox.Selection + 1
 		config.conf[CONFIG_SECTION_NAME][PERSISTENT_REGISTRATION_SETTING_NAME] = (
 			self.persistentRegistrationCheckbox.IsChecked()
-			if config.isInstalledCopy()
-			else False
+			and bool(OperatingMode(self.operatingModeRadioBox.Selection + 1) & OperatingMode.CLIENT)
 		)
 		self.post_onSave.notify()

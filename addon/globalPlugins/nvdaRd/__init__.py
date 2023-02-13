@@ -6,7 +6,7 @@ from . import directoryChanges, settingsPanel
 import typing
 from glob import glob
 from fnmatch import fnmatch
-from . import handlers
+from . import configuration, handlers
 from typing import Dict, List, Type
 from winreg import HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE
 from logHandler import log
@@ -24,13 +24,11 @@ import versionInfo
 from .monkeyPatcher import MonkeyPatcher
 
 if typing.TYPE_CHECKING:
-	from ...lib import configuration
 	from ...lib import namedPipe
 	from ...lib import protocol
 	from ...lib import rdPipe
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
-	configuration = addon.loadModule("lib.configuration")
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
