@@ -69,7 +69,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		isInLocalMachine = rdPipe.keyExists(HKEY_LOCAL_MACHINE)
 		self._rdPipeAddedToRegistry = rdPipe.addToRegistry(
 			HKEY_CURRENT_USER,
-			persistent=self._configuredPersistentRegistration,
+			persistent=config.isInstalledCopy() and self._configuredPersistentRegistration,
 			channelNamesOnly=isInLocalMachine
 		)
 
@@ -162,7 +162,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def _handlePostConfigProfileSwitch(self, ):
 		oldPersistentRegistration = self._configuredPersistentRegistration
 		newPersistentRegistration = self._configuredPersistentRegistration = config.conf[configuration.CONFIG_SECTION_NAME][configuration.PERSISTENT_REGISTRATION_SETTING_NAME]
-		if oldPersistentRegistration is not newPersistentRegistration:
+		if config.isInstalledCopy() and oldPersistentRegistration is not newPersistentRegistration:
 			if not newPersistentRegistration:
 				self._rdPipeAddedToRegistry = rdPipe.KeyComponents.RD_PIPE_KEY
 				self._unregisterRdPipeFromRegistry(undoregisterAtExit=False)

@@ -32,7 +32,4 @@ CONFIG_SPEC = {
 def initializeConfig():
 	if CONFIG_SECTION_NAME not in config.conf:
 		config.conf[CONFIG_SECTION_NAME] = {}
-	elif config.conf[CONFIG_SECTION_NAME][PERSISTENT_REGISTRATION_SETTING_NAME] and not config.isInstalledCopy():
-		log.warning("Running as portable copy, disabled persistent remote desktop client support when exiting NVDA")
-		config.conf[CONFIG_SECTION_NAME][PERSISTENT_REGISTRATION_SETTING_NAME] = False
 	config.conf[CONFIG_SECTION_NAME].spec.update(CONFIG_SPEC)
