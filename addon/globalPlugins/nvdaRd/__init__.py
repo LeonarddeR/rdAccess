@@ -80,7 +80,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			directoryChanges.FileNotifyFilter.FILE_NOTIFY_CHANGE_FILE_NAME
 		)
 		self._pipeWatcher.directoryChanged.register(self._handleNewPipe)
-		self._pipeWatcher.start(hwIo.bgThread)
+		self._pipeWatcher.start()
 		self._initializeExistingPipes()
 
 	def __init__(self):

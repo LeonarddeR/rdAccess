@@ -33,7 +33,7 @@ class FileNotifyInformationAction(IntEnum):
 	FILE_ACTION_RENAMED_NEW_NAME = 0x5
 
 
-class DirectoryWatcher:
+class DirectoryWatcher(IoThread):
 	directoryChanged: Action
 
 	def __init__(
@@ -42,6 +42,7 @@ class DirectoryWatcher:
 			notifyFilter: FileNotifyFilter = FileNotifyFilter.FILE_NOTIFY_CHANGE_FILE_NAME,
 			watchSubtree: bool = False
 	):
+		super().__init__()
 		self._watching = False
 		self._directory = directory
 		self._notifyFilter = notifyFilter
@@ -63,20 +64,22 @@ class DirectoryWatcher:
 		self._overlapped = OVERLAPPED()
 		self._ioDoneInst = LPOVERLAPPED_COMPLETION_ROUTINE(self._ioDone)
 
-	def start(self, ioThread: IoThread) -> bool:
+	def start(self):
 		if self._watching:
-			return False
-		ioThread.queueAsApc(self._asyncWatch)
+			return
+		super().start()
+		self.queueAsApc(self._asyncWatch)
 		self._watching = True
-		return True
 
-	def stop(self) -> bool:
+	def stop(self):
 		if not self._watching:
-			return False
+			return
 		self._watching = False
-		if hasattr(self, "_dirHandle") and not windll.kernel32.CancelIoEx(self._dirHandle, byref(self._overlapped)):
-			raise WinError()
-		return True
+		try:
+			if hasattr(self, "_dirHandle") and not windll.kernel32.CancelIoEx(self._dirHandle, byref(self._overlapped)):
+				raise WinError()
+		finally:
+			super().stop()
 
 	def __del__(self):
 		try:
