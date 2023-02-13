@@ -5,6 +5,7 @@ from speech.commands import IndexCommand
 import sys
 import tones
 import nvwave
+from hwIo.ioThread import IoThread
 
 if typing.TYPE_CHECKING:
 	from .. import protocol
@@ -18,11 +19,11 @@ class RemoteSpeechHandler(RemoteHandler):
 	driverType = protocol.DriverType.SPEECH
 	_driver: synthDriverHandler.SynthDriver
 
-	def __init__(self, pipeAddress: str):
+	def __init__(self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool = True):
 		self._indexesSpeaking = []
 		synthDriverHandler.synthIndexReached.register(self._onSynthIndexReached)
 		synthDriverHandler.synthDoneSpeaking.register(self._onSynthDoneSpeaking)
-		super().__init__(pipeAddress)
+		super().__init__(ioThread, pipeName, isNamedPipeClient=isNamedPipeClient)
 
 	def terminate(self):
 		super().terminate()

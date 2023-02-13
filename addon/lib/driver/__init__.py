@@ -17,6 +17,7 @@ from autoSettingsUtils.driverSetting import DriverSetting
 from .settingsAccessor import SettingsAccessorBase
 import sys
 from baseObject import AutoPropertyObject
+from hwIo.ioThread import IoThread
 
 ERROR_PIPE_NOT_CONNECTED = 0xe9
 MSG_XON = 0x11
@@ -57,7 +58,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		"""Saving settings not supported on this driver."""
 		return
 
-	def __init__(self, port="auto"):
+	def __init__(self, port="auto", ioThread: Optional[IoThread] = None):
 		super().__init__()
 		self._connected = False
 		for portType, portId, port, portInfo in self._getTryPorts(port):
@@ -66,12 +67,14 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 					self._dev = wtsVirtualChannel.WTSVirtualChannel(
 						port,
 						onReceive=self._onReceive,
-						onReadError=self._onReadError
+						onReadError=self._onReadError,
+						ioThread=ioThread
 					)
 				elif portType == KEY_NAMED_PIPE_CLIENT:
 					self._dev = namedPipe.NamedPipeClient(
 						port,
-						onReceive=self._onReceive
+						onReceive=self._onReceive,
+						ioThread=ioThread
 					)
 			except EnvironmentError:
 				log.debugWarning("", exc_info=True)
@@ -114,7 +117,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	@abstractmethod
 	def _handleRemoteDisconnect(self):
-		self.terminate()
+		return
 
 	def _onReceive(self, message: bytes):
 		if isinstance(self._dev, wtsVirtualChannel.WTSVirtualChannel) and len(message) == 1:

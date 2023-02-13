@@ -1,5 +1,7 @@
 from winAPI import _wtsApi32 as wtsApi32
-from hwIo.base import IoBase, _isDebug
+from .ioBaseEx import IoBaseEx
+from hwIo.base import _isDebug
+from hwIo.ioThread import IoThread
 from typing import Callable, Optional
 from ctypes import (
 	byref,
@@ -36,15 +38,16 @@ class ChannelPduHeader(Structure):
 CHANNEL_PDU_LENGTH = CHANNEL_CHUNK_LENGTH + sizeof(ChannelPduHeader)
 
 
-class WTSVirtualChannel(IoBase):
+class WTSVirtualChannel(IoBaseEx):
 	_rawOutput: bool
 
 	def __init__(
-		self,
-		channelName: str,
-		onReceive: Callable[[bytes], None],
-		onReadError: Optional[Callable[[int], bool]] = None,
-		rawOutput=False
+			self,
+			channelName: str,
+			onReceive: Callable[[bytes], None],
+			onReadError: Optional[Callable[[int], bool]] = None,
+			ioThread: Optional[IoThread] = None,
+			rawOutput=False
 	):
 		wtsHandle = windll.wtsapi32.WTSVirtualChannelOpenEx(
 			wtsApi32.WTS_CURRENT_SESSION,
@@ -84,7 +87,8 @@ class WTSVirtualChannel(IoBase):
 			fileHandle,
 			onReceive,
 			onReceiveSize=CHANNEL_PDU_LENGTH,
-			onReadError=onReadError
+			onReadError=onReadError,
+			ioThread=ioThread
 		)
 
 	def close(self):

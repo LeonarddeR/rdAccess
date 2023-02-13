@@ -1,4 +1,4 @@
-from hwIo.base import IoBase
+from hwIo.ioThread import IoThread
 from typing import Callable, Optional, Union
 from ctypes import (
 	byref,
@@ -16,7 +16,8 @@ from serial.win32 import (
 	OVERLAPPED,
 )
 import winKernel
-from enum import IntFlag, IntEnum
+from enum import IntFlag
+from .ioBaseEx import IoBaseEx
 
 
 ERROR_PIPE_CONNECTED = 0x217
@@ -44,19 +45,26 @@ class PipeOpenMode(IntFlag):
 MAX_PIPE_MESSAGE_SIZE = 1024 * 64
 
 
-class NamedPipeBase(IoBase):
+class NamedPipeBase(IoBaseEx):
 	pipeProcessId: int
 	pipeMode: PipeMode = PipeMode.READMODE_BYTE | PipeMode.WAIT
 
 	def __init__(
-		self,
-		fileHandle: Union[HANDLE, int],
-		onReceive: Callable[[bytes], None],
-		onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
-		onReadError: Optional[Callable[[int], bool]] = None,
-		pipeMode: PipeMode = PipeMode.READMODE_BYTE,
+			self,
+			fileHandle: Union[HANDLE, int],
+			onReceive: Callable[[bytes], None],
+			onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
+			onReadError: Optional[Callable[[int], bool]] = None,
+			ioThread: Optional[IoThread] = None,
+			pipeMode: PipeMode = PipeMode.READMODE_BYTE,
 	):
-		super().__init__(fileHandle, onReceive, onReceiveSize=onReceiveSize, onReadError=onReadError)
+		super().__init__(
+			fileHandle,
+			onReceive,
+			onReceiveSize=onReceiveSize,
+			onReadError=onReadError,
+			ioThread=ioThread
+		)
 
 	def close(self):
 		super().close()
@@ -67,13 +75,19 @@ class NamedPipeBase(IoBase):
 class NamedPipeServer(NamedPipeBase):
 
 	def __init__(
-		self,
-		pipeName: str,
-		onReceive: Callable[[bytes], None],
-		onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
-		onReadError: Optional[Callable[[int], bool]] = None,
-		pipeMode: PipeMode = PipeMode.READMODE_BYTE,
-		pipeOpenMode: PipeOpenMode = PipeOpenMode.ACCESS_DUPLEX | PipeOpenMode.OVERLAPPED | PipeOpenMode.FIRST_PIPE_INSTANCE
+			self,
+			pipeName: str,
+			onReceive: Callable[[bytes], None],
+			onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
+			onReadError: Optional[Callable[[int], bool]] = None,
+			ioThread: Optional[IoThread] = None,
+			pipeMode: PipeMode = PipeMode.READMODE_BYTE,
+			pipeOpenMode: PipeOpenMode = (
+				PipeOpenMode.ACCESS_DUPLEX
+				| PipeOpenMode.OVERLAPPED
+				| PipeOpenMode.FIRST_PIPE_INSTANCE
+			),
+			maxInstances: int = 1
 	):
 		fileHandle = windll.kernel32.CreateNamedPipeW(
 			pipeName,
@@ -95,11 +109,13 @@ class NamedPipeServer(NamedPipeBase):
 			fileHandle,
 			onReceive,
 			onReadError=onReadError,
+			ioThread=ioThread,
 			pipeMode=pipeMode,
 		)
+
 	def _asyncRead(self):
 		if not self._connected:
-			res = windll.ConnectNamedPipe(fileHandle, ol)
+			res = windll.ConnectNamedPipe(self._file, self._connectOl)
 			if res == 0:
 				error = GetLastError()
 				if error not in (ERROR_IO_PENDING, ERROR_PIPE_CONNECTED):
@@ -110,12 +126,12 @@ class NamedPipeServer(NamedPipeBase):
 class NamedPipeClient(NamedPipeBase):
 
 	def __init__(
-		self,
-		pipeName: str,
-		onReceive: Callable[[bytes], None],
-		onReadError: Optional[Callable[[int], bool]] = None,
-		pipeMode: PipeMode = PipeMode.READMODE_BYTE,
-		maxInstances: int = 1,
+			self,
+			pipeName: str,
+			onReceive: Callable[[bytes], None],
+			onReadError: Optional[Callable[[int], bool]] = None,
+			ioThread: Optional[IoThread] = None,
+			pipeMode: PipeMode = PipeMode.READMODE_BYTE
 	):
 		fileHandle = CreateFile(
 			pipeName,
@@ -132,6 +148,7 @@ class NamedPipeClient(NamedPipeBase):
 			fileHandle,
 			onReceive,
 			onReadError=onReadError,
+			ioThread=ioThread,
 			pipeMode=pipeMode,
 		)
 		if pipeMode:

@@ -6,6 +6,7 @@ import synthDriverHandler
 from baseObject import AutoPropertyObject
 from synthDrivers.remote import remoteSynthDriver
 import queueHandler
+import config
 
 if typing.TYPE_CHECKING:
 	from ...lib import detection
@@ -45,13 +46,13 @@ class _SynthDetector(AutoPropertyObject):
 
 	def _fallbackToPrevSynth(self):
 		if self._prevSynth is not None:
-			synthDriverHandler.setSynth(self._prevSynth)
+			synthDriverHandler.setSynth(self._prevSynth, isFallback=True)
 			self._prevSynth = None
 		else:
 			synthDriverHandler.findAndSetNextSynth(remoteSynthDriver.name)
 
 	def _queueBgScan(self):
-		if self.isRemoteSynthActive:
+		if self.isRemoteSynthActive or config.conf["speech"]["synth"] != remoteSynthDriver.name:
 			return
 		if self._queuedFuture:
 			self._queuedFuture.cancel()
