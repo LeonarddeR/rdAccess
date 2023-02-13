@@ -126,6 +126,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 				self._connected = True
 				return
 			elif command == MSG_XOFF:
+				log.debugWarning("MSG_XOFF message received, connection closed")
 				self._handleRemoteDisconnect()
 				return
 		super()._onReceive(message)

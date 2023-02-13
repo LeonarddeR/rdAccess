@@ -51,6 +51,7 @@ def addToRegistry(
 		persistent: bool = False,
 		channelNamesOnly: bool = False
 ) -> KeyComponents:
+	atexit.unregister(deleteFromRegistry)
 	expectedPath = getDllPath()
 	res = KeyComponents(0)
 	subKey = RD_PIPE_FOLDER

@@ -67,14 +67,17 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._triggerBackgroundDetectRescan()
 		post_sessionLockStateChanged.register(self._handleLockStateChanged)
 
-	def initializeOperatingModeClient(self):
-		handlers.RemoteHandler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
+	def _registerRdPipeInRegistry(self):
 		isInLocalMachine = rdPipe.keyExists(HKEY_LOCAL_MACHINE)
 		self._rdPipeAddedToRegistry = rdPipe.addToRegistry(
 			HKEY_CURRENT_USER,
-			persistent=False,
+			persistent=self._configuredPersistentRegistration,
 			channelNamesOnly=isInLocalMachine
 		)
+
+	def initializeOperatingModeClient(self):
+		handlers.RemoteHandler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
+		self._registerRdPipeInRegistry()
 		self._handlers: Dict[str, handlers.RemoteHandler] = {}
 		self._ioThread = hwIo.ioThread.IoThread()
 		self._ioThread.start()
@@ -90,6 +93,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		super().__init__()
 		configuration.initializeConfig()
 		self._configuredOperatingMode = configuration.OperatingMode(configuration.config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME])
+		self._configuredPersistentRegistration: bool = config.conf[configuration.CONFIG_SECTION_NAME][configuration.PERSISTENT_REGISTRATION_SETTING_NAME]
 		config.post_configProfileSwitch.register(self._handlePostConfigProfileSwitch)
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(dialogs.NvdaRDSettingsPanel)
 		dialogs.NvdaRDSettingsPanel.post_onSave.register(self._handlePostConfigProfileSwitch)
@@ -137,8 +141,15 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._handlers.clear()
 		self._ioThread.stop()
 		self._ioThread = None
-		rdPipe.deleteFromRegistry(HKEY_CURRENT_USER, self._rdPipeAddedToRegistry)
+		self._unregisterRdPipeFromRegistry()
 		handlers.RemoteHandler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
+
+	def _unregisterRdPipeFromRegistry(self, undoregisterAtExit: bool = True):
+		if not self._configuredPersistentRegistration:
+			rdPipe.deleteFromRegistry(
+				HKEY_CURRENT_USER,
+				self._rdPipeAddedToRegistry,
+			undoregisterAtExit)
 
 	def terminate(self):
 		if self._configuredOperatingMode & configuration.OperatingMode.SERVER:
@@ -151,10 +162,15 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		super().terminate()
 
 	def _handlePostConfigProfileSwitch(self, ):
+		oldPersistentRegistration = self._configuredPersistentRegistration
+		newPersistentRegistration = self._configuredPersistentRegistration = config.conf[configuration.CONFIG_SECTION_NAME][configuration.PERSISTENT_REGISTRATION_SETTING_NAME]
+		if oldPersistentRegistration is not newPersistentRegistration:
+			if not newPersistentRegistration:
+				self._rdPipeAddedToRegistry = rdPipe.KeyComponents.RD_PIPE_KEY
+				self._unregisterRdPipeFromRegistry(undoregisterAtExit=False)
+			self._registerRdPipeInRegistry()
 		oldoperatingMode = self._configuredOperatingMode
 		newOperatingMode = self._configuredOperatingMode = configuration.OperatingMode(configuration.config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME])
-		if oldoperatingMode == newOperatingMode:
-			return
 		if (
 			oldoperatingMode & configuration.OperatingMode.SERVER
 			and not newOperatingMode & configuration.OperatingMode.SERVER
