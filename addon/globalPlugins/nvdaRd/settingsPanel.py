@@ -7,7 +7,8 @@ from .configuration import (
     CONFIG_SECTION_NAME,
     OperatingMode,
     OPERATING_MODE_SETTING_NAME,
-    PERSISTENT_REGISTRATION_SETTING_NAME
+    PERSISTENT_REGISTRATION_SETTING_NAME,
+    RECOVER_REMOTE_SPEECH_SETTING_NAME,
 )
 from extensionPoints import Action
 from typing import Union
@@ -37,6 +38,17 @@ class NvdaRDSettingsPanel(SettingsPanel):
 		)
 		self.operatingModeRadioBox.Selection = config.conf[CONFIG_SECTION_NAME][OPERATING_MODE_SETTING_NAME] - 1
 		self.operatingModeRadioBox.Bind(wx.EVT_RADIOBOX, self.onoperatingModeChange)
+
+		# Translators: The label for a setting in NVDA RD settings to enable
+		# automatic recovery of remote speech when the connection was lost.
+		recoverRemoteSpeechText = _("Automatically &recover remote speech after connection loss")
+		self.recoverRemoteSpeechCheckbox = sizer_helper.addItem(
+			wx.CheckBox(
+			self,
+			label=recoverRemoteSpeechText
+		))
+		self.recoverRemoteSpeechCheckbox.Value = config.conf[CONFIG_SECTION_NAME][RECOVER_REMOTE_SPEECH_SETTING_NAME]
+
 		if config.isInstalledCopy():
 			# Translators: The label for a setting in NVDA RD settings to enable
 			# persistent registration of RD Pipe to the Windows registry.
@@ -47,13 +59,16 @@ class NvdaRDSettingsPanel(SettingsPanel):
 				label=persistentRegistrationText
 			))
 			self.persistentRegistrationCheckbox.Value = config.conf[CONFIG_SECTION_NAME][PERSISTENT_REGISTRATION_SETTING_NAME]
-			self.onoperatingModeChange(self.operatingModeRadioBox)
+
+		self.onoperatingModeChange(self.operatingModeRadioBox)
 
 	def onoperatingModeChange(self, evt: Union[wx.CommandEvent, wx.RadioBox]):
 		self.persistentRegistrationCheckbox.Enable(OperatingMode(evt.Selection + 1) & OperatingMode.CLIENT)
+		self.recoverRemoteSpeechCheckbox.Enable(OperatingMode(evt.Selection + 1) & OperatingMode.SERVER)
 
 	def onSave(self):
 		config.conf[CONFIG_SECTION_NAME][OPERATING_MODE_SETTING_NAME] = self.operatingModeRadioBox.Selection + 1
+		config.conf[CONFIG_SECTION_NAME][RECOVER_REMOTE_SPEECH_SETTING_NAME] = self.recoverRemoteSpeechCheckbox.IsChecked()
 		config.conf[CONFIG_SECTION_NAME][PERSISTENT_REGISTRATION_SETTING_NAME] = (
 			self.persistentRegistrationCheckbox.IsChecked()
 			and bool(OperatingMode(self.operatingModeRadioBox.Selection + 1) & OperatingMode.CLIENT)

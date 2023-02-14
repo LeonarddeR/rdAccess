@@ -59,7 +59,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def initializeOperatingModeServer(self):
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
 			self._monkeyPatcher = MonkeyPatcher()
-		self._synthDetector = _SynthDetector()
+		if configuration.getRecoverRemoteSpeech():
+			self._synthDetector = _SynthDetector()
 		self._triggerBackgroundDetectRescan()
 		post_sessionLockStateChanged.register(self._handleLockStateChanged)
 
@@ -67,7 +68,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		isInLocalMachine = rdPipe.keyExists(HKEY_LOCAL_MACHINE)
 		self._rdPipeAddedToRegistry = rdPipe.addToRegistry(
 			HKEY_CURRENT_USER,
-			persistent=config.isInstalledCopy() and self._configuredPersistentRegistration,
+			persistent=config.isInstalledCopy() and configuration.getPersistentRegistration(),
 			channelNamesOnly=isInLocalMachine
 		)
 
@@ -88,14 +89,13 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def __init__(self):
 		super().__init__()
 		configuration.initializeConfig()
-		self._configuredOperatingMode = configuration.OperatingMode(configuration.config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME])
-		self._configuredPersistentRegistration: bool = config.conf[configuration.CONFIG_SECTION_NAME][configuration.PERSISTENT_REGISTRATION_SETTING_NAME]
 		config.post_configProfileSwitch.register(self._handlePostConfigProfileSwitch)
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(settingsPanel.NvdaRDSettingsPanel)
 		settingsPanel.NvdaRDSettingsPanel.post_onSave.register(self._handlePostConfigProfileSwitch)
-		if self._configuredOperatingMode & configuration.OperatingMode.SERVER:
+		configuredOperatingMode = configuration.getOperatingMode()
+		if configuredOperatingMode & configuration.OperatingMode.SERVER:
 			self.initializeOperatingModeServer()
-		if self._configuredOperatingMode & configuration.OperatingMode.CLIENT:
+		if configuredOperatingMode & configuration.OperatingMode.CLIENT:
 			self.initializeOperatingModeClient()
 
 	def _initializeExistingPipes(self):
@@ -125,32 +125,37 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def terminateOperatingModeServer(self):
 		post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
-		self._synthDetector.terminate()
+		if self._synthDetector:
+			self._synthDetector.terminate()
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
 			del self._monkeyPatcher
 
 	def terminateOperatingModeClient(self):
-		self._pipeWatcher.stop()
-		self._pipeWatcher = None
+		if self._pipeWatcher:
+			self._pipeWatcher.stop()
+			self._pipeWatcher = None
 		for handler in self._handlers.values():
 			handler.terminate()
 		self._handlers.clear()
-		self._ioThread.stop()
-		self._ioThread = None
+		if self._ioThread:
+			self._ioThread.stop()
+			self._ioThread = None
 		self._unregisterRdPipeFromRegistry()
 		handlers.RemoteHandler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
 
 	def _unregisterRdPipeFromRegistry(self, undoregisterAtExit: bool = True):
-		if not self._configuredPersistentRegistration:
+		if not configuration.getPersistentRegistration():
 			rdPipe.deleteFromRegistry(
 				HKEY_CURRENT_USER,
 				self._rdPipeAddedToRegistry,
-			undoregisterAtExit)
+				undoregisterAtExit
+			)
 
 	def terminate(self):
-		if self._configuredOperatingMode & configuration.OperatingMode.SERVER:
+		configuredOperatingMode = configuration.getOperatingMode()
+		if configuredOperatingMode & configuration.OperatingMode.SERVER:
 			self.terminateOperatingModeServer()
-		if self._configuredOperatingMode & configuration.OperatingMode.CLIENT:
+		if configuredOperatingMode & configuration.OperatingMode.CLIENT:
 			self.terminateOperatingModeClient()
 		settingsPanel.NvdaRDSettingsPanel.post_onSave.unregister(self._handlePostConfigProfileSwitch)
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(settingsPanel.NvdaRDSettingsPanel)
@@ -158,35 +163,46 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		super().terminate()
 
 	def _handlePostConfigProfileSwitch(self, ):
-		oldPersistentRegistration = self._configuredPersistentRegistration
-		newPersistentRegistration = self._configuredPersistentRegistration = config.conf[configuration.CONFIG_SECTION_NAME][configuration.PERSISTENT_REGISTRATION_SETTING_NAME]
+		oldPersistentRegistration = configuration.getPersistentRegistration(True)
+		newPersistentRegistration = configuration.getPersistentRegistration(False)
 		if config.isInstalledCopy() and oldPersistentRegistration is not newPersistentRegistration:
 			if not newPersistentRegistration:
 				self._rdPipeAddedToRegistry = rdPipe.KeyComponents.RD_PIPE_KEY
 				self._unregisterRdPipeFromRegistry(undoregisterAtExit=False)
 			self._registerRdPipeInRegistry()
-		oldoperatingMode = self._configuredOperatingMode
-		newOperatingMode = self._configuredOperatingMode = configuration.OperatingMode(configuration.config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME])
+		oldOperatingMode = configuration.getOperatingMode(True)
+		newOperatingMode = configuration.getOperatingMode(False)
 		if (
-			oldoperatingMode & configuration.OperatingMode.SERVER
+			oldOperatingMode & configuration.OperatingMode.SERVER
 			and not newOperatingMode & configuration.OperatingMode.SERVER
 		):
 			self.terminateOperatingModeServer()
 		elif (
-			not oldoperatingMode & configuration.OperatingMode.SERVER
+			not oldOperatingMode & configuration.OperatingMode.SERVER
 			and newOperatingMode & configuration.OperatingMode.SERVER
 		):
 			self.initializeOperatingModeServer()
+		else:
+			oldRecoverRemoteSpeech = configuration.getRecoverRemoteSpeech(True)
+			newRecoverRemoteSpeech = configuration.getRecoverRemoteSpeech(False)
+			if oldRecoverRemoteSpeech is not newRecoverRemoteSpeech:
+				if newRecoverRemoteSpeech:
+					self._synthDetector = _SynthDetector()
+					self._synthDetector._queueBgScan()
+				elif self._synthDetector:
+					self._synthDetector.terminate()
+					self._synthDetector = None
 		if (
-			oldoperatingMode & configuration.OperatingMode.CLIENT
+			oldOperatingMode & configuration.OperatingMode.CLIENT
 			and not newOperatingMode & configuration.OperatingMode.CLIENT
 		):
 			self.terminateOperatingModeClient()
 		elif (
-			not oldoperatingMode & configuration.OperatingMode.CLIENT
+			not oldOperatingMode & configuration.OperatingMode.CLIENT
 			and newOperatingMode & configuration.OperatingMode.CLIENT
 		):
 			self.initializeOperatingModeClient()
+		configuration.updateConfigCache()
 
 	def _handleLockStateChanged(self, isNowLocked):
 		if not isNowLocked:
@@ -207,10 +223,11 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		return False
 
 	def event_gainFocus(self, obj, nextHandler):
-		if self._configuredOperatingMode & configuration.OperatingMode.CLIENT:
+		configuredOperatingMode = configuration.getOperatingMode()
+		if configuredOperatingMode & configuration.OperatingMode.CLIENT:
 			for handler in self._handlers.values():
 				handler.event_gainFocus(obj)
-		if self._configuredOperatingMode & configuration.OperatingMode.SERVER:
+		if configuredOperatingMode & configuration.OperatingMode.SERVER:
 			self._triggerBackgroundDetectRescan()
 		nextHandler()
 
