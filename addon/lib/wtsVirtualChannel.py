@@ -112,7 +112,7 @@ class WTSVirtualChannel(IoBaseEx):
 					winKernel.DUPLICATE_SAME_ACCESS
 				)
 			finally:
-				WTSFreeMemory(fileHandlePtr)
+				wtsApi32.WTSFreeMemory(fileHandlePtr)
 		finally:
 			if not WTSVirtualChannelClose(wtsHandle):
 				raise WinError()
