@@ -10,6 +10,7 @@ TS_ADD_INS_FOLDER = os.path.join("Software", "Microsoft", "Terminal Server Clien
 RD_PIPE_FOLDER_NAME = "RdPipe"
 RD_PIPE_FOLDER = os.path.join(TS_ADD_INS_FOLDER, RD_PIPE_FOLDER_NAME)
 NAME_VALUE_NAME = "Name"
+VIEW_ENABLED_VALUE_NAME = "View Enabled"
 CHANNEL_NAMES_VALUE_NAME = "ChannelNames"
 CHANNEL_NAMES_VALUE_BRAILLE = "NVDA-BRAILLE"
 CHANNEL_NAMES_VALUE_SPEECH = "NVDA-SPEECH"
@@ -18,6 +19,7 @@ CHANNEL_NAMES_VALUE_SPEECH = "NVDA-SPEECH"
 class KeyComponents(IntFlag):
 	RD_PIPE_KEY = auto()
 	NAME_VALUE = auto()
+	VIEW_ENABLED_VALUE = auto()
 	CHANNEL_NAMES_VALUE_BRAILLE = auto()
 	CHANNEL_NAMES_VALUE_SPEECH = auto()
 	CHANNEL_NAMES_VALUE_UNKNOWN = auto()
@@ -83,6 +85,19 @@ def addToRegistry(
 				expectedPath
 			)
 			res |= KeyComponents.NAME_VALUE
+		try:
+			enabled, regType = winreg.QueryValueEx(handle, VIEW_ENABLED_VALUE_NAME)
+		except FileNotFoundError:
+			enabled = False
+		if not enabled:
+			winreg.SetValueEx(
+				handle,
+				VIEW_ENABLED_VALUE_NAME,
+				0,
+				winreg.REG_DWORD,
+				int(True)
+			)
+			res |= KeyComponents.VIEW_ENABLED_VALUE
 	try:
 		channels, regType = winreg.QueryValueEx(handle, CHANNEL_NAMES_VALUE_NAME)
 		if not isinstance(channels, list) or regType != winreg.REG_MULTI_SZ:

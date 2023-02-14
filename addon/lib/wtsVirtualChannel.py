@@ -5,6 +5,8 @@ from hwIo.ioThread import IoThread
 from typing import Callable, Optional
 from ctypes import (
 	byref,
+	c_int,
+	c_void_p,
 	create_string_buffer,
 	windll,
 	WinError,
@@ -14,7 +16,12 @@ from ctypes import (
 	c_uint32,
 	GetLastError
 )
-from ctypes.wintypes import HANDLE, DWORD
+from ctypes.wintypes import (
+	BOOL,
+	HANDLE,
+	DWORD,
+	LPWSTR
+)
 from serial.win32 import INVALID_HANDLE_VALUE, ERROR_IO_PENDING
 from logHandler import log
 import winKernel
@@ -38,6 +45,33 @@ class ChannelPduHeader(Structure):
 CHANNEL_PDU_LENGTH = CHANNEL_CHUNK_LENGTH + sizeof(ChannelPduHeader)
 
 
+try:
+	vdp_rdpvcbridge = windll.vdp_rdpvcbridge
+except OSError:
+	WTSVirtualChannelOpenEx = windll.wtsapi32.WTSVirtualChannelOpenEx
+	WTSVirtualChannelQuery = windll.wtsapi32.WTSVirtualChannelQuery
+	WTSVirtualChannelClose = windll.wtsapi32.WTSVirtualChannelClose
+else:
+	WTSVirtualChannelOpenEx = windll.vdp_rdpvcbridge.VDP_VirtualChannelOpenEx
+	WTSVirtualChannelQuery = windll.vdp_rdpvcbridge.VDP_VirtualChannelQuery
+	# Slightly hacky but effective
+	wtsApi32.WTSFreeMemory = windll.vdp_rdpvcbridge.VDP_FreeMemory
+	wtsApi32.WTSFreeMemory.argtypes = (
+		c_void_p,  # [in] PVOID pMemory
+	)
+	wtsApi32.WTSFreeMemory.restype = None
+	WTSVirtualChannelClose = windll.vdp_rdpvcbridge.VDP_VirtualChannelClose
+	wtsApi32.WTSQuerySessionInformation = windll.vdp_rdpvcbridge.VDP_QuerySessionInformationW
+	wtsApi32.WTSQuerySessionInformation.argtypes = (
+		HANDLE,  # [in] HANDLE hServer
+		DWORD,  # [ in] DWORD SessionId
+		c_int,  # [ in]  WTS_INFO_CLASS WTSInfoClass,
+		POINTER(LPWSTR),  # [out] LPWSTR * ppBuffer,
+		POINTER(DWORD)  # [out] DWORD * pBytesReturned
+	)
+	wtsApi32.WTSQuerySessionInformation.restype = BOOL  # On Failure, the return value is zero.
+
+
 class WTSVirtualChannel(IoBaseEx):
 	_rawOutput: bool
 
@@ -49,7 +83,7 @@ class WTSVirtualChannel(IoBaseEx):
 			ioThread: Optional[IoThread] = None,
 			rawOutput=False
 	):
-		wtsHandle = windll.wtsapi32.WTSVirtualChannelOpenEx(
+		wtsHandle = WTSVirtualChannelOpenEx(
 			wtsApi32.WTS_CURRENT_SESSION,
 			create_string_buffer(channelName.encode("ascii")),
 			WTS_CHANNEL_OPTION_DYNAMIC | WTS_CHANNEL_OPTION_DYNAMIC_PRI_REAL
@@ -59,7 +93,7 @@ class WTSVirtualChannel(IoBaseEx):
 		try:
 			fileHandlePtr = POINTER(HANDLE)()
 			length = DWORD()
-			if not windll.wtsapi32.WTSVirtualChannelQuery(
+			if not WTSVirtualChannelQuery(
 				wtsHandle,
 				WTSVirtualFileHandle,
 				byref(fileHandlePtr),
@@ -78,9 +112,9 @@ class WTSVirtualChannel(IoBaseEx):
 					winKernel.DUPLICATE_SAME_ACCESS
 				)
 			finally:
-				windll.wtsapi32.WTSFreeMemory(fileHandlePtr)
+				WTSFreeMemory(fileHandlePtr)
 		finally:
-			if not windll.wtsapi32.WTSVirtualChannelClose(wtsHandle):
+			if not WTSVirtualChannelClose(wtsHandle):
 				raise WinError()
 		self._rawOutput = rawOutput
 		super().__init__(
