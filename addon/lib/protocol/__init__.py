@@ -440,7 +440,10 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		return pickle.dumps(obj, protocol=4)
 
 	def _unpickle(self, payload: bytes) -> Any:
-		return pickle.loads(payload)
+		res = pickle.loads(payload)
+		if isinstance(res, AutoPropertyObject):
+			res.invalidateCache()
+		return res
 
 	def _queueFunctionOnMainThread(self, func, *args, **kwargs):
 		@wraps(func)
