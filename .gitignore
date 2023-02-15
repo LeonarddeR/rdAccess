@@ -9,3 +9,4 @@ addon/doc/en/
 *.nvda-addon
 *.json
 .sconsign.dblite
+*.exe

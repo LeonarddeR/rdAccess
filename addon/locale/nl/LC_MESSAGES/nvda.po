@@ -1,0 +1,67 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 'nvdaRd' '2023.1'\n"
+"Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
+"POT-Creation-Date: 2023-02-15 07:48+0100\n"
+"PO-Revision-Date: 2023-02-15 07:52+0100\n"
+"Last-Translator: \n"
+"Language-Team: NVDA Nederlandstalig vertaalteam <nvda-nl@googlegroups.com>\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.2.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+#. Translators: Name for a remote braille display.
+#: addon\brailleDisplayDrivers\remote.py:19
+msgid "Remote Braille"
+msgstr "Extern Braille"
+
+#: addon\globalPlugins\nvdaRd\configuration.py:19
+msgid "Incoming connections (Remote Desktop Server)"
+msgstr "Binnenkomende verbindingen (Extern bureaublad Server)"
+
+#: addon\globalPlugins\nvdaRd\configuration.py:20
+msgid "Outgoing connections (Remote Desktop Client)"
+msgstr "Uitgaande verbindingen (Extern bureaublad client)"
+
+#: addon\globalPlugins\nvdaRd\configuration.py:21
+msgid "Bidirectional connections (Remote Desktop Server and Client)"
+msgstr "Beide verbindingen (Extern bureaublad Server en client)"
+
+#: addon\globalPlugins\nvdaRd\settingsPanel.py:21
+msgid "Remote Desktop"
+msgstr "Extern bureaublad"
+
+#. Translators: The label for a setting in NVDA RD settings to set operating mode.
+#: addon\globalPlugins\nvdaRd\settingsPanel.py:27
+msgid "Use NVDA RD for"
+msgstr "Gebruik NVDA RD voor"
+
+#. Translators: The label for a setting in NVDA RD settings to enable
+#. automatic recovery of remote speech when the connection was lost.
+#: addon\globalPlugins\nvdaRd\settingsPanel.py:44
+msgid "Automatically &recover remote speech after connection loss"
+msgstr "Exte&rne spraak automatisch herstellen na verbindingsverlies"
+
+#. Translators: The label for a setting in NVDA RD settings to enable
+#. persistent registration of RD Pipe to the Windows registry.
+#: addon\globalPlugins\nvdaRd\settingsPanel.py:55
+msgid "&Persist remote desktop client support when exiting NVDA"
+msgstr "Extern bureaublad client-ondersteuning behouden bij het afsluiten van NVDA"
+
+#. Add-on summary, usually the user visible name of the addon.
+#. Translators: Summary for this add-on
+#. to be shown on installation and add-on information found in Add-ons Manager.
+#. Add-on description
+#. Translators: Long description to be shown for this add-on on add-on information from add-ons manager
+#: buildVars.py:23 buildVars.py:26
+msgid "NVDA Remote Desktop Support"
+msgstr "NVDA ondersteuning voor extern bureaublad"

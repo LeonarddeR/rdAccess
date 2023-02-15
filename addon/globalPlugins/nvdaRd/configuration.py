@@ -1,9 +1,10 @@
 from utils.displayString import DisplayStringIntFlag
 from enum import unique
-from addonHandler import getCodeAddon
+import addonHandler
 import config
 from typing import Any, Dict
 
+addonHandler.initTranslation()
 _cachedConfig: Dict[str, Any] = {}
 
 
@@ -22,7 +23,7 @@ class OperatingMode(DisplayStringIntFlag):
 		}
 
 
-CONFIG_SECTION_NAME = getCodeAddon().name
+CONFIG_SECTION_NAME = addonHandler.getCodeAddon().name
 OPERATING_MODE_SETTING_NAME = "operatingMode"
 PERSISTENT_REGISTRATION_SETTING_NAME = "persistentRegistration"
 RECOVER_REMOTE_SPEECH_SETTING_NAME = "recoverRemoteSpeech"
