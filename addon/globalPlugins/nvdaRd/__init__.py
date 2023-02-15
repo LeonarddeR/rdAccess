@@ -22,13 +22,16 @@ import gui
 import api
 import versionInfo
 from .monkeyPatcher import MonkeyPatcher
+import bdDetect
 
 if typing.TYPE_CHECKING:
+	from ...lib import detection
 	from ...lib import namedPipe
 	from ...lib import protocol
 	from ...lib import rdPipe
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
+	detection = addon.loadModule("lib.Detection")
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
@@ -59,6 +62,9 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def initializeOperatingModeServer(self):
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
 			self._monkeyPatcher = MonkeyPatcher()
+		else:
+			bdDetect.scanForDevices.register(detection.bgScanRD)
+			bdDetect.scanForDevices.moveToEnd(detection.bgScanRD)
 		if configuration.getRecoverRemoteSpeech():
 			self._synthDetector = _SynthDetector()
 		self._triggerBackgroundDetectRescan()
@@ -129,6 +135,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._synthDetector.terminate()
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
 			del self._monkeyPatcher
+		else:
+			bdDetect.scanForDevices.unregister(detection.bgScanRD)
 
 	def terminateOperatingModeClient(self):
 		if self._pipeWatcher:
