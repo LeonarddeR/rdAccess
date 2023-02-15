@@ -31,7 +31,7 @@ if typing.TYPE_CHECKING:
 	from ...lib import rdPipe
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
-	detection = addon.loadModule("lib.Detection")
+	detection = addon.loadModule("lib.detection")
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
