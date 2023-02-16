@@ -21,7 +21,6 @@ import config
 import gui
 import api
 import versionInfo
-from .monkeyPatcher import MonkeyPatcher
 import bdDetect
 
 if typing.TYPE_CHECKING:
@@ -61,6 +60,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def initializeOperatingModeServer(self):
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
+			from .monkeyPatcher import MonkeyPatcher
 			self._monkeyPatcher = MonkeyPatcher()
 		else:
 			bdDetect.scanForDevices.register(detection.bgScanRD)

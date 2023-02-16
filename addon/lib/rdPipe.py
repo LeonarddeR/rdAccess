@@ -1,6 +1,6 @@
 import winreg
 import os.path
-from enum import IntFlag, auto
+from enum import IntFlag, auto, Enum
 import addonHandler
 import platform
 import shlobj
@@ -25,17 +25,27 @@ class KeyComponents(IntFlag):
 	CHANNEL_NAMES_VALUE_UNKNOWN = auto()
 
 
-def keyExists(key) -> bool:
+class Architecture(str, Enum):
+	X86 = "x86"
+	AMD64 = "AMD64"
+	ARM64 = "ARM64"
+
+
+DEFAULT_ARCHITECTURE = Architecture(platform.machine())
+
+
+def keyExists(key, architecture: Architecture = DEFAULT_ARCHITECTURE) -> bool:
+	archKey = winreg.KEY_WOW64_32KEY if architecture == Architecture.X86 else winreg.KEY_WOW64_64KEY
 	try:
-		with winreg.OpenKey(key, RD_PIPE_FOLDER, winreg.KEY_READ | winreg.KEY_WOW64_64KEY) as key:
+		with winreg.OpenKey(key, RD_PIPE_FOLDER, winreg.KEY_READ | archKey) as key:
 			return True
 	except FileNotFoundError:
 	    return False
 
 
-def getDllPath() -> str:
+def getDllPath(architecture: Architecture = DEFAULT_ARCHITECTURE) -> str:
 	addon = addonHandler.getCodeAddon()
-	expectedPath = os.path.join(addon.path, "dll", f"rd_pipe_{platform.machine().lower()}.dll")
+	expectedPath = os.path.join(addon.path, "dll", f"rd_pipe_{architecture.lower()}.dll")
 
 	if not os.path.isfile(expectedPath):
 		raise FileNotFoundError(expectedPath)
@@ -51,13 +61,15 @@ def getDllPath() -> str:
 def addToRegistry(
 		key,
 		persistent: bool = False,
+		architecture: Architecture = DEFAULT_ARCHITECTURE,
 		channelNamesOnly: bool = False
 ) -> KeyComponents:
 	atexit.unregister(deleteFromRegistry)
-	expectedPath = getDllPath()
+	expectedPath = getDllPath(architecture)
 	res = KeyComponents(0)
 	subKey = RD_PIPE_FOLDER
-	openFlags = winreg.KEY_READ | winreg.KEY_WRITE | winreg.KEY_WOW64_64KEY
+	archKey = winreg.KEY_WOW64_32KEY if architecture == Architecture.X86 else winreg.KEY_WOW64_64KEY
+	openFlags = winreg.KEY_READ | winreg.KEY_WRITE | archKey
 	needsSetValueForChannels = False
 	try:
 		handle = winreg.OpenKeyEx(key, subKey, 0, openFlags)
@@ -122,10 +134,15 @@ def addToRegistry(
 	return res
 
 
-def deleteFromRegistry(key, components: KeyComponents, undoregisterAtExit: bool = True):
+def deleteFromRegistry(
+		key, components: KeyComponents,
+		undoregisterAtExit: bool = True,
+		architecture: Architecture = DEFAULT_ARCHITECTURE
+):
 	if undoregisterAtExit:
 		atexit.unregister(deleteFromRegistry)
-	openFlags = winreg.KEY_READ | winreg.KEY_WRITE | winreg.KEY_WOW64_64KEY
+	archKey = winreg.KEY_WOW64_32KEY if architecture == Architecture.X86 else winreg.KEY_WOW64_64KEY
+	openFlags = winreg.KEY_READ | winreg.KEY_WRITE | archKey
 	if (
 		KeyComponents.RD_PIPE_KEY & components
 		or KeyComponents.NAME_VALUE & components
