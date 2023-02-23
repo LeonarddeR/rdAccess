@@ -71,11 +71,14 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		post_sessionLockStateChanged.register(self._handleLockStateChanged)
 
 	def _registerRdPipeInRegistry(self):
-		isInLocalMachine = rdPipe.keyExists(HKEY_LOCAL_MACHINE)
-		self._rdPipeAddedToRegistry = rdPipe.addToRegistry(
+		persistent = config.isInstalledCopy() and configuration.getPersistentRegistration()
+		rdPipe.inprocServerAddToRegistry(
 			HKEY_CURRENT_USER,
-			persistent=config.isInstalledCopy() and configuration.getPersistentRegistration(),
-			channelNamesOnly=isInLocalMachine
+			persistent=persistent
+		)
+		rdPipe.RdsAddToRegistry(
+			HKEY_CURRENT_USER,
+			persistent=persistent
 		)
 
 	def initializeOperatingModeClient(self):
@@ -153,9 +156,12 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def _unregisterRdPipeFromRegistry(self, undoregisterAtExit: bool = True):
 		if not configuration.getPersistentRegistration():
-			rdPipe.deleteFromRegistry(
+			rdPipe.RdsDeleteFromRegistry(
 				HKEY_CURRENT_USER,
-				self._rdPipeAddedToRegistry,
+				undoregisterAtExit
+			)
+			rdPipe.inprocServerDeleteFromRegistry(
+				HKEY_CURRENT_USER,
 				undoregisterAtExit
 			)
 
@@ -175,7 +181,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		newPersistentRegistration = configuration.getPersistentRegistration(False)
 		if config.isInstalledCopy() and oldPersistentRegistration is not newPersistentRegistration:
 			if not newPersistentRegistration:
-				self._rdPipeAddedToRegistry = rdPipe.KeyComponents.RD_PIPE_KEY
+				self._rdPipeAddedToRegistry = rdPipe.RDSKeyComponents.RD_PIPE_KEY
 				self._unregisterRdPipeFromRegistry(undoregisterAtExit=False)
 			self._registerRdPipeInRegistry()
 		oldOperatingMode = configuration.getOperatingMode(True)
