@@ -85,7 +85,7 @@ def inprocServerAddToRegistry(
 			channels.append(COM_CLS_CHANNEL_NAMES_VALUE_SPEECH)
 		if COM_CLS_CHANNEL_NAMES_VALUE_BRAILLE not in channels:
 			channels.append(COM_CLS_CHANNEL_NAMES_VALUE_BRAILLE)
-		winreg.SetValueEx(handle, COM_CLS_CHANNEL_NAMES_VALUE_NAME, 0, winreg.REG_MULTI_SZ, ",".join(channels))
+		winreg.SetValueEx(handle, COM_CLS_CHANNEL_NAMES_VALUE_NAME, 0, winreg.REG_MULTI_SZ, channels)
 		with winreg.CreateKeyEx(handle, COM_IMPROC_SERVER_FOLDER_NAME, 0, openFlags) as improcHandle:
 			winreg.SetValueEx(improcHandle, None, 0, pathRegType, path)
 			winreg.SetValueEx(improcHandle, "ThreadingModel", 0, winreg.REG_SZ, "Free")
