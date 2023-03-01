@@ -8,7 +8,6 @@ from glob import glob
 from fnmatch import fnmatch
 from . import configuration, handlers
 from typing import Dict, List, Type
-from winreg import HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE
 from logHandler import log
 from .synthDetect import _SynthDetector
 from utils.security import post_sessionLockStateChanged
@@ -72,12 +71,11 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def _registerRdPipeInRegistry(self):
 		persistent = config.isInstalledCopy() and configuration.getPersistentRegistration()
-		rdPipe.inprocServerAddToRegistry(
-			HKEY_CURRENT_USER,
-			persistent=persistent
-		)
-		rdPipe.RdsAddToRegistry(
-			HKEY_CURRENT_USER,
+		rdPipe.dllInstall(
+			install=True,
+			comServer=True,
+			rdp=True,
+			citrix=False,
 			persistent=persistent
 		)
 
@@ -156,13 +154,11 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def _unregisterRdPipeFromRegistry(self, undoregisterAtExit: bool = True):
 		if not configuration.getPersistentRegistration():
-			rdPipe.RdsDeleteFromRegistry(
-				HKEY_CURRENT_USER,
-				undoregisterAtExit
-			)
-			rdPipe.inprocServerDeleteFromRegistry(
-				HKEY_CURRENT_USER,
-				undoregisterAtExit
+			rdPipe.dllInstall(
+				install=False,
+				comServer=True,
+				rdp=True,
+				citrix=False
 			)
 
 	def terminate(self):
