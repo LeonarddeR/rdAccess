@@ -2,7 +2,6 @@ import os.path
 from enum import Enum
 import addonHandler
 import platform
-import atexit
 import COMRegistrationFixes
 import subprocess
 import shellapi
@@ -10,6 +9,7 @@ import winUser
 import winKernel
 from ctypes import windll, byref
 from ctypes.wintypes import HANDLE, MSG
+from typing import Optional
 from logHandler import log
 
 COM_CLS_CHANNEL_NAMES_VALUE_BRAILLE = "NVDA-BRAILLE"
@@ -29,19 +29,25 @@ def execRegsrv(
 		params: str,
 		architecture: Architecture = DEFAULT_ARCHITECTURE,
 		elevated: bool = False
-):
+) -> Optional[int]:
+	# Adapted from systemUtils.execElevated
 	if architecture is Architecture.X86:
 		# Points to the 32-bit version, on Windows 32-bit or 64-bit.
 		regsvr32 = os.path.join(COMRegistrationFixes.SYSTEM32, "regsvr32.exe")
 	else:
 		# SysWOW64 provides a virtual directory to allow 32-bit programs to reach 64-bit executables.
 		regsvr32 = os.path.join(COMRegistrationFixes.SYSNATIVE, "regsvr32.exe")
+	import wx
+	wait = wx.GetApp() is not None
 	# Make sure a console window doesn't show when running regsvr32.exe
 	sei = shellapi.SHELLEXECUTEINFO(lpFile=regsvr32, lpParameters=params, nShow=winUser.SW_HIDE)
 	if elevated:
 		sei.lpVerb = "runas"
-	sei.fMask = shellapi.SEE_MASK_NOCLOSEPROCESS
+	if wait:
+		sei.fMask = shellapi.SEE_MASK_NOCLOSEPROCESS
 	shellapi.ShellExecuteEx(sei)
+	if not wait:
+		return
 	try:
 		h = HANDLE(sei.hProcess)
 		msg = MSG()
@@ -73,11 +79,9 @@ def dllInstall(
 		comServer: bool,
 		rdp: bool,
 		citrix: bool,
-		persistent: bool = False,
 		localMachine: bool = False,
-		architecture: Architecture = DEFAULT_ARCHITECTURE
+		architecture: Architecture = DEFAULT_ARCHITECTURE,
 ):
-	atexit.unregister(dllInstall)
 	path = getDllPath(architecture)
 	command = ""
 	if rdp:
@@ -93,14 +97,5 @@ def dllInstall(
 		cmdLine.append("/u")
 	cmdLine.append(path)
 	res = execRegsrv(subprocess.list2cmdline(cmdLine), architecture, localMachine)
-	if install and not persistent:
-		atexit.register(
-			dllInstall,
-			not install,
-			comServer,
-			rdp,
-			citrix,
-			localMachine=localMachine,
-			architecture=architecture
-		)
-	return res
+	if res:
+		log.error(f"Executing dllInstall exited with exit code {res}")

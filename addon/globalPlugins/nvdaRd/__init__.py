@@ -21,6 +21,7 @@ import gui
 import api
 import versionInfo
 import bdDetect
+import atexit
 
 if typing.TYPE_CHECKING:
 	from ...lib import detection
@@ -69,15 +70,17 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._triggerBackgroundDetectRescan()
 		post_sessionLockStateChanged.register(self._handleLockStateChanged)
 
-	def _registerRdPipeInRegistry(self):
+	@classmethod
+	def _registerRdPipeInRegistry(cls):
 		persistent = config.isInstalledCopy() and configuration.getPersistentRegistration()
 		rdPipe.dllInstall(
 			install=True,
 			comServer=True,
 			rdp=True,
 			citrix=False,
-			persistent=persistent
 		)
+		if not persistent:
+			atexit.register(cls._unregisterRdPipeFromRegistry, undoregisterAtExit=False)
 
 	def initializeOperatingModeClient(self):
 		handlers.RemoteHandler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
@@ -152,8 +155,10 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._unregisterRdPipeFromRegistry()
 		handlers.RemoteHandler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
 
-	def _unregisterRdPipeFromRegistry(self, undoregisterAtExit: bool = True):
+	@classmethod
+	def _unregisterRdPipeFromRegistry(cls, undoregisterAtExit: bool = True):
 		if not configuration.getPersistentRegistration():
+			atexit.unregister(cls._unregisterRdPipeFromRegistry)
 			rdPipe.dllInstall(
 				install=False,
 				comServer=True,
