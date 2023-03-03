@@ -8,20 +8,22 @@ When installed in NVDA on both the client and the server, speech and braille gen
 
 ## Features
 
-* Support for Microsoft Remote Desktop Protocol and VMware Horizon
+* Support for Microsoft Remote Desktop and Citrix
 * Speech and braille output
 * Automatic detection of remote braille using NVDA's automatic braille display detection
 * Automatic detection of remote speech using a dedicated detection process that can be disabled in NVDA's settings dialog
 * Portable copies of NVDA arunning on a server are fully supported (no additional administrative privileges required to install the add-on)
-* Partial support for portable copies of NVDA running on a client (no additional administrative privileges required to install the add-on when using Microsoft Remote Desktop or VMware Horizon)
+* Partial support for portable copies of NVDA running on a client (no additional administrative privileges required to install the add-on when using Microsoft Remote Desktop)
 * Multiple active client sessions at the same time
 * Remote desktop instantly available after NVDA start
 * Ability to control specific synthesizer and braille display settings without leaving the remote session
 
 ## Todo list
 
-* Support for Citrix clients
+* Test support for Citrix
+* Test support for Vmware Horizon
 * Secure desktop support
+* Improve stability
 
 ## External components
 
