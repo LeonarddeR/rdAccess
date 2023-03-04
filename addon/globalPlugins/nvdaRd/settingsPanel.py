@@ -1,18 +1,11 @@
 import wx
 import addonHandler
-from gui import guiHelper, messageBox
+from gui import guiHelper
 from gui.settingsDialogs import SettingsPanel
 import config
-from .configuration import (
-    CONFIG_SECTION_NAME,
-    OperatingMode,
-    OPERATING_MODE_SETTING_NAME,
-    PERSISTENT_REGISTRATION_SETTING_NAME,
-    RECOVER_REMOTE_SPEECH_SETTING_NAME,
-)
+from . import configuration
 from extensionPoints import Action
 import typing
-from typing import Union
 
 if typing.TYPE_CHECKING:
 	from ...lib import rdPipe
@@ -33,16 +26,16 @@ class NvdaRDSettingsPanel(SettingsPanel):
 		operatingModeText = _("Use NVDA RD for")
 		operatingModeChoices = [
 			f"&{i.displayString}"
-			for i in OperatingMode
+			for i in configuration.OperatingMode
 		]
 		self.operatingModeRadioBox = sizer_helper.addItem(
 			wx.RadioBox(
 				self,
-				label=			operatingModeText,
+				label=operatingModeText,
 				choices=operatingModeChoices
 			)
 		)
-		self.operatingModeRadioBox.Selection = config.conf[CONFIG_SECTION_NAME][OPERATING_MODE_SETTING_NAME] - 1
+		self.operatingModeRadioBox.Selection = int(configuration.getOperatingMode()) - 1
 		self.operatingModeRadioBox.Bind(wx.EVT_RADIOBOX, self.onoperatingModeChange)
 
 		# Translators: The label for a setting in NVDA RD settings to enable
@@ -50,103 +43,67 @@ class NvdaRDSettingsPanel(SettingsPanel):
 		recoverRemoteSpeechText = _("Automatically &recover remote speech after connection loss")
 		self.recoverRemoteSpeechCheckbox = sizer_helper.addItem(
 			wx.CheckBox(
-			self,
-			label=recoverRemoteSpeechText
+				self,
+				label=recoverRemoteSpeechText
 		))
-		self.recoverRemoteSpeechCheckbox.Value = config.conf[CONFIG_SECTION_NAME][RECOVER_REMOTE_SPEECH_SETTING_NAME]
-
-		# Translators: This is the label for a group of options in the
-		# NVDA Remote Desktop settings panel
-		rdpGroupText = _("Microsoft Remote Desktop")
-		rdpGroupSizer = wx.StaticBoxSizer(wx.VERTICAL, self, label=rdpGroupText)
-		rdpGroupBox = rdpGroupSizer.GetStaticBox()
-		rdpGroup = guiHelper.BoxSizerHelper(self, sizer=rdpGroupSizer)
-		sizer_helper.addItem(rdpGroup)
+		self.recoverRemoteSpeechCheckbox.Value = configuration.getRecoverRemoteSpeech()
 
 		# Translators: The label for a setting in NVDA RD settings to enable
 		# persistent registration of RD Pipe to the Windows registry.
 		persistentRegistrationText = _("&Persist client support when exiting NVDA")
-		self.persistentRegistrationCheckbox = rdpGroup.addItem(
+		self.persistentRegistrationCheckbox = sizer_helper.addItem(
 			wx.CheckBox(
-			rdpGroupBox ,
-			label=persistentRegistrationText
+				self,
+				label=persistentRegistrationText
 		))
-		self.persistentRegistrationCheckbox.Value = config.conf[CONFIG_SECTION_NAME][PERSISTENT_REGISTRATION_SETTING_NAME]
+		self.persistentRegistrationCheckbox.Value = configuration.getPersistentRegistration()
 		self.persistentRegistrationCheckbox.Enable(config.isInstalledCopy())
 
-		# Translators: This is the label for a group of options in the
-		# NVDA Remote Desktop settings panel
-		citrixGroupText = _("Citrix")
-		citrixGroupSizer = wx.StaticBoxSizer(wx.VERTICAL, self, label=citrixGroupText)
-		citrixGroupBox = citrixGroupSizer.GetStaticBox()
-		citrixGroup = guiHelper.BoxSizerHelper(self, sizer=citrixGroupSizer)
-		sizer_helper.addItem(citrixGroup)
+		# Translators: The label for a setting in NVDA RD settings to enable
+		# registration of RD Pipe to the Windows registry for remote desktop support.
+		remoteDesktopSupportText = _("Enable &Remote Desktop support")
+		self.remoteDesktopSupportCheckbox = sizer_helper.addItem(
+			wx.CheckBox(
+				self,
+				label=remoteDesktopSupportText
+		))
+		self.remoteDesktopSupportCheckbox.Value = configuration.getRemoteDesktopSupport()
 
 		# Translators: The label for a setting in NVDA RD settings to enable
-		# Citrix support.
-		citrixSupportText = _(
-			"&Enable Citrix Workspace support "
-			"(requires administrator privileges)"
-		)
-		self.citrixSupportCheckbox = rdpGroup.addItem(
+		# registration of RD Pipe to the Windows registry for Citrix support.
+		citrixSupportText = _("Enable support for &Citrix Workspace")
+		self.citrixSupportCheckbox = sizer_helper.addItem(
 			wx.CheckBox(
-			citrixGroupBox ,
-			label=citrixSupportText
+				self,
+				label=citrixSupportText
 		))
-		self.citrixSupportCheckbox.Value = rdPipe.isCitrixSupportRegistered()
-		self.citrixSupportCheckbox.Enable(
-			config.isInstalledCopy() and rdPipe.isCitrixWorkspaceInstalled()
-		)
+		self.citrixSupportCheckbox.Value = configuration.getCitrixSupport()
 
 		self.onoperatingModeChange(self.operatingModeRadioBox)
 
-	def onCitrixSupportChanged(self, value: bool):
-		if value:
-			if messageBox(
-				# Translators: A message to warn the user when enabling Citrix support.
-				_(
-					"You are about to enable Citrix support for NVDA Remote desktop. "
-					"Citrix support can only be enabled system wide, "
-					"however the NVDA Remote Desktop add-on is installed under the current user context. "
-					"You are discouraged to continue unless you are the only user of this system. "
-					"Furthermore, this action requires administrative access. Are you sure you wish to proceed?"
-				),
-				# Translators: The title of the warning dialog displayed when enabling Citrix support
-				_("Citrix Support Warning"),
-				wx.YES | wx.NO | wx.ICON_WARNING,
-				self
-			) == wx.NO:
-				return
-		if not rdPipe.dllInstall(
-			value,
-			comServer=True,
-			rdp=False,
-			citrix=True,
-			localMachine=True,
-			architecture=rdPipe.Architecture.X86
-		):
-			messageBox(
-				# Translators: The message displayed when Citrix registration failed.
-				_("Enabling Citrix support failed.  Please check the Log Viewer for more information."),
-				# Translators: The title of a dialog presented when Citrix registrartion failed.
-				_("Citrix Support Error"),
-				wx.OK | wx.ICON_ERROR,
-				self
-			)
-
-	def onoperatingModeChange(self, evt: Union[wx.CommandEvent, wx.RadioBox]):
-		self.persistentRegistrationCheckbox.Enable(OperatingMode(evt.Selection + 1) & OperatingMode.CLIENT)
-		self.recoverRemoteSpeechCheckbox.Enable(OperatingMode(evt.Selection + 1) & OperatingMode.SERVER)
+	def onoperatingModeChange(self, evt: typing.Union[wx.CommandEvent, wx.RadioBox]):
+		isClient = configuration.OperatingMode(evt.Selection + 1) & configuration.OperatingMode.CLIENT
+		self.persistentRegistrationCheckbox.Enable(isClient)
+		self.remoteDesktopSupportCheckbox.Enable(isClient)
+		self.citrixSupportCheckbox.Enable(isClient and rdPipe.isCitrixSupported())
+		self.recoverRemoteSpeechCheckbox.Enable(configuration.OperatingMode(evt.Selection + 1) & configuration.OperatingMode.SERVER)
 
 	def onSave(self):
-		config.conf[CONFIG_SECTION_NAME][OPERATING_MODE_SETTING_NAME] = self.operatingModeRadioBox.Selection + 1
-		config.conf[CONFIG_SECTION_NAME][RECOVER_REMOTE_SPEECH_SETTING_NAME] = self.recoverRemoteSpeechCheckbox.IsChecked()
-		config.conf[CONFIG_SECTION_NAME][PERSISTENT_REGISTRATION_SETTING_NAME] = (
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME] = self.operatingModeRadioBox.Selection + 1
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.RECOVER_REMOTE_SPEECH_SETTING_NAME] = self.recoverRemoteSpeechCheckbox.IsChecked()
+		isClient = bool(configuration.OperatingMode(self.operatingModeRadioBox.Selection + 1) & configuration.OperatingMode.CLIENT)
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.PERSISTENT_REGISTRATION_SETTING_NAME] = (
 			self.persistentRegistrationCheckbox.IsChecked()
-			and bool(OperatingMode(self.operatingModeRadioBox.Selection + 1) & OperatingMode.CLIENT)
+			and isClient
 		)
-		citrixEnabled = self.citrixSupportCheckbox.IsChecked()
-		if citrixEnabled is not rdPipe.isCitrixSupportRegistered():
-			self.onCitrixSupportChanged(citrixEnabled)
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.RD_SETTING_NAME] = (
+			self.remoteDesktopSupportCheckbox.IsChecked()
+			and isClient
+		)
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.CITRIX_SETTING_NAME] = (
+			self.citrixSupportCheckbox.IsChecked()
+			and isClient
+			and rdPipe.isCitrixSupported()
+		)
 
 		self.post_onSave.notify()

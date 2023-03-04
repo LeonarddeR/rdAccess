@@ -71,14 +71,39 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		post_sessionLockStateChanged.register(self._handleLockStateChanged)
 
 	@classmethod
+	def _updateRegistryForRdPipe(cls, install, rdp, citrix):
+		if not rdp and not citrix:
+			return
+		if rdPipe.DEFAULT_ARCHITECTURE == rdPipe.Architecture.X86:
+			rdPipe.dllInstall(
+				install=install,
+				comServer=True,
+				rdp=rdp,
+				citrix=citrix,
+			)
+		else:
+			if rdp:
+				rdPipe.dllInstall(
+					install=install,
+					comServer=True,
+					rdp=True,
+					citrix=False,
+				)
+			if citrix:
+				rdPipe.dllInstall(
+					install=install,
+					comServer=True,
+					rdp=False,
+					citrix=True,
+					architecture=rdPipe.Architecture.X86
+				)
+
+	@classmethod
 	def _registerRdPipeInRegistry(cls):
 		persistent = config.isInstalledCopy() and configuration.getPersistentRegistration()
-		rdPipe.dllInstall(
-			install=True,
-			comServer=True,
-			rdp=True,
-			citrix=False,
-		)
+		rdp = configuration.getRemoteDesktopSupport()
+		citrix = configuration.getCitrixSupport()
+		cls._updateRegistryForRdPipe(True, rdp, citrix)
 		if not persistent:
 			atexit.register(cls._unregisterRdPipeFromRegistry, undoregisterAtExit=False)
 
@@ -152,19 +177,16 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if self._ioThread:
 			self._ioThread.stop()
 			self._ioThread = None
-		self._unregisterRdPipeFromRegistry()
+		if not configuration.getPersistentRegistration():
+			self._unregisterRdPipeFromRegistry()
 		handlers.RemoteHandler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
 
 	@classmethod
 	def _unregisterRdPipeFromRegistry(cls, undoregisterAtExit: bool = True):
-		if not configuration.getPersistentRegistration():
-			atexit.unregister(cls._unregisterRdPipeFromRegistry)
-			rdPipe.dllInstall(
-				install=False,
-				comServer=True,
-				rdp=True,
-				citrix=False
-			)
+		atexit.unregister(cls._unregisterRdPipeFromRegistry)
+		rdp = configuration.getRemoteDesktopSupport()
+		citrix = configuration.getCitrixSupport()
+		cls._updateRegistryForRdPipe(False, rdp, citrix)
 
 	def terminate(self):
 		configuredOperatingMode = configuration.getOperatingMode()
@@ -178,13 +200,6 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		super().terminate()
 
 	def _handlePostConfigProfileSwitch(self, ):
-		oldPersistentRegistration = configuration.getPersistentRegistration(True)
-		newPersistentRegistration = configuration.getPersistentRegistration(False)
-		if config.isInstalledCopy() and oldPersistentRegistration is not newPersistentRegistration:
-			if not newPersistentRegistration:
-				self._rdPipeAddedToRegistry = rdPipe.RDSKeyComponents.RD_PIPE_KEY
-				self._unregisterRdPipeFromRegistry(undoregisterAtExit=False)
-			self._registerRdPipeInRegistry()
 		oldOperatingMode = configuration.getOperatingMode(True)
 		newOperatingMode = configuration.getOperatingMode(False)
 		if (
@@ -217,6 +232,15 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			and newOperatingMode & configuration.OperatingMode.CLIENT
 		):
 			self.initializeOperatingModeClient()
+		else:
+			oldRdp = configuration.getRemoteDesktopSupport(True)
+			newRdp = configuration.getRemoteDesktopSupport(False)
+			if oldRdp is not newRdp:
+				self._updateRegistryForRdPipe(newRdp, True, False)
+			oldCitrix = configuration.getCitrixSupport(True)
+			newCitrix = configuration.getCitrixSupport(False)
+			if oldCitrix is not newCitrix:
+				self._updateRegistryForRdPipe(newCitrix, False, True)
 		configuration.updateConfigCache()
 
 	def _handleLockStateChanged(self, isNowLocked):
