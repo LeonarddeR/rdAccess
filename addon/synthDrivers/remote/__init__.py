@@ -28,15 +28,19 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 	synthRemoteDisconnected = Action()
 
 	def __init__(self, port="auto"):
-		tones.decide_beep.register(self.handle_decideBeep)
-		nvwave.decide_playWaveFile.register(self.handle_decidePlayWaveFile)
 		synthThread.initialize()
-		super().__init__(port)
+		try:
+			super().__init__(port)
+		except RuntimeError:
+			synthThread.terminate()
+			raise
+		nvwave.decide_playWaveFile.register(self.handle_decidePlayWaveFile)
+		tones.decide_beep.register(self.handle_decideBeep)
 
 	def terminate(self):
-		super().terminate()
 		tones.decide_beep.unregister(self.handle_decideBeep)
 		nvwave.decide_playWaveFile.unregister(self.handle_decidePlayWaveFile)
+		super().terminate()
 		synthThread.terminate()
 
 	def handle_decideBeep(self, **kwargs):
