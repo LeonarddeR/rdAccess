@@ -40,7 +40,7 @@ class NvdaRDSettingsPanel(SettingsPanel):
 
 		# Translators: The label for a setting in NVDA RD settings to enable
 		# automatic recovery of remote speech when the connection was lost.
-		recoverRemoteSpeechText = _("Automatically &recover remote speech after connection loss")
+		recoverRemoteSpeechText = _("&Automatically recover remote speech after connection loss")
 		self.recoverRemoteSpeechCheckbox = sizer_helper.addItem(
 			wx.CheckBox(
 				self,
@@ -96,7 +96,7 @@ class NvdaRDSettingsPanel(SettingsPanel):
 			self.persistentRegistrationCheckbox.IsChecked()
 			and isClient
 		)
-		config.conf[configuration.CONFIG_SECTION_NAME][configuration.RD_SETTING_NAME] = (
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.REMOTE_DESKTOP_SETTING_NAME] = (
 			self.remoteDesktopSupportCheckbox.IsChecked()
 			and isClient
 		)

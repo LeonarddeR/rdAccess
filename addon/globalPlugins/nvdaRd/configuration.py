@@ -26,13 +26,13 @@ class OperatingMode(DisplayStringIntFlag):
 CONFIG_SECTION_NAME = addonHandler.getCodeAddon().name
 OPERATING_MODE_SETTING_NAME = "operatingMode"
 PERSISTENT_REGISTRATION_SETTING_NAME = "persistentRegistration"
-RD_SETTING_NAME = "enableRemoteDesktopSupport"
+REMOTE_DESKTOP_SETTING_NAME = "enableRemoteDesktopSupport"
 CITRIX_SETTING_NAME = "enableCitrixSupport"
 RECOVER_REMOTE_SPEECH_SETTING_NAME = "recoverRemoteSpeech"
 CONFIG_SPEC = {
 	OPERATING_MODE_SETTING_NAME: 'integer(default=3, min=1, max=3)',
 	PERSISTENT_REGISTRATION_SETTING_NAME: "boolean(default=false)",
-	RD_SETTING_NAME: "boolean(default=true)",
+	REMOTE_DESKTOP_SETTING_NAME: "boolean(default=true)",
 	CITRIX_SETTING_NAME: "boolean(default=true)",
 	RECOVER_REMOTE_SPEECH_SETTING_NAME: "boolean(default=true)",
 }
@@ -50,7 +50,7 @@ def getPersistentRegistration(fromCache: bool = False) -> bool:
 
 def getRemoteDesktopSupport(fromCache: bool = False) -> bool:
 	section = _cachedConfig if fromCache else config.conf[CONFIG_SECTION_NAME]
-	return section[RD_SETTING_NAME]
+	return section[REMOTE_DESKTOP_SETTING_NAME]
 
 
 def getCitrixSupport(fromCache: bool = False) -> bool:
