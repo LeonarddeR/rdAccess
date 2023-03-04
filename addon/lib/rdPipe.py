@@ -14,7 +14,23 @@ from logHandler import log
 
 COM_CLS_CHANNEL_NAMES_VALUE_BRAILLE = "NVDA-BRAILLE"
 COM_CLS_CHANNEL_NAMES_VALUE_SPEECH = "NVDA-SPEECH"
-CTX_RD_PIPE_FOLDER = r"SOFTWARE\Citrix\ICA Client\Engine\Configuration\Advanced\Modules\DVCPlugin_RdPipe"
+CTX_MODULES_FOLDER = r"SOFTWARE\Citrix\ICA Client\Engine\Configuration\Advanced\Modules"
+CTX_RD_PIPE_FOLDER = os.path.join(CTX_MODULES_FOLDER, "DVCPlugin_RdPipe")
+CTX_ARP_FOLDER = r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\CitrixOnlinePluginPackWeb"
+
+
+def isCitrixWorkspaceInstalled() -> bool:
+	import winreg
+	try:
+		with winreg.OpenKey(
+			winreg.HKEY_LOCAL_MACHINE,
+			CTX_ARP_FOLDER,
+			0,
+			winreg.KEY_READ | winreg.KEY_WOW64_32KEY
+		):
+			return True
+	except OSError:
+		return False
 
 
 def isCitrixSupportRegistered() -> bool:

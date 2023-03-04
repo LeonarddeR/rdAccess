@@ -94,7 +94,9 @@ class NvdaRDSettingsPanel(SettingsPanel):
 			label=citrixSupportText
 		))
 		self.citrixSupportCheckbox.Value = rdPipe.isCitrixSupportRegistered()
-		self.citrixSupportCheckbox.Enable(config.isInstalledCopy())
+		self.citrixSupportCheckbox.Enable(
+			config.isInstalledCopy() and rdPipe.isCitrixWorkspaceInstalled()
+		)
 
 		self.onoperatingModeChange(self.operatingModeRadioBox)
 
