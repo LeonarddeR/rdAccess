@@ -61,7 +61,7 @@ class NvdaRDSettingsPanel(SettingsPanel):
 
 		# Translators: The label for a setting in NVDA RD settings to enable
 		# registration of RD Pipe to the Windows registry for remote desktop support.
-		remoteDesktopSupportText = _("Enable &Remote Desktop support")
+		remoteDesktopSupportText = _("Enable Microsoft &Remote Desktop support")
 		self.remoteDesktopSupportCheckbox = sizer_helper.addItem(
 			wx.CheckBox(
 				self,
@@ -71,7 +71,7 @@ class NvdaRDSettingsPanel(SettingsPanel):
 
 		# Translators: The label for a setting in NVDA RD settings to enable
 		# registration of RD Pipe to the Windows registry for Citrix support.
-		citrixSupportText = _("Enable support for &Citrix Workspace")
+		citrixSupportText = _("Enable &Citrix Workspace support")
 		self.citrixSupportCheckbox = sizer_helper.addItem(
 			wx.CheckBox(
 				self,
