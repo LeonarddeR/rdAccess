@@ -36,7 +36,7 @@ You want this if your system can be controlled using Remote Desktop (server) and
 
 The default option is Bidirectional Connections to ensure a smooth start with the add-on. You are however encouraged to switch to server or client mode when possible.
 
-### Automatically recover remote speech after connection l
+### Automatically recover remote speech after connection loss
 
 This option is only available in server mode. It ensures that the connection will automatically be re-established when the Remote Speech synthesizer is active and the connection is lost.
 The behavior is very similar to that of braille display auto detection.
@@ -82,6 +82,6 @@ This option is only available in the following cases:
 
 ## External components
 
-This add-on relies on [RD Pipe](https://github.com/leonardder/rd_pipe-rs) a library written in Rust backing the remote desktop client support.
+This add-on relies on [RD Pipe](https://github.com/leonardder/rd_pipe-rs), a library written in Rust backing the remote desktop client support.
 RD Pipe is redistributed as part of this add-on under the terms of [version 3 of the GNU Affero General Public License](https://github.com/leonardder/rd_pipe-rs/blob/master/LICENSE) as
 published by the Free Software Foundation.
