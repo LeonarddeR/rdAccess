@@ -72,6 +72,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	@classmethod
 	def _updateRegistryForRdPipe(cls, install, rdp, citrix):
+		if citrix and not rdPipe.isCitrixSupported():
+			citrix = False
 		if not rdp and not citrix:
 			return
 		if rdPipe.DEFAULT_ARCHITECTURE == rdPipe.Architecture.X86:
