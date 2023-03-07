@@ -81,10 +81,15 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 				continue
 			if portType == KEY_VIRTUAL_CHANNEL:
 				# Wait for RdPipe at the other end to send a XON
-				if self._safeWait(lambda: self._connected, self.timeout * 3):
-					break
+				if not self._safeWait(lambda: self._connected, self.timeout * 3):
+					continue
 			else:
 				self._connected = True
+			try:
+				self._get_supportedSettings()
+			except TimeoutError:
+				log.debugWarning("Error getting supported settings", exc_info=True)
+			else:
 				break
 			self._dev.close()
 		else:
