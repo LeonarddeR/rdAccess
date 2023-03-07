@@ -299,7 +299,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 	_commandHandlerStore: CommandHandlerStore
 	_attributeSenderStore: AttributeSenderStore
 	_attributeValueProcessor: AttributeValueProcessor
-	timeout: float = 1.0
+	timeout: float = 2.0
 	cachePropertiesByDefault = True
 
 	def __new__(cls, *args, **kwargs):
