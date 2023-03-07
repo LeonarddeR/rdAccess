@@ -3,7 +3,7 @@ import typing
 import addonHandler
 from typing import List
 import inputCore
-
+from logHandler import log
 
 if typing.TYPE_CHECKING:
 	from ..lib import driver
@@ -19,6 +19,12 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 	description = _("Remote Braille")
 	isThreadSafe = True
 	driverType = protocol.DriverType.BRAILLE
+
+	def _getModifierGestures(self, model: typing.Optional[str] = None):
+		"""Hacky override that throws an instance at the underlying class method.
+		If we don't do this, the method can't acces the gesture map at the instance level.
+		"""
+		return super()._getModifierGestures.__func__(self, model)
 
 	def _handleRemoteDisconnect(self):
 		# Raise an exception because handleDisplayUnavailable expects one
@@ -63,7 +69,10 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 	def _command_executeGesture(self, payload: bytes):
 		assert len(payload) > 0
 		gesture = self._unpickle(payload)
-		inputCore.manager.executeGesture(gesture)
+		try:
+			inputCore.manager.executeGesture(gesture)
+		except inputCore.NoInputGestureAction:
+			log.error("Unexpected NoInputGestureAction", exc_info=True)
 
 	def display(self, cells: List[int]):
 		# cells will already be padded up to numCells.

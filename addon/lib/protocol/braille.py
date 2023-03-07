@@ -12,6 +12,7 @@ class BrailleCommand(IntEnum):
 class BrailleAttribute(bytes, Enum):
 	NUM_CELLS = b"numCells"
 	GESTURE_MAP = b"gestureMap"
+	OBJECT_GESTURE_MAP = b"_gestureMap"
 
 
 class BrailleInputGesture(braille.BrailleDisplayGesture, brailleInput.BrailleInputGesture):
