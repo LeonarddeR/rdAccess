@@ -26,14 +26,18 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 	supportedNotifications = {synthDriverHandler.synthIndexReached, synthDriverHandler.synthDoneSpeaking}
 	driverType = protocol.DriverType.SPEECH
 	synthRemoteDisconnected = Action()
+	__everInitialized: bool = False
+
+	@classmethod
+	def _handleFirstInit(cls):
+		if cls.__everInitialized:
+			return
+		synthThread.initialize()
+		cls.__everInitialized = True
 
 	def __init__(self, port="auto"):
-		synthThread.initialize()
-		try:
-			super().__init__(port)
-		except RuntimeError:
-			synthThread.terminate()
-			raise
+		self._handleFirstInit()
+		super().__init__(port)
 		nvwave.decide_playWaveFile.register(self.handle_decidePlayWaveFile)
 		tones.decide_beep.register(self.handle_decideBeep)
 
@@ -41,7 +45,6 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		tones.decide_beep.unregister(self.handle_decideBeep)
 		nvwave.decide_playWaveFile.unregister(self.handle_decidePlayWaveFile)
 		super().terminate()
-		synthThread.terminate()
 
 	def handle_decideBeep(self, **kwargs):
 		self.writeMessage(protocol.SpeechCommand.BEEP, self._pickle(kwargs))
@@ -97,9 +100,9 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		synthDriverHandler.synthIndexReached.notify(synth=self, index=index)
 
 	def initSettings(self):
-		# Call change voice to ensure the settings ring is updated.
-		synthDriverHandler.changeVoice(self, None)
-		return super().initSettings()
+		super().initSettings()
+		# Queue change voice to the main thread to ensure the settings ring is updated.
+		self._queueFunctionOnMainThread(synthDriverHandler.changeVoice, self, None)
 
 
 SynthDriver = remoteSynthDriver

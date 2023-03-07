@@ -1,5 +1,6 @@
 from hwIo.ioThread import IoThread
 from typing import Optional
+import atexit
 
 _synthThread: Optional[IoThread] = None
 
@@ -10,6 +11,7 @@ def initialize():
 		return
 	_synthThread = IoThread()
 	_synthThread.start()
+	atexit.register(terminate)
 
 
 def terminate():
