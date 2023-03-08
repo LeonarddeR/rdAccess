@@ -4,7 +4,7 @@ import addonHandler
 import hwIo
 from . import directoryChanges, settingsPanel
 import typing
-from glob import glob
+from glob import iglob
 from fnmatch import fnmatch
 from . import configuration, handlers
 from typing import Dict, List, Type
@@ -35,9 +35,6 @@ else:
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
 
-
-PIPE_DIRECTORY = "\\\\?\\pipe\\"
-globPattern = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
 
 ERROR_INVALID_HANDLE = 0x6
 ERROR_BROKEN_PIPE = 0x6d
@@ -136,7 +133,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self.initializeOperatingModeClient()
 
 	def _initializeExistingPipes(self):
-		for match in glob(globPattern):
+		for match in namedPipe.getNamedPipes():
 			self._handleNewPipe(directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED, match)
 
 	def _handleNewPipe(self, action: directoryChanges.FileNotifyInformationAction, fileName: str):
@@ -256,11 +253,11 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if braille.handler._detector is not None:
 			braille.handler._detector.rescan()
 
-	def _handleRemoteDisconnect(self, handler: handlers.RemoteHandler, pipeName: str, error: int) -> bool:
+	def _handleRemoteDisconnect(self, handler: handlers.RemoteHandler, error: int) -> bool:
 		if isinstance(WinError(error), BrokenPipeError):
 			handler.terminate()
-			if pipeName in self._handlers:
-				del self._handlers[pipeName]
+			if handler._dev.pipeName in self._handlers:
+				del self._handlers[handler._dev.pipeName]
 			return True
 		return False
 
@@ -268,7 +265,11 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		configuredOperatingMode = configuration.getOperatingMode()
 		if configuredOperatingMode & configuration.OperatingMode.CLIENT:
 			for handler in self._handlers.values():
-				handler.event_gainFocus(obj)
+				try:
+					handler.event_gainFocus(obj)
+				except Exception:
+					log.error("Error calling event_gainFocus on handler", exc_info=True)
+					continue
 		if configuredOperatingMode & configuration.OperatingMode.SERVER:
 			self._triggerBackgroundDetectRescan()
 		nextHandler()

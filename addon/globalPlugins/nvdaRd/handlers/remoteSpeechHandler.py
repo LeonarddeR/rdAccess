@@ -96,10 +96,6 @@ class RemoteSpeechHandler(RemoteHandler):
 	def _onSynthDoneSpeaking(self, synth: typing.Optional[synthDriverHandler.SynthDriver] = None):
 		self._indexesSpeaking.clear()
 
-	def event_gainFocus(self, obj):
-		super().event_gainFocus(obj)
-		self._get_hasFocus()
-
 	def _handleSynthChanged(self, synth: synthDriverHandler.SynthDriver):
 		self._attributeSenderStore(protocol.SpeechAttribute.SUPPORTED_COMMANDS, commands=synth.supportedCommands)
 		self._attributeSenderStore(protocol.GenericAttribute.SUPPORTED_SETTINGS, settings=synth.supportedSettings)

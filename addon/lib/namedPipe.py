@@ -1,5 +1,5 @@
 from hwIo.ioThread import IoThread
-from typing import Callable, Optional, Union
+from typing import Callable, Iterator, Optional, Union
 from ctypes import (
 	byref,
 	c_ulong,
@@ -18,9 +18,18 @@ from serial.win32 import (
 import winKernel
 from enum import IntFlag
 from .ioBaseEx import IoBaseEx
+import os
+from glob import iglob
 
 
 ERROR_PIPE_CONNECTED = 0x217
+ERROR_PIPE_BUSY = 0xE7
+PIPE_DIRECTORY = "\\\\?\\pipe\\"
+globPattern = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
+
+
+def getNamedPipes() -> Iterator[str]:
+	yield from iglob(globPattern)
 
 
 class PipeMode(IntFlag):
@@ -48,9 +57,11 @@ MAX_PIPE_MESSAGE_SIZE = 1024 * 64
 class NamedPipeBase(IoBaseEx):
 	pipeProcessId: int
 	pipeMode: PipeMode = PipeMode.READMODE_BYTE | PipeMode.WAIT
+	pipeName: str
 
 	def __init__(
 			self,
+			pipeName: str,
 			fileHandle: Union[HANDLE, int],
 			onReceive: Callable[[bytes], None],
 			onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
@@ -58,6 +69,7 @@ class NamedPipeBase(IoBaseEx):
 			ioThread: Optional[IoThread] = None,
 			pipeMode: PipeMode = PipeMode.READMODE_BYTE,
 	):
+		self.pipeName = pipeName
 		super().__init__(
 			fileHandle,
 			onReceive,
@@ -106,6 +118,7 @@ class NamedPipeServer(NamedPipeBase):
 		ol.hEvent = winKernel.createEvent()
 		self._connectOl = ol
 		super().__init__(
+			pipeName,
 			fileHandle,
 			onReceive,
 			onReadError=onReadError,
@@ -145,6 +158,7 @@ class NamedPipeClient(NamedPipeBase):
 		if fileHandle == INVALID_HANDLE_VALUE:
 			raise WinError()
 		super().__init__(
+			pipeName,
 			fileHandle,
 			onReceive,
 			onReadError=onReadError,
@@ -159,3 +173,6 @@ class NamedPipeClient(NamedPipeBase):
 		if not windll.kernel32.GetNamedPipeServerProcessId(HANDLE(fileHandle), byref(serverProcessId)):
 			raise WinError()
 		self.pipeProcessId = serverProcessId.value
+
+	def _get_isAlive(self) -> bool:
+		return self.pipeName in getNamedPipes()

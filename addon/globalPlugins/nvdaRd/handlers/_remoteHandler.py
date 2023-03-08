@@ -39,13 +39,12 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			isNamedPipeClient: bool = True,
 	):
 		super().__init__()
-		self.pipeName = pipeName
 		try:
 			IO = namedPipe.NamedPipeClient if isNamedPipeClient else namedPipe.NamedPipeServer
 			self._dev = IO(
 				pipeName=pipeName,
 				onReceive=self._onReceive,
-				onReadError=self._onReadError,
+				onReadError=self._onIoError,
 				ioThread=ioThread
 			)
 		except EnvironmentError:
@@ -118,5 +117,5 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 	def _handleRemoteSessionGainFocus(self):
 		return
 
-	def _onReadError(self, error: int) -> bool:
-		return self.decide_remoteDisconnect.decide(handler=self, pipeName=self.pipeName, error=error)
+	def _onIoError(self, error: int) -> bool:
+		return self.decide_remoteDisconnect.decide(handler=self, error=error)
