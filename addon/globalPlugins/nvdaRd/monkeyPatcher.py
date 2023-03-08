@@ -42,7 +42,7 @@ class MonkeyPatcher:
 			)
 
 	def patchBdDetect(self):
-		if bdDetect.Detector._bgScan = self._bgScan:
+		if bdDetect.Detector._bgScan == self._bgScan:
 			return
 		self._bgScan._origin = bdDetect.Detector._bgScan
 		bdDetect.Detector._bgScan = self._bgScan
