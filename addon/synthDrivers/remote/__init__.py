@@ -9,7 +9,7 @@ from typing import Optional
 from extensionPoints import Action
 from logHandler import log
 from . import synthThread
-import queueHandler
+from languageHandler import getLanguage
 
 if typing.TYPE_CHECKING:
 	from ...lib import driver
@@ -80,7 +80,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		self.requestRemoteAttribute(attribute)
 		return value
 
-	@protocol.attributeReceiver(protocol.SpeechAttribute.LANGUAGE, defaultValue=None)
+	@protocol.attributeReceiver(protocol.SpeechAttribute.LANGUAGE, defaultValue=getLanguage())
 	def _incoming_language(self, payload: bytes) -> Optional[str]:
 		assert len(payload) > 0
 		return self._unpickle(payload)
@@ -90,7 +90,8 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		try:
 			value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
 		except KeyError:
-			value = self.getRemoteAttribute(attribute)
+			value = self._attributeValueProcessor._getDefaultValue(attribute)
+			self.requestRemoteAttribute(attribute)
 		return value
 
 	@protocol.commandHandler(protocol.SpeechCommand.INDEX_REACHED)

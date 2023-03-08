@@ -55,11 +55,8 @@ class SettingsAccessorBase(AutoPropertyObject):
 		def _getSetting(self: SettingsAccessorBase):
 			log.debug(f"Getting value for setting {setting}")
 			attribute = self._getSettingAttributeName(setting)
-			try:
-				value = self.driver._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
-				self.driver._queueFunctionOnMainThread(self.driver.requestRemoteAttribute, attribute)
-			except KeyError:
-				value = self.driver.getRemoteAttribute(attribute)
+			value = self.driver._attributeValueProcessor.getValue(attribute, fallBackToDefault=True)
+			self.driver._queueFunctionOnMainThread(self.driver.requestRemoteAttribute, attribute)
 			return value
 		return _getSetting
 

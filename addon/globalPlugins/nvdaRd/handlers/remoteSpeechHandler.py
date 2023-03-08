@@ -42,8 +42,10 @@ class RemoteSpeechHandler(RemoteHandler):
 		return self._pickle(commands)
 
 	@protocol.attributeSender(protocol.SpeechAttribute.LANGUAGE)
-	def _outgoing_language(self) -> bytes:
-		return self._pickle(self._driver.language)
+	def _outgoing_language(self, language: typing.Optional[str] = None) -> bytes:
+		if language is None:
+			language = self._driver.language
+		return self._pickle(language)
 
 	@protocol.commandHandler(protocol.SpeechCommand.SPEAK)
 	def _command_speak(self, payload: bytes):
@@ -99,5 +101,6 @@ class RemoteSpeechHandler(RemoteHandler):
 		self._get_hasFocus()
 
 	def _handleSynthChanged(self, synth: synthDriverHandler.SynthDriver):
-		self._attributeSenderStore(protocol.SpeechAttribute.SUPPORTED_COMMANDS, synth.supportedCommands)
+		self._attributeSenderStore(protocol.SpeechAttribute.SUPPORTED_COMMANDS, commands=synth.supportedCommands)
 		self._attributeSenderStore(protocol.GenericAttribute.SUPPORTED_SETTINGS, settings=synth.supportedSettings)
+		self._attributeSenderStore(protocol.SpeechAttribute.LANGUAGE, language=synth.language)

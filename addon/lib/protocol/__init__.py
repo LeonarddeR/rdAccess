@@ -1,5 +1,5 @@
 import sys
-from ..ioBaseEx import IoBaseEx
+from hwIo.base import IoBase
 from baseObject import AutoPropertyObject
 import inspect
 from enum import IntEnum, Enum
@@ -293,13 +293,13 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 
 
 class RemoteProtocolHandler((AutoPropertyObject)):
-	_dev: IoBaseEx
+	_dev: IoBase
 	driverType: DriverType
 	_receiveBuffer: bytes
 	_commandHandlerStore: CommandHandlerStore
 	_attributeSenderStore: AttributeSenderStore
 	_attributeValueProcessor: AttributeValueProcessor
-	timeout: float = 2.0
+	timeout: float = 1.0
 	cachePropertiesByDefault = True
 
 	def __new__(cls, *args, **kwargs):
@@ -404,7 +404,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 			if predicate():
 				return True
 			curTime = time.time()
-			res: bool = self._dev.waitForIo(timeout=timeout)
+			res: bool = self._dev.waitForRead(timeout=timeout)
 			if res is False:
 				break
 			timeout -= (time.time() - curTime)

@@ -86,8 +86,7 @@ class WTSVirtualChannel(IoBaseEx):
 		wtsHandle = WTSVirtualChannelOpenEx(
 			wtsApi32.WTS_CURRENT_SESSION,
 			create_string_buffer(channelName.encode("ascii")),
-			# Use high priority by analogy with display traffic
-			WTS_CHANNEL_OPTION_DYNAMIC | WTS_CHANNEL_OPTION_DYNAMIC_PRI_HIGH
+			WTS_CHANNEL_OPTION_DYNAMIC  | WTS_CHANNEL_OPTION_DYNAMIC_PRI_HIGH
 		)
 		if wtsHandle == 0:
 			raise WinError()
