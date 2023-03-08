@@ -42,19 +42,27 @@ class MonkeyPatcher:
 			)
 
 	def patchBdDetect(self):
+		if bdDetect.Detector._bgScan = self._bgScan:
+			return
 		self._bgScan._origin = bdDetect.Detector._bgScan
 		bdDetect.Detector._bgScan = self._bgScan
 
 	def patchSynthDriverHandler(self):
+		if synthDriverHandler.setSynth == self._setSynth:
+			return
 		self._setSynth._origin = synthDriverHandler.setSynth
 		synthDriverHandler.synthChanged = Action()
 		synthDriverHandler.setSynth = self._setSynth
 
 	def unpatchBdDetect(self):
+		if bdDetect.Detector._bgScan != self._bgScan:
+			return
 		bdDetect.Detector._bgScan = self._bgScan._origin
 		del self._bgScan._origin
 
 	def unpatchSynthDriverHandler(self):
+		if synthDriverHandler.setSynth != self._setSynth:
+			return
 		synthDriverHandler.setSynth = self._setSynth._origin
 		del synthDriverHandler.synthChanged
 		del self._setSynth._origin
@@ -63,6 +71,6 @@ class MonkeyPatcher:
 		self.patchBdDetect()
 		self.patchSynthDriverHandler
 
-	def __del__(self):
+	def terminate(self):
 		self.unpatchSynthDriverHandler()
 		self.unpatchBdDetect()

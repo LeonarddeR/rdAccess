@@ -165,6 +165,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if self._synthDetector:
 			self._synthDetector.terminate()
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
+			self._monkeyPatcher.terminate()
 			del self._monkeyPatcher
 		else:
 			bdDetect.scanForDevices.unregister(detection.bgScanRD)

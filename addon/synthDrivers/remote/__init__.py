@@ -76,8 +76,11 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 
 	def _get_supportedCommands(self):
 		attribute = protocol.SpeechAttribute.SUPPORTED_COMMANDS
-		value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=True)
-		self.requestRemoteAttribute(attribute)
+		try:
+			value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
+		except KeyError:
+			value = self._attributeValueProcessor._getDefaultValue(attribute)
+			self.requestRemoteAttribute(attribute)
 		return value
 
 	@protocol.attributeReceiver(protocol.SpeechAttribute.LANGUAGE, defaultValue=getLanguage())
