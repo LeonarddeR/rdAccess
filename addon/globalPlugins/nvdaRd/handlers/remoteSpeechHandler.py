@@ -21,21 +21,25 @@ class RemoteSpeechHandler(RemoteHandler):
 
 	def __init__(self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool = True):
 		self._indexesSpeaking = []
+		super().__init__(ioThread, pipeName, isNamedPipeClient=isNamedPipeClient)
 		synthDriverHandler.synthIndexReached.register(self._onSynthIndexReached)
 		synthDriverHandler.synthDoneSpeaking.register(self._onSynthDoneSpeaking)
-		super().__init__(ioThread, pipeName, isNamedPipeClient=isNamedPipeClient)
+		synthDriverHandler.synthChanged.register(self._handleSynthChanged)
 
 	def terminate(self):
-		super().terminate()
+		synthDriverHandler.synthChanged.unregister(self._handleSynthChanged)
 		synthDriverHandler.synthDoneSpeaking.unregister(self._onSynthDoneSpeaking)
 		synthDriverHandler.synthIndexReached.unregister(self._onSynthIndexReached)
+		super().terminate()
 
 	def _get__driver(self):
 		return synthDriverHandler.getSynth()
 
 	@protocol.attributeSender(protocol.SpeechAttribute.SUPPORTED_COMMANDS)
-	def _outgoing_supportedCommands(self) -> bytes:
-		return self._pickle(self._driver.supportedCommands)
+	def _outgoing_supportedCommands(self, commands=None) -> bytes:
+		if commands is None:
+			commands = self._driver.supportedCommands
+		return self._pickle(commands)
 
 	@protocol.attributeSender(protocol.SpeechAttribute.LANGUAGE)
 	def _outgoing_language(self) -> bytes:
@@ -93,3 +97,7 @@ class RemoteSpeechHandler(RemoteHandler):
 	def event_gainFocus(self, obj):
 		super().event_gainFocus(obj)
 		self._get_hasFocus()
+
+	def _handleSynthChanged(self, synth: synthDriverHandler.SynthDriver):
+		self._attributeSenderStore(protocol.SpeechAttribute.SUPPORTED_COMMANDS, synth.supportedCommands)
+		self._attributeSenderStore(protocol.GenericAttribute.SUPPORTED_SETTINGS, settings=synth.supportedSettings)

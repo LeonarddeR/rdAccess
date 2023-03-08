@@ -27,7 +27,7 @@ from logHandler import log
 import winKernel
 
 WTS_CHANNEL_OPTION_DYNAMIC = 0x00000001
-WTS_CHANNEL_OPTION_DYNAMIC_PRI_REAL = 0x00000006
+WTS_CHANNEL_OPTION_DYNAMIC_PRI_HIGH = 0x00000004
 WTSVirtualFileHandle = 1
 CHANNEL_CHUNK_LENGTH = 1600
 CHANNEL_FLAG_FIRST = 0x01
@@ -86,7 +86,8 @@ class WTSVirtualChannel(IoBaseEx):
 		wtsHandle = WTSVirtualChannelOpenEx(
 			wtsApi32.WTS_CURRENT_SESSION,
 			create_string_buffer(channelName.encode("ascii")),
-			WTS_CHANNEL_OPTION_DYNAMIC | WTS_CHANNEL_OPTION_DYNAMIC_PRI_REAL
+			# Use high priority by analogy with display traffic
+			WTS_CHANNEL_OPTION_DYNAMIC | WTS_CHANNEL_OPTION_DYNAMIC_PRI_HIGH
 		)
 		if wtsHandle == 0:
 			raise WinError()

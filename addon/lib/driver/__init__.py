@@ -151,6 +151,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			settings: Iterable[DriverSetting]
 	):
 		self._settingsAccessor = SettingsAccessorBase.createFromSettings(self, settings) if settings else None
+		self.initSettings()
 
 	def _get_supportedSettings(self):
 		attribute = protocol.GenericAttribute.SUPPORTED_SETTINGS
