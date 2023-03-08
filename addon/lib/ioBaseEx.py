@@ -1,9 +1,12 @@
 from __future__ import annotations
 from hwIo import IoThread, IoBase
+from hwIo.base import _isDebug
 import weakref
 from typing import Callable, Optional, Union
 import ctypes
 import ctypes.wintypes
+import winKernel
+from logHandler import log
 
 
 class IoBaseEx(IoBase):
@@ -28,3 +31,12 @@ class IoBaseEx(IoBase):
 		if not ioThread:
 			raise RuntimeError("I/O thread is no longer available")
 		ioThread.queueAsApc(lambda param: self._asyncRead())
+
+	def waitForIo(self, timeout: Union[int, float]) -> bool:
+		timeout = int(timeout * 1000)
+		res = winKernel.waitForSingleObjectEx(self._recvEvt, timeout, True)
+		if res == winKernel.WAIT_TIMEOUT:
+			if _isDebug():
+				log.debug("Wait timed out")
+			return False
+		return True
