@@ -13,6 +13,7 @@ class SettingsAccessorBase(AutoPropertyObject):
 	_driverRef: "weakref.ref[RemoteDriver]"
 	driver: "RemoteDriver"
 	_settingNames: List[str]
+	cachePropertiesByDefault = True
 
 	@classmethod
 	def createFromSettings(cls, driver: "RemoteDriver", settings: Iterable[driverSetting.DriverSetting]):
