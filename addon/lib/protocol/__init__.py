@@ -27,6 +27,7 @@ import types
 from abc import abstractmethod
 from NVDAState import getStartTime
 import queueHandler
+from concurrent.futures import ThreadPoolExecutor
 
 
 ATTRIBUTE_SEPARATOR = b'`'
@@ -301,6 +302,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 	_attributeValueProcessor: AttributeValueProcessor
 	timeout: float = 1.0
 	cachePropertiesByDefault = True
+	_bgExecutor: ThreadPoolExecutor
 
 	def __new__(cls, *args, **kwargs):
 		self = super().__new__(cls, *args, **kwargs)
@@ -322,6 +324,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 
 	def __init__(self):
 		super().__init__()
+		self._bgExecutor = ThreadPoolExecutor(2)
 		self._receiveBuffer = b""
 
 	def terminate(self):
@@ -333,6 +336,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 			# Make sure the device gets closed.
 			self._dev.close()
 			self._attributeValueProcessor.clearCache()
+			self._bgExecutor.shutdown(False)
 
 	def _onReceive(self, message: bytes):
 		if self._receiveBuffer:
@@ -357,7 +361,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 				payload = payload[:expectedLength]
 
 		try:
-			self._commandHandlerStore(command, payload)
+			self._bgExecutor.submit(self._commandHandlerStore, command, payload)
 		finally:
 			if remainder:
 				self._onReceive(remainder)

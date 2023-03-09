@@ -1,4 +1,3 @@
-import os
 import globalPluginHandler
 import addonHandler
 import hwIo
@@ -113,7 +112,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._ioThread = hwIo.ioThread.IoThread()
 		self._ioThread.start()
 		self._pipeWatcher = directoryChanges.DirectoryWatcher(
-			PIPE_DIRECTORY,
+			namedPipe.PIPE_DIRECTORY,
 			directoryChanges.FileNotifyFilter.FILE_NOTIFY_CHANGE_FILE_NAME
 		)
 		self._pipeWatcher.directoryChanged.register(self._handleNewPipe)
@@ -137,12 +136,12 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._handleNewPipe(directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED, match)
 
 	def _handleNewPipe(self, action: directoryChanges.FileNotifyInformationAction, fileName: str):
-		if not fnmatch(fileName, globPattern):
+		if not fnmatch(fileName, namedPipe.GLOB_PATTERN):
 			return
 		if action == directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED:
-			if fnmatch(fileName, globPattern.replace("*", f"{protocol.DriverType.BRAILLE.name}*")):
+			if fnmatch(fileName, namedPipe.GLOB_PATTERN.replace("*", f"{protocol.DriverType.BRAILLE.name}*")):
 				HandlerClass = handlers.RemoteBrailleHandler
-			elif fnmatch(fileName, globPattern.replace("*", f"{protocol.DriverType.SPEECH.name}*")):
+			elif fnmatch(fileName, namedPipe.GLOB_PATTERN.replace("*", f"{protocol.DriverType.SPEECH.name}*")):
 				HandlerClass = handlers.RemoteSpeechHandler
 			else:
 				raise RuntimeError(f"Unknown named pipe: {fileName}")

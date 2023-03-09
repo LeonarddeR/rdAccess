@@ -18,6 +18,7 @@ from .settingsAccessor import SettingsAccessorBase
 import sys
 from baseObject import AutoPropertyObject
 from hwIo.ioThread import IoThread
+import time
 
 ERROR_PIPE_NOT_CONNECTED = 0xe9
 MSG_XON = 0x11
@@ -60,6 +61,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	def __init__(self, port="auto", ioThread: Optional[IoThread] = None):
 		super().__init__()
+		initialTime = time.time()
 		self._connected = False
 		for portType, portId, port, portInfo in self._getTryPorts(port):
 			try:
@@ -85,12 +87,11 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 					continue
 			else:
 				self._connected = True
-			try:
-				self._get_supportedSettings()
-			except TimeoutError:
-				log.debugWarning("Error getting supported settings", exc_info=True)
-			else:
+			if self._waitForAttributeUpdate(protocol.GenericAttribute.SUPPORTED_SETTINGS, initialTime):
 				break
+			else:
+				log.debugWarning("Error getting supported settings", exc_info=True)
+
 			self._dev.close()
 		else:
 			raise RuntimeError("No remote device found")
@@ -151,7 +152,6 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			settings: Iterable[DriverSetting]
 	):
 		self._settingsAccessor = SettingsAccessorBase.createFromSettings(self, settings) if settings else None
-		self.initSettings()
 
 	def _get_supportedSettings(self):
 		attribute = protocol.GenericAttribute.SUPPORTED_SETTINGS

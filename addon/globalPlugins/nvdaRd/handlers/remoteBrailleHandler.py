@@ -23,6 +23,7 @@ class RemoteBrailleHandler(RemoteHandler):
 	def __init__(self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool = True):
 		self._queuedWriteLock = threading.Lock()
 		super().__init__(ioThread, pipeName, isNamedPipeClient=isNamedPipeClient)
+		self._handledisplayChanged(self._driver)
 		braille.decide_enabled.register(self._handleBrailleHandlerEnabled)
 		braille.displayChanged.register(self._handledisplayChanged)
 		inputCore.decide_executeGesture.register(self._handleExecuteGesture)

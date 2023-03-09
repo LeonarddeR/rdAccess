@@ -25,11 +25,11 @@ from glob import iglob
 ERROR_PIPE_CONNECTED = 0x217
 ERROR_PIPE_BUSY = 0xE7
 PIPE_DIRECTORY = "\\\\?\\pipe\\"
-globPattern = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
+GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
 
 
 def getNamedPipes() -> Iterator[str]:
-	yield from iglob(globPattern)
+	yield from iglob(GLOB_PATTERN)
 
 
 class PipeMode(IntFlag):

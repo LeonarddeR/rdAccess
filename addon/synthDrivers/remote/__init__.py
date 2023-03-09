@@ -105,7 +105,6 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 
 	def initSettings(self):
 		super().initSettings()
-		# Queue change voice to the main thread to ensure the settings ring is updated.
 		self._queueFunctionOnMainThread(synthDriverHandler.changeVoice, self, None)
 
 

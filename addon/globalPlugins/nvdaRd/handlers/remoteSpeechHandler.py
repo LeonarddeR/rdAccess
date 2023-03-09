@@ -22,6 +22,7 @@ class RemoteSpeechHandler(RemoteHandler):
 	def __init__(self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool = True):
 		self._indexesSpeaking = []
 		super().__init__(ioThread, pipeName, isNamedPipeClient=isNamedPipeClient)
+		self._handleSynthChanged(self._driver)
 		synthDriverHandler.synthIndexReached.register(self._onSynthIndexReached)
 		synthDriverHandler.synthDoneSpeaking.register(self._onSynthDoneSpeaking)
 		synthDriverHandler.synthChanged.register(self._handleSynthChanged)
@@ -76,7 +77,7 @@ class RemoteSpeechHandler(RemoteHandler):
 	@protocol.commandHandler(protocol.SpeechCommand.PLAY_WAVE_FILE)
 	def _command_playWaveFile(self, payload: bytes):
 		kwargs = self._unpickle(payload)
-		nvwave.playWaveFile(**kwargs)
+		self._queueFunctionOnMainThread(nvwave.playWaveFile, **kwargs)
 
 	def _onSynthIndexReached(
 			self,
