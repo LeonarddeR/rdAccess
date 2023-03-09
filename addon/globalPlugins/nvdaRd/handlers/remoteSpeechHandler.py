@@ -72,12 +72,12 @@ class RemoteSpeechHandler(RemoteHandler):
 	@protocol.commandHandler(protocol.SpeechCommand.BEEP)
 	def _command_beep(self, payload: bytes):
 		kwargs = self._unpickle(payload)
-		self._queueFunctionOnMainThread(tones.beep, **kwargs)
+		self._bgExecutor.submit(tones.beep, **kwargs)
 
 	@protocol.commandHandler(protocol.SpeechCommand.PLAY_WAVE_FILE)
 	def _command_playWaveFile(self, payload: bytes):
 		kwargs = self._unpickle(payload)
-		self._queueFunctionOnMainThread(nvwave.playWaveFile, **kwargs)
+		self._bgExecutor.submit(nvwave.playWaveFile, **kwargs)
 
 	def _onSynthIndexReached(
 			self,
