@@ -1,0 +1,79 @@
+name: Manual release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:  
+        description: 'Add-on version'
+        required: true
+        default: '0.0.0'
+      prerelease:
+        description: 'Mark as prerelease on GitHub'
+        default: false
+        type: boolean
+      signAddOn:
+        description: 'Sign add-on with GPG'
+        default: true
+        type: boolean
+
+jobs:
+  buildAndUpload:
+    continue-on-error: true
+    runs-on: ubuntu-latest
+
+    steps:
+    - id: checkoutCode
+      name: Checkout code
+      uses: actions/checkout@v3
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        pip install scons markdown
+        sudo apt update
+        sudo apt install gettext
+    - name: Add add-on version
+      run: |
+        import re
+        with open("buildVars.py", 'r+', encoding='utf-8') as f:
+          text = f.read()
+          version = "${{ github.event.inputs.version }}"
+          text = re.sub(r"\"addon_version\": .*?,", f"\"addon_version\": \"{version}\",", text)
+          f.seek(0)
+          f.write(text)
+          f.truncate()
+      shell: python 
+    - name: Build add-on
+      run: scons
+    - name: Push changes
+      run: |
+        git config --global user.name github-actions
+        git config --global user.email github-actions@github.com
+        git commit -a -m "Update buildVars"
+        git push origin HEAD:main
+    - id: import_gpg
+      if: ${{ inputs.signAddOn }}
+      name: Import GPG key
+      uses: crazy-max/ghaction-import-gpg@v5
+      with:
+        gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+        passphrase: ${{ secrets.PASSPHRASE }}
+    - if: ${{ inputs.signAddOn }}
+      name: Sign add-on  
+      run: gpg --detach-sign *.nvda-addon
+    - name: Calculate sha256
+      run: sha256sum *.nvda-addon >> sha256.txt
+    - name: Create tag
+      run: |
+        git tag ${{ inputs.version }}
+        git push origin ${{ inputs.version }}
+    - name: Release
+      uses: ncipollo/release-action@v1
+      with:
+        tag: ${{ inputs.version }}
+        artifacts: "*.nvda-addon,*.sig,publicKey.asc,sha256.txt"
+        generateReleaseNotes: true
+        prerelease: ${{ inputs.prerelease }}
+        

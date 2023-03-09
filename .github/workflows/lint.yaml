@@ -1,0 +1,15 @@
+name: Lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  lint:
+    uses: nvdaes/nvdaAddonWorkflows/.github/workflows/lint.yaml@main
+    
