@@ -6,6 +6,7 @@ from typing import Callable, Optional
 from ctypes import (
 	byref,
 	c_int,
+	cdll,
 	c_void_p,
 	create_string_buffer,
 	windll,
@@ -46,22 +47,22 @@ CHANNEL_PDU_LENGTH = CHANNEL_CHUNK_LENGTH + sizeof(ChannelPduHeader)
 
 
 try:
-	vdp_rdpvcbridge = windll.vdp_rdpvcbridge
+	vdp_rdpvcbridge = cdll.vdp_rdpvcbridge
 except OSError:
 	WTSVirtualChannelOpenEx = windll.wtsapi32.WTSVirtualChannelOpenEx
 	WTSVirtualChannelQuery = windll.wtsapi32.WTSVirtualChannelQuery
 	WTSVirtualChannelClose = windll.wtsapi32.WTSVirtualChannelClose
 else:
-	WTSVirtualChannelOpenEx = windll.vdp_rdpvcbridge.VDP_VirtualChannelOpenEx
-	WTSVirtualChannelQuery = windll.vdp_rdpvcbridge.VDP_VirtualChannelQuery
+	WTSVirtualChannelOpenEx = vdp_rdpvcbridge.VDP_VirtualChannelOpenEx
+	WTSVirtualChannelQuery = vdp_rdpvcbridge.VDP_VirtualChannelQuery
 	# Slightly hacky but effective
-	wtsApi32.WTSFreeMemory = windll.vdp_rdpvcbridge.VDP_FreeMemory
+	wtsApi32.WTSFreeMemory = vdp_rdpvcbridge.VDP_FreeMemory
 	wtsApi32.WTSFreeMemory.argtypes = (
 		c_void_p,  # [in] PVOID pMemory
 	)
 	wtsApi32.WTSFreeMemory.restype = None
-	WTSVirtualChannelClose = windll.vdp_rdpvcbridge.VDP_VirtualChannelClose
-	wtsApi32.WTSQuerySessionInformation = windll.vdp_rdpvcbridge.VDP_QuerySessionInformationW
+	WTSVirtualChannelClose = vdp_rdpvcbridge.VDP_VirtualChannelClose
+	wtsApi32.WTSQuerySessionInformation = vdp_rdpvcbridge.VDP_QuerySessionInformationW
 	wtsApi32.WTSQuerySessionInformation.argtypes = (
 		HANDLE,  # [in] HANDLE hServer
 		DWORD,  # [ in] DWORD SessionId

@@ -321,7 +321,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 
 	def __init__(self):
 		super().__init__()
-		self._bgExecutor = ThreadPoolExecutor(2)
+		self._bgExecutor = ThreadPoolExecutor(4, thread_name_prefix=self.__class__.__name__)
 		self._receiveBuffer = b""
 
 	def terminate(self):
@@ -401,12 +401,15 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 	def _safeWait(self, predicate: Callable[[], bool], timeout: Optional[float] = None):
 		if timeout is None:
 			timeout = self.timeout
+		log.debug(f"Waiting for {predicate!r} during {timeout} seconds")
 		while timeout > 0.0:
 			if predicate():
+				log.debug(f"Waiting for {predicate!r} succeeded, {timeout} seconds remaining")
 				return True
 			curTime = time.time()
 			res: bool = self._dev.waitForRead(timeout=timeout)
 			if res is False:
+				log.debug(f"Waiting for {predicate!r} failed")
 				break
 			timeout -= (time.time() - curTime)
 		return predicate()
@@ -432,6 +435,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 	):
 		if initialTime is None:
 			initialTime = time.time()
+		log.debug(f"Waiting for attribute {attribute!r}")
 		return self._safeWait(
 			lambda: self._attributeValueProcessor.hasNewValueSince(attribute, initialTime),
 			timeout=timeout
