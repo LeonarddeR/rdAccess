@@ -49,7 +49,8 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 				yield match
 
 	def initSettings(self):
-		super(driverHandler.Driver, self).initSettings()
+		# Call initSpecificSettings with an empty iterable to ensure only an empty config section is initialized.
+		self._initSpecificSettings(self, ())
 
 	def loadSettings(self, onlyChanged: bool = False):
 		"""Loading settings not supported on this driver."""

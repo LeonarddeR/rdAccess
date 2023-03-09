@@ -267,10 +267,7 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 		if handler._updateCallback is not None:
 			log.debug(f"Calling update callback {handler._updateCallback!r} for attribute {attribute!r}")
 			callback = handler._updateCallback.__get__(handler.__self__)
-			try:
-				callback(attribute, value)
-			except Exception:
-				log.error(f"Error calling {callback!r} for attribute {attribute!r}", exc_info=True)
+			handler.__self__._bgExecutor.submit(callback, attribute, value)
 
 	def getValue(self, attribute: AttributeT, fallBackToDefault: bool = False):
 		with self._valuesLock:
