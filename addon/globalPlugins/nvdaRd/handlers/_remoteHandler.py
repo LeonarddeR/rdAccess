@@ -51,10 +51,6 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			raise
 
 	def event_gainFocus(self, obj):
-		if isinstance(obj, RemoteDesktopControl) and obj.processID == self._dev.pipeProcessId:
-			self._remoteSessionhasFocus = True
-		else:
-			self._remoteSessionhasFocus = None
 		# Invalidate the property cache to ensure that hasFocus will be fetched again.
 		# Normally, hasFocus should be cached since it is pretty expensive
 		# and should never try to fetch the time since input from the remote driver
@@ -62,6 +58,11 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		# However, if we don't clear the cache here, the braille handler won't be enabled correctly
 		# for the first focus outside the remote window.
 		self.invalidateCache()
+		if isinstance(obj, RemoteDesktopControl) and obj.processID == self._dev.pipeProcessId:
+			self._remoteSessionhasFocus = True
+			self._handleRemoteSessionGainFocus()
+		else:
+			self._remoteSessionhasFocus = None
 
 	@protocol.attributeSender(protocol.GenericAttribute.SUPPORTED_SETTINGS)
 	def _outgoing_supportedSettings(self, settings=None) -> bytes:
@@ -95,10 +96,10 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		remoteProcessHasFocus = api.getFocusObject().processID == self._dev.pipeProcessId
 		if not remoteProcessHasFocus:
 			return remoteProcessHasFocus
-		attribute = protocol.GenericAttribute.TIME_SINCE_INPUT
 		if self._remoteSessionhasFocus is not None:
 			return self._remoteSessionhasFocus
 		log.debug("Requesting time since input from remote driver")
+		attribute = protocol.GenericAttribute.TIME_SINCE_INPUT
 		self.requestRemoteAttribute(attribute)
 		return False
 

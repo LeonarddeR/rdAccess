@@ -8,7 +8,7 @@ When installed in NVDA on both the client and the server, speech and braille gen
 
 ## Features
 
-* Support for Microsoft Remote Desktop
+* Support for Microsoft Remote Desktop and Citrix XenApp
 * Speech and braille output
 * Automatic detection of remote braille using NVDA's automatic braille display detection
 * Automatic detection of remote speech using a dedicated detection process that can be disabled in NVDA's settings dialog
