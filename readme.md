@@ -91,9 +91,9 @@ Explicitly allowing the RdPipe channel required by NVDA Remote Desktop is not ye
 
 ## Todo list
 
-* [ ] Test client side support for Vmware Horizon
-* [ ] Test explicitly allowing the RdPipe channel in the [Virtual Channel Allow List](https://docs.citrix.com/en-us/citrix-virtual-apps-desktops/policies/reference/ica-policy-settings/virtual-channel-allow-list-policy-settings.html) ([Issue #1](https://github.com/leonardder/nvdaRd/issues/1))
-* [ ] Secure desktop support
+* [ ] [Test client side support for Vmware Horizon](https://github.com/leonardder/nvdaRd/issues/2)
+* [ ] [Test explicitly allowing the RdPipe channel in the Virtual Channel Allow List](https://github.com/leonardder/nvdaRd/issues/1))
+* [ ] [Secure desktop support](https://github.com/leonardder/nvdaRd/issues/3)
 * [ ] Improve stability
 
 ## External components
