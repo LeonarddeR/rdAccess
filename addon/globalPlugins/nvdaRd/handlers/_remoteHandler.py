@@ -58,11 +58,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		# However, if we don't clear the cache here, the braille handler won't be enabled correctly
 		# for the first focus outside the remote window.
 		self.invalidateCache()
-		if isinstance(obj, RemoteDesktopControl) and obj.processID == self._dev.pipeProcessId:
-			self._remoteSessionhasFocus = True
-			self._handleRemoteSessionGainFocus()
-		else:
-			self._remoteSessionhasFocus = None
+		self._remoteSessionhasFocus = None
 
 	@protocol.attributeSender(protocol.GenericAttribute.SUPPORTED_SETTINGS)
 	def _outgoing_supportedSettings(self, settings=None) -> bytes:
