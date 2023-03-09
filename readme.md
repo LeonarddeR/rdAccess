@@ -73,10 +73,26 @@ This option is only available in the following cases:
 * Citrix Workspace is installed. Note that the Windows Store version of the app is not supported due to limitations in that app itself
 * It is possible to register NVDA Remote Desktop under the current user context. After installing the app, you have to start a remote session once to make this possible
 
+## Citrix specific instructions
+
+There are some important points of attention when using NVDA Remote Desktop with the Citrix Workspace app.
+
+### Client side requirements
+
+1. The Windows Store variant of the app is *not* supported.
+
+2. After installing Citrix Workspace, you have to start a remote session once to allow NVDA Remote Desktop registering itself. The reason behind this is that the application copies the system configuration to the user configuration when it establishes a session for the first time. After that, NVDA Remote Desktop can register itself under the current user context.
+
+### Server side requirement
+
+In Citrix Virtual Apps and Desktops 2109, Citrix enabled the so called virtual channel allow list. This means that third party virtual channels, including the channel required bij NVDA Remote Desktop, is not allowed by default. For more information, [see this Citrix blog post](https://www.citrix.com/blogs/2021/10/14/virtual-channel-allow-list-now-enabled-by-default/)
+
+Explicitly allowing the RdPipe channel required by NVDA Remote Desktop is not yet tested. For now, it is probably your best bet to disable the allow list altogether. If your system administrator is unhappy with this, feel free to [open an issue]()
+
 ## Todo list
 
-* [ ] Test Citrix support (server side)
-* [ ] Test support for Vmware Horizon
+* [ ] Test client side support for Vmware Horizon
+* [ ] Test explicitly allowing the RdPipe channel in the [Virtual Channel Allow List](https://docs.citrix.com/en-us/citrix-virtual-apps-desktops/policies/reference/ica-policy-settings/virtual-channel-allow-list-policy-settings.html) ([Issue #1](https://github.com/leonardder/nvdaRd/issues/1))
 * [ ] Secure desktop support
 * [ ] Improve stability
 

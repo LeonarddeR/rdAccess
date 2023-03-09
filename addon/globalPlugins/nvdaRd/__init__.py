@@ -3,7 +3,6 @@ import addonHandler
 import hwIo
 from . import directoryChanges, settingsPanel
 import typing
-from glob import iglob
 from fnmatch import fnmatch
 from . import configuration, handlers
 from typing import Dict, List, Type
@@ -21,6 +20,7 @@ import api
 import versionInfo
 import bdDetect
 import atexit
+import globalVars
 
 if typing.TYPE_CHECKING:
 	from ...lib import detection
@@ -64,10 +64,13 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if configuration.getRecoverRemoteSpeech():
 			self._synthDetector = _SynthDetector()
 		self._triggerBackgroundDetectRescan()
-		post_sessionLockStateChanged.register(self._handleLockStateChanged)
+		if not globalVars.appArgs.secure:
+			post_sessionLockStateChanged.register(self._handleLockStateChanged)
 
 	@classmethod
 	def _updateRegistryForRdPipe(cls, install, rdp, citrix):
+		if globalVars.appArgs.secure:
+			return
 		if citrix and not rdPipe.isCitrixSupported():
 			citrix = False
 		if not rdp and not citrix:
@@ -106,6 +109,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			atexit.register(cls._unregisterRdPipeFromRegistry, undoregisterAtExit=False)
 
 	def initializeOperatingModeClient(self):
+		if globalVars.appArgs.secure:
+			return
 		handlers.RemoteHandler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
 		self._registerRdPipeInRegistry()
 		self._handlers: Dict[str, handlers.RemoteHandler] = {}
@@ -122,12 +127,14 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def __init__(self):
 		super().__init__()
 		configuration.initializeConfig()
-		config.post_configProfileSwitch.register(self._handlePostConfigProfileSwitch)
-		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(settingsPanel.NvdaRDSettingsPanel)
-		settingsPanel.NvdaRDSettingsPanel.post_onSave.register(self._handlePostConfigProfileSwitch)
 		configuredOperatingMode = configuration.getOperatingMode()
 		if configuredOperatingMode & configuration.OperatingMode.SERVER:
 			self.initializeOperatingModeServer()
+		if globalVars.appArgs.secure:
+			return
+		config.post_configProfileSwitch.register(self._handlePostConfigProfileSwitch)
+		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(settingsPanel.NvdaRDSettingsPanel)
+		settingsPanel.NvdaRDSettingsPanel.post_onSave.register(self._handlePostConfigProfileSwitch)
 		if configuredOperatingMode & configuration.OperatingMode.CLIENT:
 			self.initializeOperatingModeClient()
 
@@ -167,6 +174,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			bdDetect.scanForDevices.unregister(detection.bgScanRD)
 
 	def terminateOperatingModeClient(self):
+		if globalVars.appArgs.secure:
+			return
 		if self._pipeWatcher:
 			self._pipeWatcher.stop()
 			self._pipeWatcher = None
@@ -188,15 +197,19 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		cls._updateRegistryForRdPipe(False, rdp, citrix)
 
 	def terminate(self):
-		configuredOperatingMode = configuration.getOperatingMode()
-		if configuredOperatingMode & configuration.OperatingMode.SERVER:
-			self.terminateOperatingModeServer()
-		if configuredOperatingMode & configuration.OperatingMode.CLIENT:
-			self.terminateOperatingModeClient()
-		settingsPanel.NvdaRDSettingsPanel.post_onSave.unregister(self._handlePostConfigProfileSwitch)
-		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(settingsPanel.NvdaRDSettingsPanel)
-		config.post_configProfileSwitch.unregister(self._handlePostConfigProfileSwitch)
-		super().terminate()
+		try:
+			configuredOperatingMode = configuration.getOperatingMode()
+			if configuredOperatingMode & configuration.OperatingMode.SERVER:
+				self.terminateOperatingModeServer()
+			if not globalVars.appArgs.secure:
+				return
+			if configuredOperatingMode & configuration.OperatingMode.CLIENT:
+				self.terminateOperatingModeClient()
+			settingsPanel.NvdaRDSettingsPanel.post_onSave.unregister(self._handlePostConfigProfileSwitch)
+			gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(settingsPanel.NvdaRDSettingsPanel)
+			config.post_configProfileSwitch.unregister(self._handlePostConfigProfileSwitch)
+		finally:
+			super().terminate()
 
 	def _handlePostConfigProfileSwitch(self, ):
 		oldOperatingMode = configuration.getOperatingMode(True)
@@ -262,13 +275,14 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def event_gainFocus(self, obj, nextHandler):
 		configuredOperatingMode = configuration.getOperatingMode()
-		if configuredOperatingMode & configuration.OperatingMode.CLIENT:
-			for handler in self._handlers.values():
-				try:
-					handler.event_gainFocus(obj)
-				except Exception:
-					log.error("Error calling event_gainFocus on handler", exc_info=True)
-					continue
+		if not globalVars.appArgs.secure:
+			if configuredOperatingMode & configuration.OperatingMode.CLIENT:
+				for handler in self._handlers.values():
+					try:
+						handler.event_gainFocus(obj)
+					except Exception:
+						log.error("Error calling event_gainFocus on handler", exc_info=True)
+						continue
 		if configuredOperatingMode & configuration.OperatingMode.SERVER:
 			self._triggerBackgroundDetectRescan()
 		nextHandler()
