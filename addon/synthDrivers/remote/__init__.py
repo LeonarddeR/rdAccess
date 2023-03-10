@@ -105,7 +105,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 
 	def initSettings(self):
 		super().initSettings()
-		self._queueFunctionOnMainThread(synthDriverHandler.changeVoice, self, None)
+		self._bgExecutor.submit(synthDriverHandler.changeVoice, self, None)
 
 
 SynthDriver = remoteSynthDriver
