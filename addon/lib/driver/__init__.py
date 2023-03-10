@@ -82,6 +82,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			except EnvironmentError:
 				log.debugWarning("", exc_info=True)
 				continue
+			self._attributeValueProcessor.isAttributeRequestPending(protocol.GenericAttribute.SUPPORTED_SETTINGS)
 			if portType == KEY_VIRTUAL_CHANNEL:
 				# Wait for RdPipe at the other end to send a XON
 				if not self._safeWait(lambda: self._connected, self.timeout * 3):
@@ -153,6 +154,10 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			settings: Iterable[DriverSetting]
 	):
 		self._settingsAccessor = SettingsAccessorBase.createFromSettings(self, settings) if settings else None
+		self._handleRemoteDriverChange()
+
+	def _handleRemoteDriverChange(self):
+		return
 
 	def _get_supportedSettings(self):
 		attribute = protocol.GenericAttribute.SUPPORTED_SETTINGS

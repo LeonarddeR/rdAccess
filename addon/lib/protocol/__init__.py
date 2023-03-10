@@ -236,15 +236,24 @@ class AttributeSenderStore(AttributeHandlerStore[attributeSenderT]):
 class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 	_valueTimes: DefaultDict[AttributeT, float]
 	_values: Dict[AttributeT, Any]
+	_pendingAttributeRequests: DefaultDict[AttributeT, bool]
 
 	def __init__(self):
 		super().__init__()
 		self._values = {}
 		self._valueTimes = DefaultDict(getStartTime)
+		self._pendingAttributeRequests = DefaultDict(bool)
 
 	def clearCache(self):
 		self._values.clear()
 		self._valueTimes.clear()
+		self._pendingAttributeRequests.clear()
+
+	def setAttributeRequestPending(self, attribute, state: bool = True):
+		self._pendingAttributeRequests[attribute] = state
+
+	def isAttributeRequestPending(self, attribute):
+		return self._pendingAttributeRequests[attribute] is True
 
 	def hasNewValueSince(self, attribute: AttributeT, t: float) -> bool:
 		return t < self._valueTimes[attribute]
@@ -270,7 +279,10 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 			self._values[attribute] = self._getDefaultValue(attribute)
 		return self._values[attribute]
 
-	def SetValue(self, attribute: AttributeT, value):
+	def clearValue(self, attribute):
+		self._values.pop(attribute, None)
+
+	def setValue(self, attribute: AttributeT, value):
 		self._values[attribute] = value
 		self._valueTimes[attribute] = time.time()
 		self._invokeUpdateCallback(attribute, value)
@@ -280,7 +292,8 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 		handler = self._getHandler(attribute)
 		value = handler(rawValue)
 		log.debug(f"Handler on {self!r} returned value {value!r} for attribute {attribute!r}")
-		self.SetValue(attribute, value)
+		self.setAttributeRequestPending(attribute, False)
+		self.setValue(attribute, value)
 
 
 class RemoteProtocolHandler((AutoPropertyObject)):
@@ -388,8 +401,12 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 		)
 
 	def requestRemoteAttribute(self, attribute: AttributeT):
+		if self._attributeValueProcessor.isAttributeRequestPending(attribute):
+			log.debugWarning(f"Not requesting remote attribute {attribute!r},, request already pending")
+			return
 		log.debug(f"Requesting remote attribute {attribute!r}")
-		return self.writeMessage(GenericCommand.ATTRIBUTE, ATTRIBUTE_SEPARATOR + attribute + ATTRIBUTE_SEPARATOR)
+		self._attributeValueProcessor.setAttributeRequestPending(attribute)
+		self.writeMessage(GenericCommand.ATTRIBUTE, ATTRIBUTE_SEPARATOR + attribute + ATTRIBUTE_SEPARATOR)
 
 	def _safeWait(self, predicate: Callable[[], bool], timeout: Optional[float] = None):
 		if timeout is None:

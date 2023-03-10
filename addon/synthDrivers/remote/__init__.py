@@ -103,9 +103,9 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		index = int.from_bytes(incomingPayload, sys.byteorder)
 		synthDriverHandler.synthIndexReached.notify(synth=self, index=index)
 
-	def initSettings(self):
-		super().initSettings()
-		self._bgExecutor.submit(synthDriverHandler.changeVoice, self, None)
+	def _handleRemoteDriverChange(self):
+		super()._handleRemoteDriverChange()
+		synthDriverHandler.changeVoice(self, None)
 
 
 SynthDriver = remoteSynthDriver

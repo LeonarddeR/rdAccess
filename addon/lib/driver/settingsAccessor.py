@@ -67,7 +67,7 @@ class SettingsAccessorBase(AutoPropertyObject):
 			attribute = self._getSettingAttributeName(setting)
 			self.driver.setRemoteAttribute(attribute, self.driver._pickle(value))
 			if self.driver._attributeValueProcessor.isAttributeSupported(attribute):
-				self.driver._attributeValueProcessor.SetValue(attribute, value)
+				self.driver._attributeValueProcessor.setValue(attribute, value)
 		return _setSetting
 
 	@classmethod
@@ -79,3 +79,11 @@ class SettingsAccessorBase(AutoPropertyObject):
 			except KeyError:
 				return self.driver.getRemoteAttribute(attribute)
 		return _getAvailableSettings
+
+	def __del__(self):
+		try:
+			for s in self._settingNames:
+				self.driver._attributeValueProcessor.clearValue(self._getSettingAttributeName(s))
+				self.driver._attributeValueProcessor.clearValue(self._getAvailableSettingsAttributeName(s))
+		except Exception:
+			log.debugWarning(f"Error deleting {self.__class__.__name__}", exc_info=True)
