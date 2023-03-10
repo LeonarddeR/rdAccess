@@ -14,7 +14,6 @@ from typing import (
 	TypeVar,
 	Union,
 )
-from threading import Lock
 import time
 from logHandler import log
 import pickle
@@ -235,24 +234,20 @@ class AttributeSenderStore(AttributeHandlerStore[attributeSenderT]):
 
 
 class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
-	_valuesLock: Lock
 	_valueTimes: DefaultDict[AttributeT, float]
 	_values: Dict[AttributeT, Any]
 
 	def __init__(self):
 		super().__init__()
-		self._valuesLock = Lock()
 		self._values = {}
 		self._valueTimes = DefaultDict(getStartTime)
 
 	def clearCache(self):
-		with self._valuesLock:
-			self._values.clear()
-			self._valueTimes.clear()
+		self._values.clear()
+		self._valueTimes.clear()
 
 	def hasNewValueSince(self, attribute: AttributeT, t: float) -> bool:
-		with self._valuesLock:
-			return t < self._valueTimes[attribute]
+		return t < self._valueTimes[attribute]
 
 	def _getDefaultValue(self, attribute: AttributeT) -> AttributeValueT:
 		handler = self._getRawHandler(attribute)
@@ -270,16 +265,14 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 			handler.__self__._bgExecutor.submit(callback, attribute, value)
 
 	def getValue(self, attribute: AttributeT, fallBackToDefault: bool = False):
-		with self._valuesLock:
-			if fallBackToDefault and attribute not in self._values:
-				log.debug(f"No value for attribute {attribute!r} on {self!r}, falling back to default")
-				self._values[attribute] = self._getDefaultValue(attribute)
-			return self._values[attribute]
+		if fallBackToDefault and attribute not in self._values:
+			log.debug(f"No value for attribute {attribute!r} on {self!r}, falling back to default")
+			self._values[attribute] = self._getDefaultValue(attribute)
+		return self._values[attribute]
 
 	def SetValue(self, attribute: AttributeT, value):
-		with self._valuesLock:
-			self._values[attribute] = value
-			self._valueTimes[attribute] = time.time()
+		self._values[attribute] = value
+		self._valueTimes[attribute] = time.time()
 		self._invokeUpdateCallback(attribute, value)
 
 	def __call__(self, attribute: AttributeT, rawValue: bytes):
