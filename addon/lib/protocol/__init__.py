@@ -391,7 +391,12 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 			*len(payload).to_bytes(length=2, byteorder=sys.byteorder, signed=False),
 			*payload
 		))
-		return self._dev.write(data)
+		try:
+			self._dev.write(data)
+		except WindowsError as e:
+			if not self._onIoError(e.winerror):
+				raise
+			log.error("Handled error during write", exc_info=True)
 
 	def setRemoteAttribute(self, attribute: AttributeT, value: bytes):
 		log.debug(f"Setting remote attribute {attribute!r} to raw value {value!r}")
@@ -469,3 +474,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 			except Exception:
 				log.debug(f"Error executing {func!r}({args!r}, {kwargs!r}) on main thread", exc_info=True)
 		queueHandler.queueFunction(queueHandler.eventQueue, wrapper, *args, **kwargs)
+
+	@abstractmethod
+	def _onIoError(self, error: int) -> bool:
+		return False

@@ -4,7 +4,7 @@ from driverHandler import Driver
 import api
 from logHandler import log
 import sys
-from extensionPoints import Decider
+from extensionPoints import AccumulatingDecider
 from hwIo.ioThread import IoThread
 
 
@@ -22,7 +22,7 @@ MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS = 200
 
 class RemoteHandler(protocol.RemoteProtocolHandler):
 	_dev: namedPipe.NamedPipeBase
-	decide_remoteDisconnect = Decider()
+	decide_remoteDisconnect = AccumulatingDecider(False)
 	_remoteSessionhasFocus: typing.Optional[bool] = None
 
 	_driver: Driver

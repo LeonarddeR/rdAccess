@@ -20,6 +20,8 @@ from baseObject import AutoPropertyObject
 from hwIo.ioThread import IoThread
 import time
 
+
+ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_NOT_CONNECTED = 0xe9
 MSG_XON = 0x11
 MSG_XOFF = 0x13
@@ -70,7 +72,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 					self._dev = wtsVirtualChannel.WTSVirtualChannel(
 						port,
 						onReceive=self._onReceive,
-						onReadError=self._onReadError,
+						onReadError=self._onIoError,
 						ioThread=ioThread
 					)
 				elif portType == KEY_NAMED_PIPE_CLIENT:
@@ -117,8 +119,8 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			setattr(accessor, name, value)
 		super().__setattr__(name, value)
 
-	def _onReadError(self, error: int) -> bool:
-		if error == ERROR_PIPE_NOT_CONNECTED:
+	def _onIoError(self, error: int) -> bool:
+		if error in (ERROR_PIPE_NOT_CONNECTED, ERROR_INVALID_HANDLE):
 			self._handleRemoteDisconnect()
 			return True
 		return False
