@@ -1,10 +1,7 @@
-# NVDA Remote Desktop
-
-* Authors: [Leonard de Ruijter](https://github.com/leonardder/)
-* NVDA compatibility: 2023.1 and later
-
 This add-on adds support to access remote desktop sessions to NVDA.
 When installed in NVDA on both the client and the server, speech and braille generated on the server will be spoken and brailled by the client machine.
+
+[TOC]
 
 ## Features
 
@@ -32,7 +29,7 @@ This group of radio buttons controls the operating mode of the add-on. You can c
 * Incoming connections (Remote Desktop Server): Choose this option if the current instance of NVDA is running on a remote desktop server
 * Outgoing connections (Remote Desktop Client): Choose this option if the current instance of NVDA is running on a remote desktop client that connects to one or more servers
 * Bidirectional connections (Remote Desktop Server and Client): Choose this option if you want to support both scenarios.
-You want this if your system can be controlled using Remote Desktop (server) and also acts as a controller (client). This is the case on a so called [Jump Server](https://en.wikipedia.org/wiki/Jump_server), for example.
+You want this if your system can be controlled using Remote Desktop (server) and also acts as a controller (client). This is the case on a so called [Jump Server][2], for example.
 
 The default option is Bidirectional Connections to ensure a smooth start with the add-on. You are however encouraged to switch to server or client mode when possible.
 
@@ -87,17 +84,25 @@ There are some important points of attention when using NVDA Remote Desktop with
 
 In Citrix Virtual Apps and Desktops 2109, Citrix enabled the so called virtual channel allow list. This means that third party virtual channels, including the channel required bij NVDA Remote Desktop, is not allowed by default. For more information, [see this Citrix blog post](https://www.citrix.com/blogs/2021/10/14/virtual-channel-allow-list-now-enabled-by-default/)
 
-Explicitly allowing the RdPipe channel required by NVDA Remote Desktop is not yet tested. For now, it is probably your best bet to disable the allow list altogether. If your system administrator is unhappy with this, feel free to [open an issue]()
+Explicitly allowing the RdPipe channel required by NVDA Remote Desktop is not yet tested. For now, it is probably your best bet to disable the allow list altogether. If your system administrator is unhappy with this, feel free to [drop a line in the devoted issue][3]
 
 ## Todo list
 
-* [ ] [Test client side support for Vmware Horizon](https://github.com/leonardder/nvdaRd/issues/2)
-* [ ] [Test explicitly allowing the RdPipe channel in the Virtual Channel Allow List](https://github.com/leonardder/nvdaRd/issues/1))
-* [ ] [Secure desktop support](https://github.com/leonardder/nvdaRd/issues/3)
+* [ ] [Test client side support for Vmware Horizon][4]
+* [ ] [Test explicitly allowing the RdPipe channel in the Virtual Channel Allow List][3]]
+* [ ] [Secure desktop support][5]
 * [ ] Improve stability
 
 ## External components
 
-This add-on relies on [RD Pipe](https://github.com/leonardder/rd_pipe-rs), a library written in Rust backing the remote desktop client support.
-RD Pipe is redistributed as part of this add-on under the terms of [version 3 of the GNU Affero General Public License](https://github.com/leonardder/rd_pipe-rs/blob/master/LICENSE) as
+This add-on relies on [RD Pipe][6], a library written in Rust backing the remote desktop client support.
+RD Pipe is redistributed as part of this add-on under the terms of [version 3 of the GNU Affero General Public License][7] as
 published by the Free Software Foundation.
+
+[1]: https://github.com/leonardder/
+[2]: https://en.wikipedia.org/wiki/Jump_server
+[3]: https://github.com/leonardder/nvdaRd/issues/1
+[4]: https://github.com/leonardder/nvdaRd/issues/2
+[5]: https://github.com/leonardder/nvdaRd/issues/3
+[6]: https://github.com/leonardder/rd_pipe-rs
+[7]: https://github.com/leonardder/rd_pipe-rs/blob/master/LICENSE
