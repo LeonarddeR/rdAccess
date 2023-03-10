@@ -85,5 +85,4 @@ baseLanguage = "en"
 # e.g. "markdown.extensions.tables" to add tables.
 markdownExtensions = [
 	"markdown.extensions.smarty",
-	"markdown.extensions.toc",
 ]
