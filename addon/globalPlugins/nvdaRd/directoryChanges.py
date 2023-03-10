@@ -76,7 +76,10 @@ class DirectoryWatcher(IoThread):
 			return
 		self._watching = False
 		try:
-			if hasattr(self, "_dirHandle") and not windll.kernel32.CancelIoEx(self._dirHandle, byref(self._overlapped)):
+			if hasattr(self, "_dirHandle") and not windll.kernel32.CancelIoEx(
+				self._dirHandle,
+				byref(self._overlapped)
+			):
 				raise WinError()
 		finally:
 			super().stop()

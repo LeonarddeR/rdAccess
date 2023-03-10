@@ -5,7 +5,6 @@ import api
 from logHandler import log
 import sys
 from extensionPoints import Decider
-from ..objects import RemoteDesktopControl
 from hwIo.ioThread import IoThread
 
 

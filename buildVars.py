@@ -23,13 +23,13 @@ addon_info = {
 	"addon_summary": _("NVDA Remote Desktop Support"),
 	# Add-on description
 	# Translators: Long description to be shown for this add-on on add-on information from add-ons manager
-	"addon_description": _("""NVDA Remote Desktop Support"""),
+	"addon_description": _("""Allows using speech and braille with Microsoft Remote Desktop, Citrix Workspace and VMware Horizon"""),
 	# version
 	"addon_version": "2023.1",
 	# Author(s)
 	"addon_author": "Leonard de Ruijter <alderuijter@gmail.com>",
 	# URL for the add-on documentation support
-	"addon_url": None,
+	"addon_url": "https://github.com/leonardder/nvdaRd",
 	# URL for the add-on repository where the source code can be found
 	"addon_sourceURL": "https://github.com/leonardder/nvdaRd",
 	# Documentation file name
@@ -43,7 +43,7 @@ addon_info = {
 	# Do not change unless you know what you are doing!
 	"addon_updateChannel": None,
 	# Add-on license such as GPL 2
-	"addon_license": "GPL 2",
+	"addon_license": None,
 	# URL for the license document the ad-on is licensed under
 	"addon_licenseURL": None,
 }

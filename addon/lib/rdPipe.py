@@ -4,7 +4,7 @@ import addonHandler
 import platform
 import COMRegistrationFixes
 import subprocess
-from typing import List, Optional
+from typing import List
 from logHandler import log
 import winreg
 

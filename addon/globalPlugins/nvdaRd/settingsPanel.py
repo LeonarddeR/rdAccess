@@ -86,12 +86,21 @@ class NvdaRDSettingsPanel(SettingsPanel):
 		self.persistentRegistrationCheckbox.Enable(isClient)
 		self.remoteDesktopSupportCheckbox.Enable(isClient)
 		self.citrixSupportCheckbox.Enable(isClient and rdPipe.isCitrixSupported())
-		self.recoverRemoteSpeechCheckbox.Enable(configuration.OperatingMode(evt.Selection + 1) & configuration.OperatingMode.SERVER)
+		self.recoverRemoteSpeechCheckbox.Enable(
+			configuration.OperatingMode(evt.Selection + 1) & configuration.OperatingMode.SERVER
+		)
 
 	def onSave(self):
-		config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME] = self.operatingModeRadioBox.Selection + 1
-		config.conf[configuration.CONFIG_SECTION_NAME][configuration.RECOVER_REMOTE_SPEECH_SETTING_NAME] = self.recoverRemoteSpeechCheckbox.IsChecked()
-		isClient = bool(configuration.OperatingMode(self.operatingModeRadioBox.Selection + 1) & configuration.OperatingMode.CLIENT)
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME] = (
+			self.operatingModeRadioBox.Selection + 1
+		)
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.RECOVER_REMOTE_SPEECH_SETTING_NAME] = (
+			self.recoverRemoteSpeechCheckbox.IsChecked()
+		)
+		isClient = bool(
+			configuration.OperatingMode(self.operatingModeRadioBox.Selection + 1)
+			& configuration.OperatingMode.CLIENT
+		)
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.PERSISTENT_REGISTRATION_SETTING_NAME] = (
 			self.persistentRegistrationCheckbox.IsChecked()
 			and isClient

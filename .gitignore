@@ -7,6 +7,6 @@ addon/doc/en/
 *.pot
 *.py[co]
 *.nvda-addon
-*.json
+*,json
 .sconsign.dblite
 *.exe

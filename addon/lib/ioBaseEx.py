@@ -1,12 +1,9 @@
 from __future__ import annotations
 from hwIo import IoThread, IoBase
-from hwIo.base import _isDebug
 import weakref
 from typing import Callable, Optional, Union
 import ctypes
 import ctypes.wintypes
-import winKernel
-from logHandler import log
 
 
 class IoBaseEx(IoBase):

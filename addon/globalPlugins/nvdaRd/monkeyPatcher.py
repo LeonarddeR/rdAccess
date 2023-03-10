@@ -16,7 +16,7 @@ class MonkeyPatcher:
 
 	@staticmethod
 	def _bgScan(
-			self: bdDetect.Detector,
+			self,
 			detectUsb: bool,
 			detectBluetooth: bool,
 			limitToDevices: typing.Optional[typing.List[str]]
