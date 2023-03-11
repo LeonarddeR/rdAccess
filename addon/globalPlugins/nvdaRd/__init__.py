@@ -37,10 +37,6 @@ else:
 	rdPipe = addon.loadModule("lib.rdPipe")
 
 
-ERROR_INVALID_HANDLE = 0x6
-ERROR_BROKEN_PIPE = 0x6d
-
-
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	_synthDetector: typing.Optional[_SynthDetector] = None
 	_ioThread: typing.Optional[hwIo.ioThread.IoThread] = None

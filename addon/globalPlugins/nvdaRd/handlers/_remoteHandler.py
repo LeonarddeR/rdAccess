@@ -6,6 +6,7 @@ from logHandler import log
 import sys
 from extensionPoints import AccumulatingDecider
 from hwIo.ioThread import IoThread
+from winKernel import INFINITE
 
 
 if typing.TYPE_CHECKING:

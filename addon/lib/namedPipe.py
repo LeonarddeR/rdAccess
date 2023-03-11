@@ -1,9 +1,8 @@
 from hwIo.ioThread import IoThread
-from typing import Callable, Iterator, Optional, Union
+from typing import Callable, Iterator, List, Optional, Union
 from ctypes import (
 	byref,
 	c_ulong,
-	GetLastError,
 	windll,
 	WinError,
 )
@@ -20,8 +19,10 @@ from enum import IntFlag
 from .ioBaseEx import IoBaseEx
 import os
 from glob import iglob
+from logHandler import log
 
 
+ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_CONNECTED = 0x217
 ERROR_PIPE_BUSY = 0xE7
 PIPE_DIRECTORY = "\\\\?\\pipe\\"
@@ -85,6 +86,8 @@ class NamedPipeBase(IoBaseEx):
 
 
 class NamedPipeServer(NamedPipeBase):
+	_connected: bool = False
+	_messageQueue: List[bytes]
 
 	def __init__(
 			self,
@@ -113,7 +116,7 @@ class NamedPipeServer(NamedPipeBase):
 		)
 		if fileHandle == INVALID_HANDLE_VALUE:
 			raise WinError()
-		self._connected = False
+		self._messageQueue = []
 		super().__init__(
 			pipeName,
 			fileHandle,
@@ -123,28 +126,41 @@ class NamedPipeServer(NamedPipeBase):
 			pipeMode=pipeMode,
 		)
 
+	def write(self, data: bytes):
+		if not self._connected:
+			self._messageQueue.append(data)
+		else:
+			return super().write(data)
+
+	def _handleConnect(self):
+		ol = OVERLAPPED()
+		ol.hEvent = self._recvEvt
+		connectRes = windll.kernel32.ConnectNamedPipe(self._file, byref(ol))
+		error = WinError()
+		if error.winerror == ERROR_PIPE_CONNECTED:
+			windll.kernel32.SetEvent(self._recvEvt)
+		else:
+			if connectRes or error.winerror != ERROR_IO_PENDING:
+				raise error
+			while True:
+				waitRes = winKernel.waitForSingleObjectEx(self._recvEvt, winKernel.INFINITE, True)
+				if waitRes == winKernel.WAIT_OBJECT_0:
+					break
+				elif waitRes == winKernel.WAIT_IO_COMPLETION:
+					continue
+				else:
+					raise WinError()
+			numberOfBytes = DWORD()
+			if not windll.kernel32.GetOverlappedResult(self._file, byref(ol), byref(numberOfBytes), False):
+				raise WinError()
+		self._connected = True
+		for message in self._messageQueue:
+			self.write(message)
+		self._messageQueue.clear()
+
 	def _asyncRead(self):
 		if not self._connected:
-			ol = OVERLAPPED()
-			ol.hEvent = self._recvEvt
-			connectRes = windll.kernel32.ConnectNamedPipe(self._file, ol)
-			error = WinError()
-			if error.winerror == ERROR_PIPE_CONNECTED:
-				windll.kernel32.SetEvent(self._recvEvt)
-			else:
-				if connectRes or error.winerror != ERROR_IO_PENDING:
-					raise error
-				while True:
-					waitRes = winKernel.waitForSingleObjectEx(self._recvEvt, winKernel.INFINITE, True)
-					if waitRes == winKernel.WAIT_OBJECT_0:
-						break
-					elif waitRes == winKernel.WAIT_IO_COMPLETION:
-						continue
-					else:
-						raise WinError()
-				if not windll.kernel32.GetOverlappedResult(self._file, byref(ol), None, False):
-					raise WinError()
-			self._connected = True
+			self._handleConnect()
 		super()._asyncRead()
 
 	def close(self):
