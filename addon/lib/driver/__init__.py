@@ -30,6 +30,7 @@ MSG_XOFF = 0x13
 class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	name = "remote"
 	_settingsAccessor: Optional[SettingsAccessorBase] = None
+	_isVirtualChannel: bool
 
 	@classmethod
 	def check(cls):
@@ -69,6 +70,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		for portType, portId, port, portInfo in self._getTryPorts(port):
 			try:
 				if portType == KEY_VIRTUAL_CHANNEL:
+					self._isVirtualChannel = True
 					self._dev = wtsVirtualChannel.WTSVirtualChannel(
 						port,
 						onReceive=self._onReceive,
@@ -76,6 +78,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 						ioThread=ioThread
 					)
 				elif portType == KEY_NAMED_PIPE_CLIENT:
+					self._isVirtualChannel = False
 					self._dev = namedPipe.NamedPipeClient(
 						port,
 						onReceive=self._onReceive,
@@ -130,7 +133,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		return
 
 	def _onReceive(self, message: bytes):
-		if isinstance(self._dev, wtsVirtualChannel.WTSVirtualChannel) and len(message) == 1:
+		if self._isVirtualChannel and len(message) == 1:
 			command = message[0]
 			if command == MSG_XON:
 				self._connected = True
