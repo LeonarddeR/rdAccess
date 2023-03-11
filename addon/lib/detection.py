@@ -5,6 +5,8 @@ from typing import (
 	List,
 	Optional
 )
+from .namedPipe import PIPE_DIRECTORY, getSecureDesktopNamedPipes
+import os.path
 
 KEY_VIRTUAL_CHANNEL = "WTSVirtualChannel"
 KEY_NAMED_PIPE_SERVER = "NamedPipeServer"
@@ -21,3 +23,10 @@ def bgScanRD(
 	if bool(getRemoteSessionType()):
 		port = f"NVDA-{driverType.name}"
 		yield (RemoteDriver.name, bdDetect.DeviceMatch(type=KEY_VIRTUAL_CHANNEL, id=port, port=port, deviceInfo={}))
+	sdId = f"NVDA_SD-{driverType.name}"
+	sdPort = os.path.join(PIPE_DIRECTORY, sdId)
+	if sdPort in getSecureDesktopNamedPipes():
+		yield (
+			RemoteDriver.name,
+			bdDetect.DeviceMatch(type=KEY_NAMED_PIPE_CLIENT, id=sdId, port=sdPort, deviceInfo={})
+		)

@@ -21,6 +21,8 @@ import versionInfo
 import bdDetect
 import atexit
 import globalVars
+from IAccessibleHandler import SecureDesktopNVDAObject
+from .secureDesktop import SecureDesktopHandler
 
 if typing.TYPE_CHECKING:
 	from ...lib import detection
@@ -124,6 +126,9 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._pipeWatcher.start()
 		self._initializeExistingPipes()
 
+	def initializeSecureDesktopSupport(self):
+		self._sdHandler: typing.Optional[SecureDesktopHandler] = None
+
 	def __init__(self):
 		super().__init__()
 		configuration.initializeConfig()
@@ -137,18 +142,20 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		settingsPanel.NvdaRDSettingsPanel.post_onSave.register(self._handlePostConfigProfileSwitch)
 		if configuredOperatingMode & configuration.OperatingMode.CLIENT:
 			self.initializeOperatingModeClient()
+		if configuration.getSecureDesktopSupport():
+			self.initializeSecureDesktopSupport()
 
 	def _initializeExistingPipes(self):
-		for match in namedPipe.getNamedPipes():
+		for match in namedPipe.getRdPipeNamedPipes():
 			self._handleNewPipe(directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED, match)
 
 	def _handleNewPipe(self, action: directoryChanges.FileNotifyInformationAction, fileName: str):
-		if not fnmatch(fileName, namedPipe.GLOB_PATTERN):
+		if not fnmatch(fileName, namedPipe.RD_PIPE_GLOB_PATTERN):
 			return
 		if action == directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED:
-			if fnmatch(fileName, namedPipe.GLOB_PATTERN.replace("*", f"{protocol.DriverType.BRAILLE.name}*")):
+			if fnmatch(fileName, namedPipe.RD_PIPE_GLOB_PATTERN.replace("*", f"{protocol.DriverType.BRAILLE.name}*")):
 				HandlerClass = handlers.RemoteBrailleHandler
-			elif fnmatch(fileName, namedPipe.GLOB_PATTERN.replace("*", f"{protocol.DriverType.SPEECH.name}*")):
+			elif fnmatch(fileName, namedPipe.RD_PIPE_GLOB_PATTERN.replace("*", f"{protocol.DriverType.SPEECH.name}*")):
 				HandlerClass = handlers.RemoteSpeechHandler
 			else:
 				raise RuntimeError(f"Unknown named pipe: {fileName}")
@@ -189,6 +196,9 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._unregisterRdPipeFromRegistry()
 		handlers.RemoteHandler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
 
+	def terminateSecureDesktopSupport(self):
+		self._handleSecureDesktop(False)
+
 	@classmethod
 	def _unregisterRdPipeFromRegistry(cls, undoregisterAtExit: bool = True):
 		atexit.unregister(cls._unregisterRdPipeFromRegistry)
@@ -203,6 +213,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 				self.terminateOperatingModeServer()
 			if not globalVars.appArgs.secure:
 				return
+			if configuration.getSecureDesktopSupport():
+				self.terminateSecureDesktopSupport()
 			if configuredOperatingMode & configuration.OperatingMode.CLIENT:
 				self.terminateOperatingModeClient()
 			settingsPanel.NvdaRDSettingsPanel.post_onSave.unregister(self._handlePostConfigProfileSwitch)
@@ -283,9 +295,21 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 					except Exception:
 						log.error("Error calling event_gainFocus on handler", exc_info=True)
 						continue
+			if configuration.getSecureDesktopSupport():
+				if isinstance(obj, SecureDesktopNVDAObject):
+					self._handleSecureDesktop(True)
+				elif self._sdHandler:
+					self._handleSecureDesktop(False)
 		if configuredOperatingMode & configuration.OperatingMode.SERVER:
 			self._triggerBackgroundDetectRescan()
 		nextHandler()
+
+	def _handleSecureDesktop(self, state: bool):
+		if state:
+			self._sdHandler = SecureDesktopHandler()
+		elif self._sdHandler:
+			self._sdHandler.terminate()
+			self._sdHandler = None
 
 
 GlobalPlugin = RDGlobalPlugin

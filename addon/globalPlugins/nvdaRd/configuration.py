@@ -29,12 +29,14 @@ PERSISTENT_REGISTRATION_SETTING_NAME = "persistentRegistration"
 REMOTE_DESKTOP_SETTING_NAME = "enableRemoteDesktopSupport"
 CITRIX_SETTING_NAME = "enableCitrixSupport"
 RECOVER_REMOTE_SPEECH_SETTING_NAME = "recoverRemoteSpeech"
+SECURE_DESKTOP_SETTING_NAME = "enableSecureDesktopSupport"
 CONFIG_SPEC = {
 	OPERATING_MODE_SETTING_NAME: 'integer(default=3, min=1, max=3)',
 	PERSISTENT_REGISTRATION_SETTING_NAME: "boolean(default=false)",
 	REMOTE_DESKTOP_SETTING_NAME: "boolean(default=true)",
 	CITRIX_SETTING_NAME: "boolean(default=true)",
 	RECOVER_REMOTE_SPEECH_SETTING_NAME: "boolean(default=true)",
+	SECURE_DESKTOP_SETTING_NAME: "boolean(default=true)",
 }
 
 
@@ -61,6 +63,11 @@ def getCitrixSupport(fromCache: bool = False) -> bool:
 def getRecoverRemoteSpeech(fromCache: bool = False) -> bool:
 	section = _cachedConfig if fromCache else config.conf[CONFIG_SECTION_NAME]
 	return section[RECOVER_REMOTE_SPEECH_SETTING_NAME]
+
+
+def getSecureDesktopSupport(fromCache: bool = False) -> bool:
+	section = _cachedConfig if fromCache else config.conf[CONFIG_SECTION_NAME]
+	return section[SECURE_DESKTOP_SETTING_NAME]
 
 
 def initializeConfig():

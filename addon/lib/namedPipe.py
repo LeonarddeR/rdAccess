@@ -25,11 +25,16 @@ from glob import iglob
 ERROR_PIPE_CONNECTED = 0x217
 ERROR_PIPE_BUSY = 0xE7
 PIPE_DIRECTORY = "\\\\?\\pipe\\"
-GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
+RD_PIPE_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
+SECURE_DESKTOP_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "NVDA_SD-*")
 
 
-def getNamedPipes() -> Iterator[str]:
-	yield from iglob(GLOB_PATTERN)
+def getRdPipeNamedPipes() -> Iterator[str]:
+	yield from iglob(RD_PIPE_GLOB_PATTERN)
+
+
+def getSecureDesktopNamedPipes() -> Iterator[str]:
+	yield from iglob(SECURE_DESKTOP_GLOB_PATTERN)
 
 
 class PipeMode(IntFlag):
@@ -78,11 +83,6 @@ class NamedPipeBase(IoBaseEx):
 			ioThread=ioThread
 		)
 
-	def close(self):
-		super().close()
-		if hasattr(self, "_file") and self._file is not INVALID_HANDLE_VALUE:
-			winKernel.closeHandle(self._file)
-
 
 class NamedPipeServer(NamedPipeBase):
 
@@ -114,9 +114,6 @@ class NamedPipeServer(NamedPipeBase):
 		if fileHandle == INVALID_HANDLE_VALUE:
 			raise WinError()
 		self._connected = False
-		ol = OVERLAPPED()
-		ol.hEvent = winKernel.createEvent()
-		self._connectOl = ol
 		super().__init__(
 			pipeName,
 			fileHandle,
@@ -128,12 +125,33 @@ class NamedPipeServer(NamedPipeBase):
 
 	def _asyncRead(self):
 		if not self._connected:
-			res = windll.ConnectNamedPipe(self._file, self._connectOl)
-			if res == 0:
-				error = GetLastError()
-				if error not in (ERROR_IO_PENDING, ERROR_PIPE_CONNECTED):
-					raise WinError(error)
+			ol = OVERLAPPED()
+			ol.hEvent = self._recvEvt
+			connectRes = windll.kernel32.ConnectNamedPipe(self._file, ol)
+			error = WinError()
+			if error.winerror == ERROR_PIPE_CONNECTED:
+				windll.kernel32.SetEvent(self._recvEvt)
+			else:
+				if connectRes or error.winerror != ERROR_IO_PENDING:
+					raise error
+				while True:
+					waitRes = winKernel.waitForSingleObjectEx(self._recvEvt, winKernel.INFINITE, True)
+					if waitRes == winKernel.WAIT_OBJECT_0:
+						break
+					elif waitRes == winKernel.WAIT_IO_COMPLETION:
+						continue
+					else:
+						raise WinError()
+				if not windll.kernel32.GetOverlappedResult(self._file, byref(ol), None, False):
+					raise WinError()
+			self._connected = True
 		super()._asyncRead()
+
+	def close(self):
+		super().close()
+		if hasattr(self, "_file") and self._file is not INVALID_HANDLE_VALUE:
+			windll.kernel32.DisconnectNamedPipe(self._file)
+			winKernel.closeHandle(self._file)
 
 
 class NamedPipeClient(NamedPipeBase):
@@ -175,4 +193,9 @@ class NamedPipeClient(NamedPipeBase):
 		self.pipeProcessId = serverProcessId.value
 
 	def _get_isAlive(self) -> bool:
-		return self.pipeName in getNamedPipes()
+		return self.pipeName in getRdPipeNamedPipes()
+
+	def close(self):
+		super().close()
+		if hasattr(self, "_file") and self._file is not INVALID_HANDLE_VALUE:
+			winKernel.closeHandle(self._file)
