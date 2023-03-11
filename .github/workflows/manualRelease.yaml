@@ -11,10 +11,6 @@ on:
         description: 'Mark as prerelease on GitHub'
         default: false
         type: boolean
-      signAddOn:
-        description: 'Sign add-on with GPG'
-        default: true
-        type: boolean
 
 jobs:
   buildAndUpload:
@@ -53,16 +49,6 @@ jobs:
         git config --global user.email github-actions@github.com
         git commit -a -m "Update buildVars"
         git push origin HEAD:main
-    - id: import_gpg
-      if: ${{ inputs.signAddOn }}
-      name: Import GPG key
-      uses: crazy-max/ghaction-import-gpg@v5
-      with:
-        gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-        passphrase: ${{ secrets.PASSPHRASE }}
-    - if: ${{ inputs.signAddOn }}
-      name: Sign add-on  
-      run: gpg --detach-sign *.nvda-addon
     - name: Calculate sha256
       run: sha256sum *.nvda-addon >> sha256.txt
     - name: Create tag
@@ -76,4 +62,3 @@ jobs:
         artifacts: "*.nvda-addon,*.sig,publicKey.asc,sha256.txt"
         generateReleaseNotes: true
         prerelease: ${{ inputs.prerelease }}
-        
