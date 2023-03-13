@@ -1,5 +1,5 @@
 import bdDetect
-from .sessionTrackingEx import getRemoteSessionType
+from .wtsVirtualChannel import getRemoteSessionMetrics
 from .protocol import DriverType
 from typing import (
 	List,
@@ -18,6 +18,6 @@ def bgScanRD(
 	from .driver import RemoteDriver
 	if limitToDevices and RemoteDriver.name not in limitToDevices:
 		return
-	if bool(getRemoteSessionType()):
+	if getRemoteSessionMetrics():
 		port = f"NVDA-{driverType.name}"
 		yield (RemoteDriver.name, bdDetect.DeviceMatch(type=KEY_VIRTUAL_CHANNEL, id=port, port=port, deviceInfo={}))

@@ -34,6 +34,7 @@ CHANNEL_CHUNK_LENGTH = 1600
 CHANNEL_FLAG_FIRST = 0x01
 CHANNEL_FLAG_LAST = 0x02
 CHANNEL_FLAG_ONLY = CHANNEL_FLAG_FIRST | CHANNEL_FLAG_LAST
+SM_REMOTESESSION = 0x1000
 
 
 class ChannelPduHeader(Structure):
@@ -52,6 +53,7 @@ except OSError:
 	WTSVirtualChannelOpenEx = windll.wtsapi32.WTSVirtualChannelOpenEx
 	WTSVirtualChannelQuery = windll.wtsapi32.WTSVirtualChannelQuery
 	WTSVirtualChannelClose = windll.wtsapi32.WTSVirtualChannelClose
+	GetSystemMetrics = windll.user32.GetSystemMetrics
 else:
 	WTSVirtualChannelOpenEx = vdp_rdpvcbridge.VDP_VirtualChannelOpenEx
 	WTSVirtualChannelQuery = vdp_rdpvcbridge.VDP_VirtualChannelQuery
@@ -71,6 +73,11 @@ else:
 		POINTER(DWORD)  # [out] DWORD * pBytesReturned
 	)
 	wtsApi32.WTSQuerySessionInformation.restype = BOOL  # On Failure, the return value is zero.
+	GetSystemMetrics = vdp_rdpvcbridge.VDP_GetSystemMetrics
+
+
+def getRemoteSessionMetrics() -> bool:
+	return bool(GetSystemMetrics(SM_REMOTESESSION))
 
 
 class WTSVirtualChannel(IoBaseEx):
