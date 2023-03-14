@@ -107,11 +107,9 @@ class NvdaRDSettingsPanel(SettingsPanel):
 		)
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.REMOTE_DESKTOP_SETTING_NAME] = (
 			self.remoteDesktopSupportCheckbox.IsChecked()
-			and isClient
 		)
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.CITRIX_SETTING_NAME] = (
 			self.citrixSupportCheckbox.IsChecked()
-			and isClient
 			and rdPipe.isCitrixSupported()
 		)
 

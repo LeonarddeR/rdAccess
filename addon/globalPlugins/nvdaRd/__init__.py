@@ -54,18 +54,6 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		):
 			clsList.append(RemoteDesktopControl)
 
-	def initializeOperatingModeServer(self):
-		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-			self._monkeyPatcher.patchBdDetect
-		else:
-			bdDetect.scanForDevices.register(detection.bgScanRD)
-			bdDetect.scanForDevices.moveToEnd(detection.bgScanRD)
-		if configuration.getRecoverRemoteSpeech():
-			self._synthDetector = _SynthDetector()
-		self._triggerBackgroundDetectRescan()
-		if not globalVars.appArgs.secure:
-			post_sessionLockStateChanged.register(self._handleLockStateChanged)
-
 	@classmethod
 	def _updateRegistryForRdPipe(cls, install, rdp, citrix):
 		if globalVars.appArgs.secure:
@@ -105,7 +93,19 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		citrix = configuration.getCitrixSupport()
 		cls._updateRegistryForRdPipe(True, rdp, citrix)
 		if not persistent:
-			atexit.register(cls._unregisterRdPipeFromRegistry, undoregisterAtExit=False)
+			atexit.register(cls._unregisterRdPipeFromRegistry)
+
+	def initializeOperatingModeServer(self):
+		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
+			self._monkeyPatcher.patchBdDetect
+		else:
+			bdDetect.scanForDevices.register(detection.bgScanRD)
+			bdDetect.scanForDevices.moveToEnd(detection.bgScanRD)
+		if configuration.getRecoverRemoteSpeech():
+			self._synthDetector = _SynthDetector()
+		self._triggerBackgroundDetectRescan()
+		if not globalVars.appArgs.secure:
+			post_sessionLockStateChanged.register(self._handleLockStateChanged)
 
 	def initializeOperatingModeClient(self):
 		if globalVars.appArgs.secure:
@@ -195,7 +195,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._monkeyPatcher.unpatchSynthDriverHandler
 
 	@classmethod
-	def _unregisterRdPipeFromRegistry(cls, undoregisterAtExit: bool = True):
+	def _unregisterRdPipeFromRegistry(cls):
 		atexit.unregister(cls._unregisterRdPipeFromRegistry)
 		rdp = configuration.getRemoteDesktopSupport()
 		citrix = configuration.getCitrixSupport()
@@ -218,7 +218,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		finally:
 			super().terminate()
 
-	def _handlePostConfigProfileSwitch(self, ):
+	def _handlePostConfigProfileSwitch(self):
 		oldOperatingMode = configuration.getOperatingMode(True)
 		newOperatingMode = configuration.getOperatingMode(False)
 		if (
@@ -255,7 +255,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			oldRdp = configuration.getRemoteDesktopSupport(True)
 			newRdp = configuration.getRemoteDesktopSupport(False)
 			if oldRdp is not newRdp:
-				self._updateRegistryForRdPipe(newRdp, True, False)
+				self._unregisterRdPipeFromRegistry()
 			oldCitrix = configuration.getCitrixSupport(True)
 			newCitrix = configuration.getCitrixSupport(False)
 			if oldCitrix is not newCitrix:
