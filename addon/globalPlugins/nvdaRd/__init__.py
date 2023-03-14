@@ -97,7 +97,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def initializeOperatingModeServer(self):
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-			self._monkeyPatcher.patchBdDetect
+			self._monkeyPatcher.patchBdDetect()
 		else:
 			bdDetect.scanForDevices.register(detection.bgScanRD)
 			bdDetect.scanForDevices.moveToEnd(detection.bgScanRD)
@@ -111,7 +111,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if globalVars.appArgs.secure:
 			return
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-			self._monkeyPatcher.patchSynthDriverHandler
+			self._monkeyPatcher.patchSynthDriverHandler()
 		handlers.RemoteHandler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
 		self._registerRdPipeInRegistry()
 		self._handlers: Dict[str, handlers.RemoteHandler] = {}
@@ -172,7 +172,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if self._synthDetector:
 			self._synthDetector.terminate()
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-			self._monkeyPatcher.unpatchBdDetect
+			self._monkeyPatcher.unpatchBdDetect()
 		else:
 			bdDetect.scanForDevices.unregister(detection.bgScanRD)
 
@@ -192,7 +192,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._unregisterRdPipeFromRegistry()
 		handlers.RemoteHandler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-			self._monkeyPatcher.unpatchSynthDriverHandler
+			self._monkeyPatcher.unpatchSynthDriverHandler()
 
 	@classmethod
 	def _unregisterRdPipeFromRegistry(cls):

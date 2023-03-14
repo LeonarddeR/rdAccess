@@ -3,6 +3,7 @@ import typing
 import braille
 from extensionPoints import Action
 import synthDriverHandler
+import gui.settingsDialogs
 
 if typing.TYPE_CHECKING:
 	from ...lib import detection
@@ -35,11 +36,13 @@ class MonkeyPatcher:
 	def _setSynth(name: typing.Optional[str], isFallback: bool = False):
 		res = synthDriverHandler.setSynth._origin(name, isFallback)
 		if res:
+			newSynth = synthDriverHandler.getSynth()
 			synthDriverHandler.synthChanged.notify(
-				synth=synthDriverHandler._curSynth,
+				synth=newSynth,
 				audioOutputDevice=synthDriverHandler._audioOutputDevice,
 				isFallback=isFallback
 			)
+		return res
 
 	def patchBdDetect(self):
 		if bdDetect.Detector._bgScan == self._bgScan:
@@ -52,7 +55,7 @@ class MonkeyPatcher:
 			return
 		self._setSynth._origin = synthDriverHandler.setSynth
 		synthDriverHandler.synthChanged = Action()
-		synthDriverHandler.setSynth = self._setSynth
+		gui.settingsDialogs.setSynth = synthDriverHandler.setSynth = self._setSynth
 
 	def unpatchBdDetect(self):
 		if bdDetect.Detector._bgScan != self._bgScan:
@@ -63,6 +66,6 @@ class MonkeyPatcher:
 	def unpatchSynthDriverHandler(self):
 		if synthDriverHandler.setSynth != self._setSynth:
 			return
-		synthDriverHandler.setSynth = self._setSynth._origin
+		gui.settingsDialogs.setSynth = synthDriverHandler.setSynth = self._setSynth._origin
 		del synthDriverHandler.synthChanged
 		del self._setSynth._origin
