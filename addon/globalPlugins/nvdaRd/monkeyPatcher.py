@@ -66,11 +66,3 @@ class MonkeyPatcher:
 		synthDriverHandler.setSynth = self._setSynth._origin
 		del synthDriverHandler.synthChanged
 		del self._setSynth._origin
-
-	def __init__(self):
-		self.patchBdDetect()
-		self.patchSynthDriverHandler
-
-	def terminate(self):
-		self.unpatchSynthDriverHandler()
-		self.unpatchBdDetect()

@@ -56,8 +56,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def initializeOperatingModeServer(self):
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-			from .monkeyPatcher import MonkeyPatcher
-			self._monkeyPatcher = MonkeyPatcher()
+			self._monkeyPatcher.patchBdDetect
 		else:
 			bdDetect.scanForDevices.register(detection.bgScanRD)
 			bdDetect.scanForDevices.moveToEnd(detection.bgScanRD)
@@ -111,6 +110,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def initializeOperatingModeClient(self):
 		if globalVars.appArgs.secure:
 			return
+		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
+			self._monkeyPatcher.patchSynthDriverHandler
 		handlers.RemoteHandler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
 		self._registerRdPipeInRegistry()
 		self._handlers: Dict[str, handlers.RemoteHandler] = {}
@@ -127,6 +128,9 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def __init__(self):
 		super().__init__()
 		configuration.initializeConfig()
+		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
+			from .monkeyPatcher import MonkeyPatcher
+			self._monkeyPatcher = MonkeyPatcher()
 		configuredOperatingMode = configuration.getOperatingMode()
 		if configuredOperatingMode & configuration.OperatingMode.SERVER:
 			self.initializeOperatingModeServer()
@@ -168,8 +172,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if self._synthDetector:
 			self._synthDetector.terminate()
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-			self._monkeyPatcher.terminate()
-			del self._monkeyPatcher
+			self._monkeyPatcher.unpatchBdDetect
 		else:
 			bdDetect.scanForDevices.unregister(detection.bgScanRD)
 
@@ -188,6 +191,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if not configuration.getPersistentRegistration():
 			self._unregisterRdPipeFromRegistry()
 		handlers.RemoteHandler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
+		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
+			self._monkeyPatcher.unpatchSynthDriverHandler
 
 	@classmethod
 	def _unregisterRdPipeFromRegistry(cls, undoregisterAtExit: bool = True):
@@ -208,6 +213,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			settingsPanel.NvdaRDSettingsPanel.post_onSave.unregister(self._handlePostConfigProfileSwitch)
 			gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(settingsPanel.NvdaRDSettingsPanel)
 			config.post_configProfileSwitch.unregister(self._handlePostConfigProfileSwitch)
+			if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
+				del self._monkeyPatcher
 		finally:
 			super().terminate()
 
