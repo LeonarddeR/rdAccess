@@ -100,4 +100,4 @@ class RemoteBrailleHandler(RemoteHandler):
 		self._attributeSenderStore(
 			protocol.GenericAttribute.SUPPORTED_SETTINGS,
 			settings=display.supportedSettings
-			)
+		)
