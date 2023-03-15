@@ -6,6 +6,7 @@ from logHandler import log
 import sys
 from extensionPoints import AccumulatingDecider
 from hwIo.ioThread import IoThread
+from abc import abstractmethod
 
 if typing.TYPE_CHECKING:
 	from ....lib import configuration
@@ -49,6 +50,8 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			)
 		except EnvironmentError:
 			raise
+
+		self._handleDriverChanged(self._driver)
 
 	def event_gainFocus(self, obj):
 		# Invalidate the property cache to ensure that hasFocus will be fetched again.
@@ -124,3 +127,10 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 
 	def _onIoError(self, error: int) -> bool:
 		return self.decide_remoteDisconnect.decide(handler=self, error=error)
+
+	@abstractmethod
+	def _handleDriverChanged(self, driver: Driver):
+		self._attributeSenderStore(
+			protocol.GenericAttribute.SUPPORTED_SETTINGS,
+			settings=driver.supportedSettings
+		)

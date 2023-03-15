@@ -22,13 +22,12 @@ class RemoteSpeechHandler(RemoteHandler):
 	def __init__(self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool = True):
 		self._indexesSpeaking = []
 		super().__init__(ioThread, pipeName, isNamedPipeClient=isNamedPipeClient)
-		self._handleSynthChanged(self._driver)
 		synthDriverHandler.synthIndexReached.register(self._onSynthIndexReached)
 		synthDriverHandler.synthDoneSpeaking.register(self._onSynthDoneSpeaking)
-		synthDriverHandler.synthChanged.register(self._handleSynthChanged)
+		synthDriverHandler.synthChanged.register(self._handleDriverChanged)
 
 	def terminate(self):
-		synthDriverHandler.synthChanged.unregister(self._handleSynthChanged)
+		synthDriverHandler.synthChanged.unregister(self._handleDriverChanged)
 		synthDriverHandler.synthDoneSpeaking.unregister(self._onSynthDoneSpeaking)
 		synthDriverHandler.synthIndexReached.unregister(self._onSynthIndexReached)
 		super().terminate()
@@ -97,7 +96,7 @@ class RemoteSpeechHandler(RemoteHandler):
 	def _onSynthDoneSpeaking(self, synth: typing.Optional[synthDriverHandler.SynthDriver] = None):
 		self._indexesSpeaking.clear()
 
-	def _handleSynthChanged(self, synth: synthDriverHandler.SynthDriver):
+	def _handleDriverChanged(self, synth: synthDriverHandler.SynthDriver):
+		super()._handleDriverChanged(synth)
 		self._attributeSenderStore(protocol.SpeechAttribute.SUPPORTED_COMMANDS, commands=synth.supportedCommands)
-		self._attributeSenderStore(protocol.GenericAttribute.SUPPORTED_SETTINGS, settings=synth.supportedSettings)
 		self._attributeSenderStore(protocol.SpeechAttribute.LANGUAGE, language=synth.language)

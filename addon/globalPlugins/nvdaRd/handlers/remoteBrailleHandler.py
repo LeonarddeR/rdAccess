@@ -23,14 +23,13 @@ class RemoteBrailleHandler(RemoteHandler):
 	def __init__(self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool = True):
 		self._queuedWriteLock = threading.Lock()
 		super().__init__(ioThread, pipeName, isNamedPipeClient=isNamedPipeClient)
-		self._handledisplayChanged(self._driver)
 		braille.decide_enabled.register(self._handleBrailleHandlerEnabled)
-		braille.displayChanged.register(self._handledisplayChanged)
+		braille.displayChanged.register(self._handleDriverChanged)
 		inputCore.decide_executeGesture.register(self._handleExecuteGesture)
 
 	def terminate(self):
 		inputCore.decide_executeGesture.unregister(self._handleExecuteGesture)
-		braille.displayChanged.unregister(self._handledisplayChanged)
+		braille.displayChanged.unregister(self._handleDriverChanged)
 		braille.decide_enabled.unregister(self._handleBrailleHandlerEnabled)
 		super().terminate()
 
@@ -94,10 +93,7 @@ class RemoteBrailleHandler(RemoteHandler):
 	def _handleBrailleHandlerEnabled(self):
 		return not self.hasFocus
 
-	def _handledisplayChanged(self, display: braille.BrailleDisplayDriver):
+	def _handleDriverChanged(self, display: braille.BrailleDisplayDriver):
+		super()._handleDriverChanged(display)
 		self._attributeSenderStore(protocol.BrailleAttribute.NUM_CELLS, numCells=display.numCells	)
 		self._attributeSenderStore(protocol.BrailleAttribute.GESTURE_MAP, gestureMap=display.gestureMap)
-		self._attributeSenderStore(
-			protocol.GenericAttribute.SUPPORTED_SETTINGS,
-			settings=display.supportedSettings
-		)
