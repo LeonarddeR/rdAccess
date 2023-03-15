@@ -4,6 +4,7 @@ from ..detection import bgScanRD, KEY_NAMED_PIPE_CLIENT, KEY_VIRTUAL_CHANNEL
 from .. import protocol, inputTime
 from .. import wtsVirtualChannel
 from .. import namedPipe
+from .. import configuration
 from typing import (
 	Any,
 	Iterable,
@@ -87,14 +88,18 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			except EnvironmentError:
 				log.debugWarning("", exc_info=True)
 				continue
-			self._attributeValueProcessor.isAttributeRequestPending(protocol.GenericAttribute.SUPPORTED_SETTINGS)
+			if configuration.getDriverSettingsManagement():
+				self._attributeValueProcessor.isAttributeRequestPending(protocol.GenericAttribute.SUPPORTED_SETTINGS)
 			if portType == KEY_VIRTUAL_CHANNEL:
 				# Wait for RdPipe at the other end to send a XON
 				if not self._safeWait(lambda: self._connected, self.timeout * 3):
 					continue
 			else:
 				self._connected = True
-			if self._waitForAttributeUpdate(protocol.GenericAttribute.SUPPORTED_SETTINGS, initialTime):
+			if (
+				not configuration.getDriverSettingsManagement()
+				or self._waitForAttributeUpdate(protocol.GenericAttribute.SUPPORTED_SETTINGS, initialTime)
+			):
 				break
 			else:
 				log.debugWarning("Error getting supported settings", exc_info=True)
@@ -106,7 +111,8 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	def __getattribute__(self, name: str) -> Any:
 		getter = super().__getattribute__
 		if (
-			(name.startswith("_") and not name.startswith("_get_"))
+			not configuration.getDriverSettingsManagement()
+			or (name.startswith("_") and not name.startswith("_get_"))
 			or name in (n for n in dir(AutoPropertyObject) if not n.startswith("_"))
 		):
 			return getter(name)
@@ -117,6 +123,8 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	def __setattr__(self, name: str, value: Any) -> None:
 		getter = super().__getattribute__
+		if not configuration.getDriverSettingsManagement():
+			return super().__setattr__(name, value)
 		accessor = getter("_settingsAccessor")
 		if accessor and getter("isSupported")(name):
 			setattr(accessor, name, value)
@@ -158,6 +166,8 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			attribute: protocol.AttributeT,
 			settings: Iterable[DriverSetting]
 	):
+		if not configuration.getDriverSettingsManagement():
+			return
 		self._settingsAccessor = SettingsAccessorBase.createFromSettings(self, settings) if settings else None
 		self._handleRemoteDriverChange()
 
@@ -166,6 +176,8 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	def _get_supportedSettings(self):
 		attribute = protocol.GenericAttribute.SUPPORTED_SETTINGS
+		if not configuration.getDriverSettingsManagement():
+			return self._attributeValueProcessor._getDefaultValue(attribute)
 		try:
 			return self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
 		except KeyError:

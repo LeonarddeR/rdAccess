@@ -81,6 +81,16 @@ class NvdaRDSettingsPanel(SettingsPanel):
 		))
 		self.citrixSupportCheckbox.Value = configuration.getCitrixSupport()
 
+		# Translators: The label for a setting in NVDA RD settings to enable
+		# support for exchanging driver settings between the local and the remote system.
+		driverSettingsManagementText = _("&Support remote management of driver settings")
+		self.driverSettingsManagementCheckbox = sizer_helper.addItem(
+			wx.CheckBox(
+				self,
+				label=driverSettingsManagementText
+		))
+		self.driverSettingsManagementCheckbox.Value = configuration.getDriverSettingsManagement()
+
 		self.onoperatingModeChange(self.operatingModeRadioBox)
 
 	def onoperatingModeChange(self, evt: typing.Union[wx.CommandEvent, wx.RadioBox]):
@@ -113,6 +123,9 @@ class NvdaRDSettingsPanel(SettingsPanel):
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.CITRIX_SETTING_NAME] = (
 			self.citrixSupportCheckbox.IsChecked()
 			and rdPipe.isCitrixSupported()
+		)
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.DRIVER_settings_MANAGEMENT_SETTING_NAME] = (
+			self.driverSettingsManagementCheckbox.IsChecked()
 		)
 
 		self.post_onSave.notify()

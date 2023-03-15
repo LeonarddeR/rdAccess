@@ -7,7 +7,7 @@ import inputCore
 import threading
 
 if typing.TYPE_CHECKING:
-	from .. import protocol
+	from ....lib import protocol
 else:
 	import addonHandler
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
@@ -97,4 +97,7 @@ class RemoteBrailleHandler(RemoteHandler):
 	def _handledisplayChanged(self, display: braille.BrailleDisplayDriver):
 		self._attributeSenderStore(protocol.BrailleAttribute.NUM_CELLS, numCells=display.numCells	)
 		self._attributeSenderStore(protocol.BrailleAttribute.GESTURE_MAP, gestureMap=display.gestureMap)
-		self._attributeSenderStore(protocol.GenericAttribute.SUPPORTED_SETTINGS, settings=display.supportedSettings)
+		self._attributeSenderStore(
+			protocol.GenericAttribute.SUPPORTED_SETTINGS,
+			settings=display.supportedSettings
+			)

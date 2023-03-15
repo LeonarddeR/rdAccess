@@ -7,12 +7,13 @@ import sys
 from extensionPoints import AccumulatingDecider
 from hwIo.ioThread import IoThread
 
-
 if typing.TYPE_CHECKING:
-	from .. import namedPipe
-	from .. import protocol
+	from ....lib import configuration
+	from ....lib import namedPipe
+	from ....lib import protocol
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
+	configuration = addon.loadModule("lib.configuration")
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")
 
@@ -61,12 +62,16 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 
 	@protocol.attributeSender(protocol.GenericAttribute.SUPPORTED_SETTINGS)
 	def _outgoing_supportedSettings(self, settings=None) -> bytes:
+		if not configuration.getDriverSettingsManagement():
+			return self._pickle([])
 		if settings is None:
 			settings = self._driver.supportedSettings
 		return self._pickle(settings)
 
 	@protocol.attributeSender(b"available*s")
 	def _outgoing_availableSettingValues(self, attribute: protocol.AttributeT) -> bytes:
+		if not configuration.getDriverSettingsManagement():
+			return self._pickle({})
 		name = attribute.decode("ASCII")
 		return self._pickle(getattr(self._driver, name))
 
@@ -77,11 +82,15 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 
 	@_incoming_setting.updateCallback
 	def _setIncomingSettingOnDriver(self, attribute: protocol.AttributeT, value: typing.Any):
+		if not configuration.getDriverSettingsManagement():
+			return
 		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX):].decode("ASCII")
 		setattr(self._driver, name, value)
 
 	@protocol.attributeSender(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
 	def _outgoing_setting(self, attribute: protocol.AttributeT):
+		if not configuration.getDriverSettingsManagement():
+			return self._pickle(None)
 		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX):].decode("ASCII")
 		return self._pickle(getattr(self._driver, name))
 

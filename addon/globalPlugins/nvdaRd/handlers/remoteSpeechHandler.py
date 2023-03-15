@@ -8,7 +8,7 @@ import nvwave
 from hwIo.ioThread import IoThread
 
 if typing.TYPE_CHECKING:
-	from .. import protocol
+	from ....lib import protocol
 else:
 	import addonHandler
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()

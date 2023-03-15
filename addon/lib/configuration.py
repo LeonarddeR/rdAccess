@@ -65,6 +65,11 @@ def getRecoverRemoteSpeech(fromCache: bool = False) -> bool:
 	return section[RECOVER_REMOTE_SPEECH_SETTING_NAME]
 
 
+def getDriverSettingsManagement(fromCache: bool = False) -> bool:
+	section = _cachedConfig if fromCache else config.conf[CONFIG_SECTION_NAME]
+	return section[DRIVER_settings_MANAGEMENT_SETTING_NAME]
+
+
 def initializeConfig():
 	if CONFIG_SECTION_NAME not in config.conf:
 		config.conf[CONFIG_SECTION_NAME] = {}
