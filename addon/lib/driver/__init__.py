@@ -1,9 +1,7 @@
 from abc import abstractmethod
 import driverHandler
 from ..detection import bgScanRD, KEY_NAMED_PIPE_CLIENT, KEY_VIRTUAL_CHANNEL
-from .. import protocol, inputTime
-from .. import wtsVirtualChannel
-from .. import namedPipe
+from .. import protocol, inputTime, wtsVirtualChannel, namedPipe
 from typing import (
 	Any,
 	Iterable,

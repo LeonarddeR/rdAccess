@@ -51,6 +51,16 @@ class NvdaRDSettingsPanel(SettingsPanel):
 		self.recoverRemoteSpeechCheckbox.Value = configuration.getRecoverRemoteSpeech()
 
 		# Translators: The label for a setting in NVDA RD settings to enable
+		# support for exchanging driver settings between the local and the remote system.
+		driverSettingsManagementText = _("&Allow remote system to control driver settings")
+		self.driverSettingsManagementCheckbox = sizer_helper.addItem(
+			wx.CheckBox(
+				self,
+				label=driverSettingsManagementText
+		))
+		self.driverSettingsManagementCheckbox.Value = configuration.getDriverSettingsManagement()
+
+		# Translators: The label for a setting in NVDA RD settings to enable
 		# persistent registration of RD Pipe to the Windows registry.
 		persistentRegistrationText = _("&Persist client support when exiting NVDA")
 		self.persistentRegistrationCheckbox = sizer_helper.addItem(
@@ -59,7 +69,6 @@ class NvdaRDSettingsPanel(SettingsPanel):
 				label=persistentRegistrationText
 		))
 		self.persistentRegistrationCheckbox.Value = configuration.getPersistentRegistration()
-		self.persistentRegistrationCheckbox.Enable(config.isInstalledCopy())
 
 		# Translators: The label for a setting in NVDA RD settings to enable
 		# registration of RD Pipe to the Windows registry for remote desktop support.
@@ -85,7 +94,8 @@ class NvdaRDSettingsPanel(SettingsPanel):
 
 	def onoperatingModeChange(self, evt: typing.Union[wx.CommandEvent, wx.RadioBox]):
 		isClient = configuration.OperatingMode(evt.Selection + 1) & configuration.OperatingMode.CLIENT
-		self.persistentRegistrationCheckbox.Enable(isClient)
+		self.driverSettingsManagementCheckbox.Enable(isClient)
+		self.persistentRegistrationCheckbox.Enable(isClient and config.isInstalledCopy())
 		self.remoteDesktopSupportCheckbox.Enable(isClient)
 		self.citrixSupportCheckbox.Enable(isClient and rdPipe.isCitrixSupported())
 		self.recoverRemoteSpeechCheckbox.Enable(
@@ -102,6 +112,9 @@ class NvdaRDSettingsPanel(SettingsPanel):
 		isClient = bool(
 			configuration.OperatingMode(self.operatingModeRadioBox.Selection + 1)
 			& configuration.OperatingMode.CLIENT
+		)
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.DRIVER_settings_MANAGEMENT_SETTING_NAME] = (
+			self.driverSettingsManagementCheckbox.IsChecked()
 		)
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.PERSISTENT_REGISTRATION_SETTING_NAME] = (
 			self.persistentRegistrationCheckbox.IsChecked()

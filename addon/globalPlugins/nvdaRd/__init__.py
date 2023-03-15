@@ -233,7 +233,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			and newOperatingMode & configuration.OperatingMode.SERVER
 		):
 			self.initializeOperatingModeServer()
-		else:
+		elif newOperatingMode & configuration.OperatingMode.SERVER:
 			oldRecoverRemoteSpeech = configuration.getRecoverRemoteSpeech(True)
 			newRecoverRemoteSpeech = configuration.getRecoverRemoteSpeech(False)
 			if oldRecoverRemoteSpeech is not newRecoverRemoteSpeech:
@@ -253,11 +253,16 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			and newOperatingMode & configuration.OperatingMode.CLIENT
 		):
 			self.initializeOperatingModeClient()
-		else:
+		elif newOperatingMode & configuration.OperatingMode.CLIENT:
+			oldDriverSettingsManagement = configuration.getDriverSettingsManagement(True)
+			newDriverSettingsManagement = configuration.getDriverSettingsManagement(False)
+			if oldDriverSettingsManagement is not newDriverSettingsManagement:
+				for handler in self._handlers.values():
+					handler._handleDriverChanged(handler._driver)
 			oldRdp = configuration.getRemoteDesktopSupport(True)
 			newRdp = configuration.getRemoteDesktopSupport(False)
 			if oldRdp is not newRdp:
-				self._unregisterRdPipeFromRegistry()
+				self._updateRegistryForRdPipe(newRdp, True, False)
 			oldCitrix = configuration.getCitrixSupport(True)
 			newCitrix = configuration.getCitrixSupport(False)
 			if oldCitrix is not newCitrix:
