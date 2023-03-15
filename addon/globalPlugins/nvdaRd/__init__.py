@@ -4,7 +4,7 @@ import hwIo
 from . import directoryChanges, settingsPanel
 import typing
 from fnmatch import fnmatch
-from . import configuration, handlers
+from . import handlers
 from typing import Dict, List, Type
 from logHandler import log
 from .synthDetect import _SynthDetector
@@ -23,12 +23,14 @@ import atexit
 import globalVars
 
 if typing.TYPE_CHECKING:
+	from ...lib import configuration
 	from ...lib import detection
 	from ...lib import namedPipe
 	from ...lib import protocol
 	from ...lib import rdPipe
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
+	configuration = addon.loadModule("lib.configuration")
 	detection = addon.loadModule("lib.detection")
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")

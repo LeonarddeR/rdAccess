@@ -1,11 +1,17 @@
 import typing
 
 if typing.TYPE_CHECKING:
+	from .lib import configuration
 	from .lib import rdPipe
 else:
 	import addonHandler
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
+	configuration = addon.loadModule("lib.configuration")
 	rdPipe = addon.loadModule("lib.rdPipe")
+
+
+def onInstall():
+	configuration.initializeConfig()
 
 
 def onUninstall():

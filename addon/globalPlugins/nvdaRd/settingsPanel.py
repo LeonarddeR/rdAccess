@@ -3,15 +3,17 @@ import addonHandler
 from gui import guiHelper
 from gui.settingsDialogs import SettingsPanel
 import config
-from . import configuration
 from extensionPoints import Action
 import typing
 
 if typing.TYPE_CHECKING:
+	from ...lib import configuration
 	from ...lib import rdPipe
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
+	configuration = addon.loadModule("lib.configuration")
 	rdPipe = addon.loadModule("lib.rdPipe")
+
 addonHandler.initTranslation()
 
 
