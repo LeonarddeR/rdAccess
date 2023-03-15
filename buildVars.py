@@ -63,7 +63,7 @@ pythonSources = [
 	"addon/lib/*.py",
 	"addon/lib/driver/*.py",
 	"addon/lib/protocol/*.py",
-	"addon/synthDrivers/remote/*.py",
+	"addon/synthDrivers/*.py",
 ]
 
 # Files that contain strings for translation. Usually your python sources

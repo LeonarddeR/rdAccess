@@ -45,7 +45,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			self._dev = IO(
 				pipeName=pipeName,
 				onReceive=self._onReceive,
-				onReadError=self._onIoError,
+				onReadError=self._onReadError,
 				ioThread=ioThread
 			)
 		except EnvironmentError:
@@ -125,7 +125,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 	def _handleRemoteSessionGainFocus(self):
 		return
 
-	def _onIoError(self, error: int) -> bool:
+	def _onReadError(self, error: int) -> bool:
 		return self.decide_remoteDisconnect.decide(handler=self, error=error)
 
 	@abstractmethod
