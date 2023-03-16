@@ -1,10 +1,12 @@
 import wx
 import addonHandler
-from gui import guiHelper
+from gui import guiHelper, nvdaControls, messageBox
 from gui.settingsDialogs import SettingsPanel
 import config
 from extensionPoints import Action
 import typing
+import functools
+import operator
 
 if typing.TYPE_CHECKING:
 	from ...lib import configuration
@@ -24,21 +26,20 @@ class NvdaRDSettingsPanel(SettingsPanel):
 
 	def makeSettings(self, settingsSizer):
 		sizer_helper = guiHelper.BoxSizerHelper(self, sizer=settingsSizer)
-		# Translators: The label for a setting in NVDA RD settings to set operating mode.
-		operatingModeText = _("Use NVDA RD for")
-		operatingModeChoices = [
-			f"&{i.displayString}"
-			for i in configuration.OperatingMode
-		]
-		self.operatingModeRadioBox = sizer_helper.addItem(
-			wx.RadioBox(
-				self,
-				label=operatingModeText,
-				choices=operatingModeChoices
-			)
+		# Translators: The label for a list of check boxes in NVDA RD settings to set operating mode.
+		operatingModeText = _("&Enable NVDA RD for")
+		operatingModeChoices = [i.displayString for i in configuration.OperatingMode]
+		self.operatingModeList = sizer_helper.addLabeledControl(
+			operatingModeText,
+			nvdaControls.CustomCheckListBox,
+			choices=operatingModeChoices
 		)
-		self.operatingModeRadioBox.Selection = int(configuration.getOperatingMode()) - 1
-		self.operatingModeRadioBox.Bind(wx.EVT_RADIOBOX, self.onoperatingModeChange)
+		self.operatingModeList.CheckedItems = [
+			n for n, e in enumerate(configuration.OperatingMode)
+			if configuration.getOperatingMode() & e
+		]
+		self.operatingModeList.Select(0)
+		self.operatingModeList.Bind(wx.EVT_CHECKLISTBOX, self.onoperatingModeChange)
 
 		# Translators: The label for a setting in NVDA RD settings to enable
 		# automatic recovery of remote speech when the connection was lost.
@@ -90,29 +91,41 @@ class NvdaRDSettingsPanel(SettingsPanel):
 		))
 		self.citrixSupportCheckbox.Value = configuration.getCitrixSupport()
 
-		self.onoperatingModeChange(self.operatingModeRadioBox)
+		self.onoperatingModeChange()
 
-	def onoperatingModeChange(self, evt: typing.Union[wx.CommandEvent, wx.RadioBox]):
-		isClient = configuration.OperatingMode(evt.Selection + 1) & configuration.OperatingMode.CLIENT
+	def onoperatingModeChange(self, evt: typing.Optional[wx.CommandEvent] = None):
+		if evt:
+			evt.Skip()
+		isClient = self.operatingModeList.IsChecked(configuration.OperatingMode.CLIENT - 1)
 		self.driverSettingsManagementCheckbox.Enable(isClient)
 		self.persistentRegistrationCheckbox.Enable(isClient and config.isInstalledCopy())
 		self.remoteDesktopSupportCheckbox.Enable(isClient)
 		self.citrixSupportCheckbox.Enable(isClient and rdPipe.isCitrixSupported())
 		self.recoverRemoteSpeechCheckbox.Enable(
-			configuration.OperatingMode(evt.Selection + 1) & configuration.OperatingMode.SERVER
+			self.operatingModeList.IsChecked(configuration.OperatingMode.SERVER - 1)
 		)
+
+	def isValid(self):
+		if not self.operatingModeList.CheckedItems:
+			messageBox(
+				# Translators: Message to report wrong configuration of operating mode.
+				_("You need to enable NVDA RD for at least incoming or outgoing connections."),
+				# Translators: The title of the message box
+				_("Error"),
+				wx.OK | wx.ICON_ERROR,
+				self
+			)
+			return False
+		return super().isValid()
 
 	def onSave(self):
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME] = (
-			self.operatingModeRadioBox.Selection + 1
+			functools.reduce(operator.or_, (i + 1 for i in self.operatingModeList.CheckedItems))
 		)
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.RECOVER_REMOTE_SPEECH_SETTING_NAME] = (
 			self.recoverRemoteSpeechCheckbox.IsChecked()
 		)
-		isClient = bool(
-			configuration.OperatingMode(self.operatingModeRadioBox.Selection + 1)
-			& configuration.OperatingMode.CLIENT
-		)
+		isClient = self.operatingModeList.IsChecked(configuration.OperatingMode.CLIENT - 1)
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.DRIVER_settings_MANAGEMENT_SETTING_NAME] = (
 			self.driverSettingsManagementCheckbox.IsChecked()
 		)

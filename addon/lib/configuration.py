@@ -12,14 +12,12 @@ _cachedConfig: Dict[str, Any] = {}
 class OperatingMode(DisplayStringIntFlag):
 	SERVER = 0x1
 	CLIENT = 0x2
-	SERVER_AND_CLIENT = 0x3
 
 	@property
 	def _displayStringLabels(self):
 		return {
 			OperatingMode.SERVER: _("Incoming connections (Remote Desktop Server)"),
 			OperatingMode.CLIENT: _("Outgoing connections (Remote Desktop Client)"),
-			OperatingMode.SERVER_AND_CLIENT: _("Bidirectional connections (Remote Desktop Server and Client)"),
 		}
 
 
