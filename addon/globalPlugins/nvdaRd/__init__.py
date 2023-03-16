@@ -4,7 +4,7 @@ import hwIo
 from . import directoryChanges, settingsPanel
 import typing
 from fnmatch import fnmatch
-from . import configuration, handlers
+from . import handlers
 from typing import Dict, List, Type
 from logHandler import log
 from .synthDetect import _SynthDetector
@@ -25,12 +25,14 @@ from IAccessibleHandler import SecureDesktopNVDAObject
 from .secureDesktop import SecureDesktopHandler
 
 if typing.TYPE_CHECKING:
+	from ...lib import configuration
 	from ...lib import detection
 	from ...lib import namedPipe
 	from ...lib import protocol
 	from ...lib import rdPipe
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
+	configuration = addon.loadModule("lib.configuration")
 	detection = addon.loadModule("lib.detection")
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")
@@ -51,19 +53,6 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			and obj.simpleParent.simpleParent.windowClassName == 'TscShellContainerClass'
 		):
 			clsList.append(RemoteDesktopControl)
-
-	def initializeOperatingModeServer(self):
-		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-			from .monkeyPatcher import MonkeyPatcher
-			self._monkeyPatcher = MonkeyPatcher()
-		else:
-			bdDetect.scanForDevices.register(detection.bgScanRD)
-			bdDetect.scanForDevices.moveToEnd(detection.bgScanRD)
-		if configuration.getRecoverRemoteSpeech():
-			self._synthDetector = _SynthDetector()
-		self._triggerBackgroundDetectRescan()
-		if not globalVars.appArgs.secure:
-			post_sessionLockStateChanged.register(self._handleLockStateChanged)
 
 	@classmethod
 	def _updateRegistryForRdPipe(cls, install, rdp, citrix):
@@ -104,11 +93,25 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		citrix = configuration.getCitrixSupport()
 		cls._updateRegistryForRdPipe(True, rdp, citrix)
 		if not persistent:
-			atexit.register(cls._unregisterRdPipeFromRegistry, undoregisterAtExit=False)
+			atexit.register(cls._unregisterRdPipeFromRegistry)
+
+	def initializeOperatingModeServer(self):
+		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
+			self._monkeyPatcher.patchBdDetect()
+		else:
+			bdDetect.scanForDevices.register(detection.bgScanRD)
+			bdDetect.scanForDevices.moveToEnd(detection.bgScanRD)
+		if configuration.getRecoverRemoteSpeech():
+			self._synthDetector = _SynthDetector()
+		self._triggerBackgroundDetectRescan()
+		if not globalVars.appArgs.secure:
+			post_sessionLockStateChanged.register(self._handleLockStateChanged)
 
 	def initializeOperatingModeClient(self):
 		if globalVars.appArgs.secure:
 			return
+		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
+			self._monkeyPatcher.patchSynthDriverHandler()
 		handlers.RemoteHandler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
 		self._registerRdPipeInRegistry()
 		self._handlers: Dict[str, handlers.RemoteHandler] = {}
@@ -128,6 +131,9 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def __init__(self):
 		super().__init__()
 		configuration.initializeConfig()
+		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
+			from .monkeyPatcher import MonkeyPatcher
+			self._monkeyPatcher = MonkeyPatcher()
 		configuredOperatingMode = configuration.getOperatingMode()
 		if configuredOperatingMode & configuration.OperatingMode.SERVER:
 			self.initializeOperatingModeServer()
@@ -171,8 +177,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if self._synthDetector:
 			self._synthDetector.terminate()
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-			self._monkeyPatcher.terminate()
-			del self._monkeyPatcher
+			self._monkeyPatcher.unpatchBdDetect()
 		else:
 			bdDetect.scanForDevices.unregister(detection.bgScanRD)
 
@@ -191,12 +196,14 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if not configuration.getPersistentRegistration():
 			self._unregisterRdPipeFromRegistry()
 		handlers.RemoteHandler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
+		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
+			self._monkeyPatcher.unpatchSynthDriverHandler()
 
 	def terminateSecureDesktopSupport(self):
 		self._handleSecureDesktop(False)
 
 	@classmethod
-	def _unregisterRdPipeFromRegistry(cls, undoregisterAtExit: bool = True):
+	def _unregisterRdPipeFromRegistry(cls):
 		atexit.unregister(cls._unregisterRdPipeFromRegistry)
 		rdp = configuration.getRemoteDesktopSupport()
 		citrix = configuration.getCitrixSupport()
@@ -216,10 +223,12 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			settingsPanel.NvdaRDSettingsPanel.post_onSave.unregister(self._handlePostConfigProfileSwitch)
 			gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(settingsPanel.NvdaRDSettingsPanel)
 			config.post_configProfileSwitch.unregister(self._handlePostConfigProfileSwitch)
+			if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
+				del self._monkeyPatcher
 		finally:
 			super().terminate()
 
-	def _handlePostConfigProfileSwitch(self, ):
+	def _handlePostConfigProfileSwitch(self):
 		oldOperatingMode = configuration.getOperatingMode(True)
 		newOperatingMode = configuration.getOperatingMode(False)
 		if (
@@ -232,7 +241,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			and newOperatingMode & configuration.OperatingMode.SERVER
 		):
 			self.initializeOperatingModeServer()
-		else:
+		elif newOperatingMode & configuration.OperatingMode.SERVER:
 			oldRecoverRemoteSpeech = configuration.getRecoverRemoteSpeech(True)
 			newRecoverRemoteSpeech = configuration.getRecoverRemoteSpeech(False)
 			if oldRecoverRemoteSpeech is not newRecoverRemoteSpeech:
@@ -252,7 +261,12 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			and newOperatingMode & configuration.OperatingMode.CLIENT
 		):
 			self.initializeOperatingModeClient()
-		else:
+		elif newOperatingMode & configuration.OperatingMode.CLIENT:
+			oldDriverSettingsManagement = configuration.getDriverSettingsManagement(True)
+			newDriverSettingsManagement = configuration.getDriverSettingsManagement(False)
+			if oldDriverSettingsManagement is not newDriverSettingsManagement:
+				for handler in self._handlers.values():
+					handler._handleDriverChanged(handler._driver)
 			oldRdp = configuration.getRemoteDesktopSupport(True)
 			newRdp = configuration.getRemoteDesktopSupport(False)
 			if oldRdp is not newRdp:

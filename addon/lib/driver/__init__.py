@@ -1,9 +1,7 @@
 from abc import abstractmethod
 import driverHandler
 from ..detection import bgScanRD, KEY_NAMED_PIPE_CLIENT, KEY_VIRTUAL_CHANNEL
-from .. import protocol, inputTime
-from .. import wtsVirtualChannel
-from .. import namedPipe
+from .. import protocol, inputTime, wtsVirtualChannel, namedPipe
 from typing import (
 	Any,
 	Iterable,
@@ -30,6 +28,7 @@ MSG_XOFF = 0x13
 class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	name = "remote"
 	_settingsAccessor: Optional[SettingsAccessorBase] = None
+	_isVirtualChannel: bool
 
 	@classmethod
 	def check(cls):
@@ -62,24 +61,24 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		"""Saving settings not supported on this driver."""
 		return
 
-	def __init__(self, port="auto", ioThread: Optional[IoThread] = None):
+	def __init__(self, port="auto"):
 		super().__init__()
 		initialTime = time.time()
 		self._connected = False
 		for portType, portId, port, portInfo in self._getTryPorts(port):
 			try:
 				if portType == KEY_VIRTUAL_CHANNEL:
+					self._isVirtualChannel = True
 					self._dev = wtsVirtualChannel.WTSVirtualChannel(
 						port,
 						onReceive=self._onReceive,
-						onReadError=self._onIoError,
-						ioThread=ioThread
+						onReadError=self._onReadError,
 					)
 				elif portType == KEY_NAMED_PIPE_CLIENT:
+					self._isVirtualChannel = False
 					self._dev = namedPipe.NamedPipeClient(
 						port,
 						onReceive=self._onReceive,
-						ioThread=ioThread
 					)
 			except EnvironmentError:
 				log.debugWarning("", exc_info=True)
@@ -119,7 +118,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			setattr(accessor, name, value)
 		super().__setattr__(name, value)
 
-	def _onIoError(self, error: int) -> bool:
+	def _onReadError(self, error: int) -> bool:
 		if error in (ERROR_PIPE_NOT_CONNECTED, ERROR_INVALID_HANDLE):
 			self._handleRemoteDisconnect()
 			return True
@@ -130,7 +129,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		return
 
 	def _onReceive(self, message: bytes):
-		if isinstance(self._dev, wtsVirtualChannel.WTSVirtualChannel) and len(message) == 1:
+		if self._isVirtualChannel and len(message) == 1:
 			command = message[0]
 			if command == MSG_XON:
 				self._connected = True

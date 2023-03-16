@@ -7,6 +7,7 @@ from baseObject import AutoPropertyObject
 from synthDrivers.remote import remoteSynthDriver
 import queueHandler
 import config
+from logHandler import log
 
 if typing.TYPE_CHECKING:
 	from ...lib import detection
@@ -42,10 +43,11 @@ class _SynthDetector(AutoPropertyObject):
 		return isinstance(self.currentSynthesizer, remoteSynthDriver)
 
 	def _handleRemoteDisconnect(self, synth: remoteSynthDriver):
+		log.error(f"Handling remote disconnect for {synth!r}")
 		queueHandler.queueFunction(queueHandler.eventQueue, self._fallbackToPrevSynth)
 
 	def _fallbackToPrevSynth(self):
-		if self._prevSynth is not None:
+		if self._prevSynth is not None and self._prevSynth != remoteSynthDriver.name:
 			synthDriverHandler.setSynth(self._prevSynth, isFallback=True)
 			self._prevSynth = None
 		else:

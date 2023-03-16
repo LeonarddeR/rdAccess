@@ -12,14 +12,14 @@ _cachedConfig: Dict[str, Any] = {}
 class OperatingMode(DisplayStringIntFlag):
 	SERVER = 0x1
 	CLIENT = 0x2
-	SERVER_AND_CLIENT = 0x3
+	SECURE_DESKTOP = 0x4
 
 	@property
 	def _displayStringLabels(self):
 		return {
 			OperatingMode.SERVER: _("Incoming connections (Remote Desktop Server)"),
 			OperatingMode.CLIENT: _("Outgoing connections (Remote Desktop Client)"),
-			OperatingMode.SERVER_AND_CLIENT: _("Bidirectional connections (Remote Desktop Server and Client)"),
+			OperatingMode.SECURE_DESKTOP: _("Secure Desktop pass through"),
 		}
 
 
@@ -29,14 +29,14 @@ PERSISTENT_REGISTRATION_SETTING_NAME = "persistentRegistration"
 REMOTE_DESKTOP_SETTING_NAME = "enableRemoteDesktopSupport"
 CITRIX_SETTING_NAME = "enableCitrixSupport"
 RECOVER_REMOTE_SPEECH_SETTING_NAME = "recoverRemoteSpeech"
-SECURE_DESKTOP_SETTING_NAME = "enableSecureDesktopSupport"
+DRIVER_settings_MANAGEMENT_SETTING_NAME = "driverSettingsManagement"
 CONFIG_SPEC = {
 	OPERATING_MODE_SETTING_NAME: 'integer(default=3, min=1, max=3)',
 	PERSISTENT_REGISTRATION_SETTING_NAME: "boolean(default=false)",
 	REMOTE_DESKTOP_SETTING_NAME: "boolean(default=true)",
 	CITRIX_SETTING_NAME: "boolean(default=true)",
 	RECOVER_REMOTE_SPEECH_SETTING_NAME: "boolean(default=true)",
-	SECURE_DESKTOP_SETTING_NAME: "boolean(default=true)",
+	DRIVER_settings_MANAGEMENT_SETTING_NAME: "boolean(default=false)",
 }
 
 
@@ -65,9 +65,9 @@ def getRecoverRemoteSpeech(fromCache: bool = False) -> bool:
 	return section[RECOVER_REMOTE_SPEECH_SETTING_NAME]
 
 
-def getSecureDesktopSupport(fromCache: bool = False) -> bool:
+def getDriverSettingsManagement(fromCache: bool = False) -> bool:
 	section = _cachedConfig if fromCache else config.conf[CONFIG_SECTION_NAME]
-	return section[SECURE_DESKTOP_SETTING_NAME]
+	return section[DRIVER_settings_MANAGEMENT_SETTING_NAME]
 
 
 def initializeConfig():

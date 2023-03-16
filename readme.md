@@ -3,8 +3,9 @@
 * Authors: [Leonard de Ruijter][1]
 * NVDA compatibility: 2023.1 and later
 
-This add-on adds support to access remote desktop sessions to NVDA.
+This add-on adds support to access remote desktop sessions to NVDA using Microsoft Remote Desktop, Citrix or VMware Horizon.
 When installed in NVDA on both the client and the server, speech and braille generated on the server will be spoken and brailled by the client machine.
+This enables a user experience where managing a remote system feels just as performant as operating the local system.
 
 ## Features
 
@@ -17,6 +18,12 @@ When installed in NVDA on both the client and the server, speech and braille gen
 * Multiple active client sessions at the same time
 * Remote desktop instantly available after NVDA start
 * Ability to control specific synthesizer and braille display settings without leaving the remote session
+
+## Getting started
+
+1. Install this add-on in both a client and server copy of NVDA.
+1. To let the remote system speak using the local speech synthesizer, in the NVDA instance on the server, select the remote speech synthesizer from NVDA"s synthesizer selection dialog.
+1. To use braille, enable automatic braille display detection using the braille display selection dialog.
 
 ## Configuration
 
@@ -44,6 +51,13 @@ This also clarifies why there is only such an option for speech.
 The reconnection of the Remote Braille display is automatically handled when choosing the Automatic option from the Braille Display Selection dialog.
 
 This option is enabled by defalt. You are strongly encouraged to leave this option enabled if the Remote Desktop server has no audio output.
+
+### Allow remote system to control driver settings
+
+This client option, when enabled, allows you to control driver settings (such as synthesizer voice and pitch) from the remote system.
+Changes performed on the remote system will automatically be reflected locally.
+If you have difficulties accessing the local NVDA menu when controlling a remote system, you can enable this option.
+Otherwise, you are advised to disable it, as it implies some performance degradation.
 
 ### Persist client support when exiting NVDA
 
