@@ -7,11 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 'nvdaRd' '2023.1'\n"
 "Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
-"POT-Creation-Date: 2023-03-15 20:55+0100\n"
-"PO-Revision-Date: 2023-03-15 20:57+0100\n"
+"POT-Creation-Date: 2023-03-06 19:05+0100\n"
+"PO-Revision-Date: 2023-03-06 19:06+0100\n"
 "Last-Translator: \n"
-"Language-Team: NVDA Nederlandstalig vertaalteam <nvda-nl@googlegroups."
-"com>\n"
+"Language-Team: NVDA Nederlandstalig vertaalteam <nvda-nl@googlegroups.com>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -25,76 +24,57 @@ msgstr ""
 msgid "Remote Braille"
 msgstr "Extern Braille"
 
+#: addon\globalPlugins\nvdaRd\configuration.py:20
+msgid "Incoming connections (Remote Desktop Server)"
+msgstr "Binnenkomende verbindingen (Extern bureaublad Server)"
+
+#: addon\globalPlugins\nvdaRd\configuration.py:21
+msgid "Outgoing connections (Remote Desktop Client)"
+msgstr "Uitgaande verbindingen (Extern bureaublad client)"
+
+#: addon\globalPlugins\nvdaRd\configuration.py:22
+msgid "Bidirectional connections (Remote Desktop Server and Client)"
+msgstr "Beide verbindingen (Extern bureaublad Server en client)"
+
 #. Translators: The label for the NVDA Remote Desktop settings panel.
-#: addon\globalPlugins\nvdaRd\settingsPanel.py:22
+#: addon\globalPlugins\nvdaRd\settingsPanel.py:20
 msgid "Remote Desktop"
 msgstr "Extern bureaublad"
 
 #. Translators: The label for a setting in NVDA RD settings to set operating mode.
-#: addon\globalPlugins\nvdaRd\settingsPanel.py:28
+#: addon\globalPlugins\nvdaRd\settingsPanel.py:26
 msgid "Use NVDA RD for"
 msgstr "Gebruik NVDA RD voor"
 
 #. Translators: The label for a setting in NVDA RD settings to enable
 #. automatic recovery of remote speech when the connection was lost.
-#: addon\globalPlugins\nvdaRd\settingsPanel.py:45
+#: addon\globalPlugins\nvdaRd\settingsPanel.py:43
 msgid "&Automatically recover remote speech after connection loss"
 msgstr "Externe spraak &automatisch herstellen na verbindingsverlies"
 
 #. Translators: The label for a setting in NVDA RD settings to enable
-#. support for exchanging driver settings between the local and the remote system.
-#: addon\globalPlugins\nvdaRd\settingsPanel.py:55
-msgid "&Allow remote system to control driver settings"
-msgstr "&Toestaan ​​dat extern systeem driver-instellingen beheert"
-
-#. Translators: The label for a setting in NVDA RD settings to enable
 #. persistent registration of RD Pipe to the Windows registry.
-#: addon\globalPlugins\nvdaRd\settingsPanel.py:65
+#: addon\globalPlugins\nvdaRd\settingsPanel.py:53
 msgid "&Persist client support when exiting NVDA"
 msgstr "&client-ondersteuning behouden bij afsluiten NVDA"
 
 #. Translators: The label for a setting in NVDA RD settings to enable
 #. registration of RD Pipe to the Windows registry for remote desktop support.
-#: addon\globalPlugins\nvdaRd\settingsPanel.py:75
+#: addon\globalPlugins\nvdaRd\settingsPanel.py:64
 msgid "Enable Microsoft &Remote Desktop support"
 msgstr "Ondersteuning voor Microsoft &Remote Desktop inschakelen"
 
 #. Translators: The label for a setting in NVDA RD settings to enable
 #. registration of RD Pipe to the Windows registry for Citrix support.
-#: addon\globalPlugins\nvdaRd\settingsPanel.py:85
+#: addon\globalPlugins\nvdaRd\settingsPanel.py:74
 msgid "Enable &Citrix Workspace support"
 msgstr "Ondersteuning voor &Citrix Workspace inschakelen"
-
-#: addon\lib\configuration.py:20
-msgid "Incoming connections (Remote Desktop Server)"
-msgstr "Binnenkomende verbindingen (Extern bureaublad Server)"
-
-#: addon\lib\configuration.py:21
-msgid "Outgoing connections (Remote Desktop Client)"
-msgstr "Uitgaande verbindingen (Extern bureaublad client)"
-
-#: addon\lib\configuration.py:22
-msgid "Bidirectional connections (Remote Desktop Server and Client)"
-msgstr "Beide verbindingen (Extern bureaublad Server en client)"
-
-#. Translators: Name for a remote braille display.
-#: addon\synthDrivers\remote.py:24
-msgid "Remote speech"
-msgstr "Externe spraak"
 
 #. Add-on summary, usually the user visible name of the addon.
 #. Translators: Summary for this add-on
 #. to be shown on installation and add-on information found in Add-ons Manager.
-#: buildVars.py:23
-msgid "NVDA Remote Desktop Support"
-msgstr "NVDA ondersteuning voor extern bureaublad"
-
 #. Add-on description
 #. Translators: Long description to be shown for this add-on on add-on information from add-ons manager
-#: buildVars.py:26
-msgid ""
-"Allows using speech and braille with Microsoft Remote Desktop, Citrix "
-"Workspace and VMware Horizon"
-msgstr ""
-"Maakt het gebruik van spraak en braille mogelijk met Microsoft Remote "
-"Desktop, Citrix Workspace en VMware Horizon"
+#: buildVars.py:23 buildVars.py:26
+msgid "NVDA Remote Desktop Support"
+msgstr "NVDA ondersteuning voor extern bureaublad"
