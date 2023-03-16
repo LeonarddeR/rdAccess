@@ -29,6 +29,7 @@ class NvdaRDSettingsPanel(SettingsPanel):
 		# Translators: The label for a list of check boxes in NVDA RD settings to set operating mode.
 		operatingModeText = _("&Enable NVDA RD for")
 		operatingModeChoices = [i.displayString for i in configuration.OperatingMode]
+		self.operatingModes = list(configuration.OperatingMode)
 		self.operatingModeList = sizer_helper.addLabeledControl(
 			operatingModeText,
 			nvdaControls.CustomCheckListBox,
@@ -41,22 +42,38 @@ class NvdaRDSettingsPanel(SettingsPanel):
 		self.operatingModeList.Select(0)
 		self.operatingModeList.Bind(wx.EVT_CHECKLISTBOX, self.onoperatingModeChange)
 
+		# Translators: This is the label for a group of options in the
+		# Remote Desktop settings panel.
+		serverGroupText = _("Server")
+		serverGroupSizer = wx.StaticBoxSizer(wx.VERTICAL, self, label=serverGroupText)
+		serverGroupBox = serverGroupSizer.GetStaticBox()
+		serverGroup = guiHelper.BoxSizerHelper(self, sizer=serverGroupSizer)
+		sizer_helper.addItem(serverGroup)
+
 		# Translators: The label for a setting in NVDA RD settings to enable
 		# automatic recovery of remote speech when the connection was lost.
 		recoverRemoteSpeechText = _("&Automatically recover remote speech after connection loss")
-		self.recoverRemoteSpeechCheckbox = sizer_helper.addItem(
+		self.recoverRemoteSpeechCheckbox = serverGroup.addItem(
 			wx.CheckBox(
-				self,
+				serverGroupBox,
 				label=recoverRemoteSpeechText
 		))
 		self.recoverRemoteSpeechCheckbox.Value = configuration.getRecoverRemoteSpeech()
 
+		# Translators: This is the label for a group of options in the
+		# Remote Desktop settings panel.
+		clientGroupText = _("Client")
+		clientGroupSizer = wx.StaticBoxSizer(wx.VERTICAL, self, label=clientGroupText)
+		clientGroupBox = clientGroupSizer.GetStaticBox()
+		clientGroup = guiHelper.BoxSizerHelper(self, sizer=clientGroupSizer)
+		sizer_helper.addItem(clientGroup)
+
 		# Translators: The label for a setting in NVDA RD settings to enable
 		# support for exchanging driver settings between the local and the remote system.
 		driverSettingsManagementText = _("&Allow remote system to control driver settings")
-		self.driverSettingsManagementCheckbox = sizer_helper.addItem(
+		self.driverSettingsManagementCheckbox = clientGroup.addItem(
 			wx.CheckBox(
-				self,
+				clientGroupBox,
 				label=driverSettingsManagementText
 		))
 		self.driverSettingsManagementCheckbox.Value = configuration.getDriverSettingsManagement()
@@ -64,9 +81,9 @@ class NvdaRDSettingsPanel(SettingsPanel):
 		# Translators: The label for a setting in NVDA RD settings to enable
 		# persistent registration of RD Pipe to the Windows registry.
 		persistentRegistrationText = _("&Persist client support when exiting NVDA")
-		self.persistentRegistrationCheckbox = sizer_helper.addItem(
+		self.persistentRegistrationCheckbox = clientGroup.addItem(
 			wx.CheckBox(
-				self,
+				clientGroupBox,
 				label=persistentRegistrationText
 		))
 		self.persistentRegistrationCheckbox.Value = configuration.getPersistentRegistration()
@@ -74,9 +91,9 @@ class NvdaRDSettingsPanel(SettingsPanel):
 		# Translators: The label for a setting in NVDA RD settings to enable
 		# registration of RD Pipe to the Windows registry for remote desktop support.
 		remoteDesktopSupportText = _("Enable Microsoft &Remote Desktop support")
-		self.remoteDesktopSupportCheckbox = sizer_helper.addItem(
+		self.remoteDesktopSupportCheckbox = clientGroup.addItem(
 			wx.CheckBox(
-				self,
+				clientGroupBox,
 				label=remoteDesktopSupportText
 		))
 		self.remoteDesktopSupportCheckbox.Value = configuration.getRemoteDesktopSupport()
@@ -84,9 +101,9 @@ class NvdaRDSettingsPanel(SettingsPanel):
 		# Translators: The label for a setting in NVDA RD settings to enable
 		# registration of RD Pipe to the Windows registry for Citrix support.
 		citrixSupportText = _("Enable &Citrix Workspace support")
-		self.citrixSupportCheckbox = sizer_helper.addItem(
+		self.citrixSupportCheckbox = clientGroup.addItem(
 			wx.CheckBox(
-				self,
+				clientGroupBox,
 				label=citrixSupportText
 		))
 		self.citrixSupportCheckbox.Value = configuration.getCitrixSupport()
@@ -96,13 +113,13 @@ class NvdaRDSettingsPanel(SettingsPanel):
 	def onoperatingModeChange(self, evt: typing.Optional[wx.CommandEvent] = None):
 		if evt:
 			evt.Skip()
-		isClient = self.operatingModeList.IsChecked(configuration.OperatingMode.CLIENT - 1)
+		isClient = self.operatingModeList.IsChecked(self.operatingModes.index(configuration.OperatingMode.CLIENT))
 		self.driverSettingsManagementCheckbox.Enable(isClient)
 		self.persistentRegistrationCheckbox.Enable(isClient and config.isInstalledCopy())
 		self.remoteDesktopSupportCheckbox.Enable(isClient)
 		self.citrixSupportCheckbox.Enable(isClient and rdPipe.isCitrixSupported())
 		self.recoverRemoteSpeechCheckbox.Enable(
-			self.operatingModeList.IsChecked(configuration.OperatingMode.SERVER - 1)
+			self.operatingModeList.IsChecked(self.operatingModes.index(configuration.OperatingMode.SERVER))
 		)
 
 	def isValid(self):
@@ -119,13 +136,13 @@ class NvdaRDSettingsPanel(SettingsPanel):
 		return super().isValid()
 
 	def onSave(self):
-		config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME] = (
-			functools.reduce(operator.or_, (i + 1 for i in self.operatingModeList.CheckedItems))
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME] = int(
+			functools.reduce(operator.or_, (self.operatingModes[i] for i in self.operatingModeList.CheckedItems))
 		)
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.RECOVER_REMOTE_SPEECH_SETTING_NAME] = (
 			self.recoverRemoteSpeechCheckbox.IsChecked()
 		)
-		isClient = self.operatingModeList.IsChecked(configuration.OperatingMode.CLIENT - 1)
+		isClient = self.operatingModeList.IsChecked(self.operatingModes.index(configuration.OperatingMode.CLIENT))
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.DRIVER_settings_MANAGEMENT_SETTING_NAME] = (
 			self.driverSettingsManagementCheckbox.IsChecked()
 		)

@@ -5,6 +5,8 @@ from baseObject import AutoPropertyObject
 import addonHandler
 from hwIo import bgThread
 import os.path
+import braille
+import synthDriverHandler
 
 if typing.TYPE_CHECKING:
 	from ...lib import namedPipe
@@ -21,12 +23,16 @@ class SecureDesktopHandler(AutoPropertyObject):
 	_speechHandler: RemoteSpeechHandler
 
 	def __init__(self):
+		braille.handler.display.saveSettings()
 		self._brailleHandler = self._initializeHandler(RemoteBrailleHandler)
+		synthDriverHandler.getSynth().saveSettings()
 		self._speechHandler = self._initializeHandler(RemoteSpeechHandler)
 
 	def terminate(self):
 		self._speechHandler.terminate()
+		braille.handler.display.loadSettings()
 		self._brailleHandler.terminate()
+		synthDriverHandler.getSynth().loadSettings()
 
 	@staticmethod
 	def _initializeHandler(handlerType: typing.Type[HandlerTypeT]) -> HandlerTypeT:

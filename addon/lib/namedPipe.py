@@ -3,6 +3,7 @@ from typing import Callable, Iterator, List, Optional, Union
 from ctypes import (
 	byref,
 	c_ulong,
+	GetLastError,
 	windll,
 	WinError,
 )
@@ -149,10 +150,12 @@ class NamedPipeServer(NamedPipeBase):
 				elif waitRes == winKernel.WAIT_IO_COMPLETION:
 					continue
 				else:
-					raise WinError()
+					self._ioDone(GetLastError(), 0, ol)
+					return
 			numberOfBytes = DWORD()
 			if not windll.kernel32.GetOverlappedResult(self._file, byref(ol), byref(numberOfBytes), False):
-				raise WinError()
+				self._ioDone(GetLastError(), 0, ol)
+				return
 		self._connected = True
 		for message in self._messageQueue:
 			self.write(message)

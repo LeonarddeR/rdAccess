@@ -93,7 +93,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			if self._waitForAttributeUpdate(protocol.GenericAttribute.SUPPORTED_SETTINGS, initialTime):
 				break
 			else:
-				log.debugWarning("Error getting supported settings", exc_info=True)
+				log.debugWarning("Error getting supported settings")
 
 			self._dev.close()
 		else:

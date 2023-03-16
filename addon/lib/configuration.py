@@ -31,7 +31,7 @@ CITRIX_SETTING_NAME = "enableCitrixSupport"
 RECOVER_REMOTE_SPEECH_SETTING_NAME = "recoverRemoteSpeech"
 DRIVER_settings_MANAGEMENT_SETTING_NAME = "driverSettingsManagement"
 CONFIG_SPEC = {
-	OPERATING_MODE_SETTING_NAME: 'integer(default=3, min=1, max=3)',
+	OPERATING_MODE_SETTING_NAME: 'integer(default=7, min=1, max=7)',
 	PERSISTENT_REGISTRATION_SETTING_NAME: "boolean(default=false)",
 	REMOTE_DESKTOP_SETTING_NAME: "boolean(default=true)",
 	CITRIX_SETTING_NAME: "boolean(default=true)",

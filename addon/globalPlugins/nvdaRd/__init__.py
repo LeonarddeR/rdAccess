@@ -144,7 +144,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		settingsPanel.NvdaRDSettingsPanel.post_onSave.register(self._handlePostConfigProfileSwitch)
 		if configuredOperatingMode & configuration.OperatingMode.CLIENT:
 			self.initializeOperatingModeClient()
-		if configuration.getSecureDesktopSupport():
+		if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
 			self.initializeSecureDesktopSupport()
 
 	def _initializeExistingPipes(self):
@@ -216,7 +216,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 				self.terminateOperatingModeServer()
 			if not globalVars.appArgs.secure:
 				return
-			if configuration.getSecureDesktopSupport():
+			if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
 				self.terminateSecureDesktopSupport()
 			if configuredOperatingMode & configuration.OperatingMode.CLIENT:
 				self.terminateOperatingModeClient()
@@ -305,7 +305,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 					except Exception:
 						log.error("Error calling event_gainFocus on handler", exc_info=True)
 						continue
-			if configuration.getSecureDesktopSupport():
+			if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
 				if isinstance(obj, SecureDesktopNVDAObject):
 					self._handleSecureDesktop(True)
 				elif self._sdHandler:
