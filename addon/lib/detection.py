@@ -1,6 +1,7 @@
 import bdDetect
 from .wtsVirtualChannel import getRemoteSessionMetrics
 from .protocol import DriverType
+from . import configuration
 from typing import (
 	List,
 	Optional
@@ -19,12 +20,16 @@ def bgScanRD(
 		limitToDevices: Optional[List[str]] = None,
 ):
 	from .driver import RemoteDriver
+	operatingMode = configuration.getOperatingMode()
 	if limitToDevices and RemoteDriver.name not in limitToDevices:
 		return
-	if getRemoteSessionMetrics():
+	if operatingMode & configuration.OperatingMode.SERVER and getRemoteSessionMetrics():
 		port = f"NVDA-{driverType.name}"
 		yield (RemoteDriver.name, bdDetect.DeviceMatch(type=KEY_VIRTUAL_CHANNEL, id=port, port=port, deviceInfo={}))
-	if not globalVars.appArgs.secure:
+	if (
+		not globalVars.appArgs.secure
+		or not (operatingMode & configuration.OperatingMode.SECURE_DESKTOP)
+	):
 		return
 	sdId = f"NVDA_SD-{driverType.name}"
 	sdPort = os.path.join(PIPE_DIRECTORY, sdId)

@@ -185,7 +185,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 				handler.terminate()
 
 	def terminateOperatingModeServer(self):
-		post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
+		if not globalVars.appArgs.secure:
+			post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
 		if self._synthDetector:
 			self._synthDetector.terminate()
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
@@ -258,10 +259,10 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		newServer = newOperatingMode & configuration.OperatingMode.SERVER
 		oldSecureDesktop = oldOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
 		newSecureDesktop = newOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
-		oldSecureDesktopOrServer = (oldSecureDesktop and globalVars.appArgs.secure) and oldServer
-		newSecureDesktopOrServer = (newSecureDesktop and globalVars.appArgs.secure) and newServer
+		oldSecureDesktopOrServer = (oldSecureDesktop and globalVars.appArgs.secure) or oldServer
+		newSecureDesktopOrServer = (newSecureDesktop and globalVars.appArgs.secure) or newServer
 		oldSecureDesktopOrClient = (oldSecureDesktop and not globalVars.appArgs.secure) or oldClient
-		newSecureDesktopOrClient = (newSecureDesktop and globalVars.appArgs.secure) or newClient
+		newSecureDesktopOrClient = (newSecureDesktop and not globalVars.appArgs.secure) or newClient
 		if oldSecureDesktopOrServer and not newSecureDesktopOrServer:
 			self.terminateOperatingModeServer()
 		elif not oldSecureDesktopOrServer and newSecureDesktopOrServer:
