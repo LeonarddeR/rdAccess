@@ -7,6 +7,7 @@ from hwIo import bgThread
 import os.path
 import braille
 import synthDriverHandler
+from ctypes import WinError
 
 if typing.TYPE_CHECKING:
 	from ...lib import namedPipe
@@ -22,6 +23,15 @@ class SecureDesktopHandler(AutoPropertyObject):
 	_brailleHandler: RemoteBrailleHandler
 	_speechHandler: RemoteSpeechHandler
 
+	def _handleRemoteDisconnect(self, handler: RemoteHandler, error: int) -> bool:
+		if isinstance(WinError(error), BrokenPipeError):
+			ioThread = handler._dev._ioThreadRef()
+			pipeName = handler._dev.pipeName
+			handler.terminate()
+			handler.__init__(ioThread=ioThread, pipeName=pipeName, isNamedPipeClient=False)
+			return True
+		return False
+
 	def __init__(self):
 		braille.handler.display.saveSettings()
 		self._brailleHandler = self._initializeHandler(RemoteBrailleHandler)
@@ -34,8 +44,9 @@ class SecureDesktopHandler(AutoPropertyObject):
 		self._brailleHandler.terminate()
 		synthDriverHandler.getSynth().loadSettings()
 
-	@staticmethod
-	def _initializeHandler(handlerType: typing.Type[HandlerTypeT]) -> HandlerTypeT:
+	def _initializeHandler(self, handlerType: typing.Type[HandlerTypeT]) -> HandlerTypeT:
 		sdId = f"NVDA_SD-{handlerType.driverType.name}"
 		sdPort = os.path.join(namedPipe.PIPE_DIRECTORY, sdId)
-		return handlerType(bgThread, sdPort, False)
+		handler = handlerType(bgThread, sdPort, False)
+		handler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
+		return handler

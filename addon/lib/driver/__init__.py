@@ -6,6 +6,7 @@ from typing import (
 	Any,
 	Iterable,
 	Iterator,
+	List,
 	Optional,
 	Union,
 )
@@ -49,17 +50,16 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			for match in cls._getAutoPorts():
 				yield match
 
+	_localSettings: List[DriverSetting] = []
+
 	def initSettings(self):
-		# Call initSpecificSettings with an empty iterable to ensure only an empty config section is initialized.
-		self._initSpecificSettings(self, ())
+		self._initSpecificSettings(self, self._localSettings)
 
 	def loadSettings(self, onlyChanged: bool = False):
-		"""Loading settings not supported on this driver."""
-		return
+		self._loadSpecificSettings(self, self._localSettings, onlyChanged)
 
 	def saveSettings(self):
-		"""Saving settings not supported on this driver."""
-		return
+		self._saveSpecificSettings(self, self._localSettings)
 
 	def __init__(self, port="auto"):
 		super().__init__()
@@ -161,11 +161,14 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		return
 
 	def _get_supportedSettings(self):
+		settings = []
+		settings.extend(self._localSettings)
 		attribute = protocol.GenericAttribute.SUPPORTED_SETTINGS
 		try:
-			return self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
+			settings.extend(self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False))
 		except KeyError:
-			return self.getRemoteAttribute(attribute)
+			settings.extend(self.getRemoteAttribute(attribute))
+		return settings
 
 	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
 	def _incoming_setting(self, attribute: protocol.AttributeT, payLoad: bytes):

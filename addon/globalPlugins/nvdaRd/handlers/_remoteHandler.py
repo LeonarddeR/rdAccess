@@ -6,7 +6,6 @@ from logHandler import log
 import sys
 from extensionPoints import AccumulatingDecider
 from hwIo.ioThread import IoThread
-from winKernel import INFINITE
 from abc import abstractmethod
 
 if typing.TYPE_CHECKING:
@@ -25,14 +24,18 @@ MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS = 200
 
 class RemoteHandler(protocol.RemoteProtocolHandler):
 	_dev: namedPipe.NamedPipeBase
-	decide_remoteDisconnect = AccumulatingDecider(False)
+	decide_remoteDisconnect: AccumulatingDecider
 	_remoteSessionhasFocus: typing.Optional[bool] = None
-
 	_driver: Driver
 	_abstract__driver = True
 
 	def _get__driver(self) -> Driver:
 		raise NotImplementedError
+
+	def __new__(cls, *args, **kwargs):
+		obj = super().__new__(cls, *args, **kwargs)
+		obj.decide_remoteDisconnect = AccumulatingDecider(False)
+		return obj
 
 	def __init__(
 			self,

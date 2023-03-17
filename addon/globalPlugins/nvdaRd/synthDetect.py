@@ -8,6 +8,7 @@ from synthDrivers.remote import remoteSynthDriver
 import queueHandler
 import config
 from logHandler import log
+from braille import AUTOMATIC_PORT
 
 if typing.TYPE_CHECKING:
 	from ...lib import detection
@@ -17,7 +18,6 @@ else:
 
 
 class _SynthDetector(AutoPropertyObject):
-	_prevSynth: typing.Optional[str] = None
 
 	def __init__(self):
 		remoteSynthDriver.synthRemoteDisconnected.register(self._handleRemoteDisconnect)
@@ -34,7 +34,6 @@ class _SynthDetector(AutoPropertyObject):
 		curSynth = self._get_currentSynthesizer()
 		curSynth.cancel()
 		curSynth.terminate()
-		self._prevSynth = curSynth.name
 		synthDriverHandler._curSynth = synth
 
 	isRemoteSynthActive: bool
@@ -42,19 +41,24 @@ class _SynthDetector(AutoPropertyObject):
 	def _get_isRemoteSynthActive(self):
 		return isinstance(self.currentSynthesizer, remoteSynthDriver)
 
+	isRemoteSynthConfigured: bool
+
+	def _get_isRemoteSynthConfigured(self):
+		return config.conf[remoteSynthDriver._configSection]["synth"] == remoteSynthDriver.name
+
 	def _handleRemoteDisconnect(self, synth: remoteSynthDriver):
 		log.error(f"Handling remote disconnect for {synth!r}")
-		queueHandler.queueFunction(queueHandler.eventQueue, self._fallbackToPrevSynth)
+		queueHandler.queueFunction(queueHandler.eventQueue, self._fallback)
 
-	def _fallbackToPrevSynth(self):
-		if self._prevSynth is not None and self._prevSynth != remoteSynthDriver.name:
-			synthDriverHandler.setSynth(self._prevSynth, isFallback=True)
-			self._prevSynth = None
+	def _fallback(self):
+		fallback = config.conf[remoteSynthDriver._configSection].get(remoteSynthDriver.name, {}).get("fallbackSynth", AUTOMATIC_PORT[0])
+		if fallback != AUTOMATIC_PORT[0]:
+			synthDriverHandler.setSynth(fallback, isFallback=True)
 		else:
 			synthDriverHandler.findAndSetNextSynth(remoteSynthDriver.name)
 
-	def _queueBgScan(self):
-		if self.isRemoteSynthActive or config.conf["speech"]["synth"] != remoteSynthDriver.name:
+	def _queueBgScan(self, force: bool = False):
+		if self.isRemoteSynthActive or not (force or self.isRemoteSynthConfigured):
 			return
 		if self._queuedFuture:
 			self._queuedFuture.cancel()
@@ -89,9 +93,9 @@ class _SynthDetector(AutoPropertyObject):
 			self._stopBgScan()
 			return
 
-	def rescan(self):
+	def rescan(self, force: bool = False):
 		self._stopBgScan()
-		self._queueBgScan()
+		self._queueBgScan(force)
 
 	def terminate(self):
 		remoteSynthDriver.synthRemoteDisconnected.unregister(self._handleRemoteDisconnect)
