@@ -81,6 +81,8 @@ class SettingsAccessorBase(AutoPropertyObject):
 		return _getAvailableSettings
 
 	def __del__(self):
+		if not self.driver:
+			return
 		try:
 			for s in self._settingNames:
 				self.driver._attributeValueProcessor.clearValue(self._getSettingAttributeName(s))

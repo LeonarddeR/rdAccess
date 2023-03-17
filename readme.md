@@ -18,6 +18,7 @@ This enables a user experience where managing a remote system feels just as perf
 * Multiple active client sessions at the same time
 * Remote desktop instantly available after NVDA start
 * Ability to control specific synthesizer and braille display settings without leaving the remote session
+* Ability to use speech and braille from the user session when accessing secure desktops
 
 ## Getting started
 
@@ -34,14 +35,15 @@ This dialog contains the following settings:
 
 ### Use NVDA RD for
 
-This group of radio buttons controls the operating mode of the add-on. You can choose between:
+This list of check boxes buttons controls the operating mode of the add-on. You can choose between:
 
 * Incoming connections (Remote Desktop Server): Choose this option if the current instance of NVDA is running on a remote desktop server
-* Outgoing connections (Remote Desktop Client): Choose this option if the current instance of NVDA is running on a remote desktop client that connects to one or more servers
-* Bidirectional connections (Remote Desktop Server and Client): Choose this option if you want to support both scenarios.
-You want this if your system can be controlled using Remote Desktop (server) and also acts as a controller (client). This is the case on a so called [Jump Server][2], for example.
 
-The default option is Bidirectional Connections to ensure a smooth start with the add-on. You are however encouraged to switch to server or client mode when possible.
+* Outgoing connections (Remote Desktop Client): Choose this option if the current instance of NVDA is running on a remote desktop client that connects to one or more servers
+
+* Secure Desktop pass through: : Choose this option if you want to use braille and speech from the user instance of NVDA when accessing the remote desktop. Note that for this to work, you need to make the NVDA Remote Desktop add-on available on the secure desktop copy of NVDA. For this, choose "Use currently saved settings during sign-in and on secure screens (requires administrator privileges)" in NVDA's general settings.
+
+To ensure a smooth start with the add-on, all options are enabled by default. You are however encouraged to disable server or client mode as appropriate.
 
 ### Automatically recover remote speech after connection loss
 
@@ -105,9 +107,8 @@ Explicitly allowing the RdPipe channel required by NVDA Remote Desktop is not ye
 
 ## Todo list
 
-* [ ] [Test client side support for Vmware Horizon][4]
-* [ ] [Test explicitly allowing the RdPipe channel in the Virtual Channel Allow List][3]]
-* [ ] [Secure desktop support][5]
+* [Test client side support for Vmware Horizon][4]
+* [Test explicitly allowing the RdPipe channel in the Virtual Channel Allow List][3]]
 * [ ] Improve stability
 
 ## External components
@@ -120,6 +121,5 @@ published by the Free Software Foundation.
 [2]: https://en.wikipedia.org/wiki/Jump_server
 [3]: https://github.com/leonardder/nvdaRd/issues/1
 [4]: https://github.com/leonardder/nvdaRd/issues/2
-[5]: https://github.com/leonardder/nvdaRd/issues/3
 [6]: https://github.com/leonardder/rd_pipe-rs
 [7]: https://github.com/leonardder/rd_pipe-rs/blob/master/LICENSE

@@ -256,7 +256,7 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 		return self._pendingAttributeRequests[attribute] is True
 
 	def hasNewValueSince(self, attribute: AttributeT, t: float) -> bool:
-		return t < self._valueTimes[attribute]
+		return t <= self._valueTimes[attribute]
 
 	def _getDefaultValue(self, attribute: AttributeT) -> AttributeValueT:
 		handler = self._getRawHandler(attribute)
