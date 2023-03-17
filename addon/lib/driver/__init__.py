@@ -16,7 +16,6 @@ from autoSettingsUtils.driverSetting import DriverSetting
 from .settingsAccessor import SettingsAccessorBase
 import sys
 from baseObject import AutoPropertyObject
-from hwIo.ioThread import IoThread
 import time
 
 

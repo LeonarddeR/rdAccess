@@ -51,7 +51,9 @@ class _SynthDetector(AutoPropertyObject):
 		queueHandler.queueFunction(queueHandler.eventQueue, self._fallback)
 
 	def _fallback(self):
-		fallback = config.conf[remoteSynthDriver._configSection].get(remoteSynthDriver.name, {}).get("fallbackSynth", AUTOMATIC_PORT[0])
+		fallback = config.conf[remoteSynthDriver._configSection]\
+		.get(remoteSynthDriver.name, {})\
+		.get("fallbackSynth", AUTOMATIC_PORT[0])
 		if fallback != AUTOMATIC_PORT[0]:
 			synthDriverHandler.setSynth(fallback, isFallback=True)
 		else:

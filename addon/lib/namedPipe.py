@@ -20,7 +20,6 @@ from enum import IntFlag
 from .ioBaseEx import IoBaseEx
 import os
 from glob import iglob
-from logHandler import log
 
 
 ERROR_INVALID_HANDLE = 0x6
