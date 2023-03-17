@@ -107,16 +107,20 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if not globalVars.appArgs.secure:
 			post_sessionLockStateChanged.register(self._handleLockStateChanged)
 
-	def initializeOperatingModeClient(self):
+	def initializeOperatingModeCommonClient(self):
 		if globalVars.appArgs.secure:
 			return
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
 			self._monkeyPatcher.patchSynthDriverHandler()
+		self._ioThread = hwIo.ioThread.IoThread()
+		self._ioThread.start()
+
+	def initializeOperatingModeRdClient(self):
+		if globalVars.appArgs.secure:
+			return
 		handlers.RemoteHandler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
 		self._registerRdPipeInRegistry()
 		self._handlers: Dict[str, handlers.RemoteHandler] = {}
-		self._ioThread = hwIo.ioThread.IoThread()
-		self._ioThread.start()
 		self._pipeWatcher = directoryChanges.DirectoryWatcher(
 			namedPipe.PIPE_DIRECTORY,
 			directoryChanges.FileNotifyFilter.FILE_NOTIFY_CHANGE_FILE_NAME
@@ -125,7 +129,9 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._pipeWatcher.start()
 		self._initializeExistingPipes()
 
-	def initializeSecureDesktopSupport(self):
+	def initializeOperatingModeSecureDesktop(self):
+		if globalVars.appArgs.secure:
+			return
 		self._sdHandler: typing.Optional[SecureDesktopHandler] = None
 
 	def __init__(self):
@@ -143,9 +149,9 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(settingsPanel.NvdaRDSettingsPanel)
 		settingsPanel.NvdaRDSettingsPanel.post_onSave.register(self._handlePostConfigProfileSwitch)
 		if configuredOperatingMode & configuration.OperatingMode.CLIENT:
-			self.initializeOperatingModeClient()
+			self.initializeOperatingModeCommonClient()
 		if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
-			self.initializeSecureDesktopSupport()
+			self.initializeOperatingModeSecureDesktop()
 
 	def _initializeExistingPipes(self):
 		for match in namedPipe.getRdPipeNamedPipes():
@@ -181,7 +187,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		else:
 			bdDetect.scanForDevices.unregister(detection.bgScanRD)
 
-	def terminateOperatingModeClient(self):
+	def terminateOperatingModeRdClient(self):
 		if globalVars.appArgs.secure:
 			return
 		if self._pipeWatcher:
@@ -190,16 +196,22 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		for handler in self._handlers.values():
 			handler.terminate()
 		self._handlers.clear()
-		if self._ioThread:
-			self._ioThread.stop()
-			self._ioThread = None
 		if not configuration.getPersistentRegistration():
 			self._unregisterRdPipeFromRegistry()
 		handlers.RemoteHandler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
+
+	def terminateOperatingModeCommonClient(self):
+		if globalVars.appArgs.secure:
+			return
+		if self._ioThread:
+			self._ioThread.stop()
+			self._ioThread = None
 		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
 			self._monkeyPatcher.unpatchSynthDriverHandler()
 
 	def terminateSecureDesktopSupport(self):
+		if globalVars.appArgs.secure:
+			return
 		self._handleSecureDesktop(False)
 
 	@classmethod
@@ -219,7 +231,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
 				self.terminateSecureDesktopSupport()
 			if configuredOperatingMode & configuration.OperatingMode.CLIENT:
-				self.terminateOperatingModeClient()
+				self.terminateOperatingModeCommonClient()
 			settingsPanel.NvdaRDSettingsPanel.post_onSave.unregister(self._handlePostConfigProfileSwitch)
 			gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(settingsPanel.NvdaRDSettingsPanel)
 			config.post_configProfileSwitch.unregister(self._handlePostConfigProfileSwitch)
@@ -255,12 +267,12 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			oldOperatingMode & configuration.OperatingMode.CLIENT
 			and not newOperatingMode & configuration.OperatingMode.CLIENT
 		):
-			self.terminateOperatingModeClient()
+			self.terminateOperatingModeCommonClient()
 		elif (
 			not oldOperatingMode & configuration.OperatingMode.CLIENT
 			and newOperatingMode & configuration.OperatingMode.CLIENT
 		):
-			self.initializeOperatingModeClient()
+			self.initializeOperatingModeCommonClient()
 		elif newOperatingMode & configuration.OperatingMode.CLIENT:
 			oldDriverSettingsManagement = configuration.getDriverSettingsManagement(True)
 			newDriverSettingsManagement = configuration.getDriverSettingsManagement(False)
