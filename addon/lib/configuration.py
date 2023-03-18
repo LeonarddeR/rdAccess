@@ -42,7 +42,7 @@ CONFIG_SPEC = {
 
 def getOperatingMode(fromCache: bool = False) -> OperatingMode:
 	section = _cachedConfig if fromCache else config.conf[CONFIG_SECTION_NAME]
-	return OperatingMode(section[OPERATING_MODE_SETTING_NAME])
+	return OperatingMode(int(section[OPERATING_MODE_SETTING_NAME]))
 
 
 def getPersistentRegistration(fromCache: bool = False) -> bool:
