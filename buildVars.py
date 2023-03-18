@@ -64,6 +64,7 @@ pythonSources = [
 	"addon/lib/driver/*.py",
 	"addon/lib/protocol/*.py",
 	"addon/synthDrivers/*.py",
+	"addon/installTasks.py",
 ]
 
 # Files that contain strings for translation. Usually your python sources

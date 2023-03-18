@@ -1,4 +1,5 @@
 import typing
+from time import sleep
 
 if typing.TYPE_CHECKING:
 	from .lib import configuration
@@ -23,3 +24,5 @@ def onUninstall():
 			citrix=architecture == rdPipe.Architecture.X86,
 			architecture=architecture
 		)
+	# Sleep for a second to ensure we can delete the directory.
+	sleep(1.0)
