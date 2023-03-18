@@ -48,7 +48,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		dct[AUTOMATIC_PORT[0]] = StringParameterInfo(*AUTOMATIC_PORT)
 		dct.update(
 			(n, StringParameterInfo(n, d)) for n, d in synthDriverHandler.getSynthList()
-			if d != cls.name
+			if n != cls.name
 		)
 		return dct
 

@@ -131,10 +131,6 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			from .monkeyPatcher import MonkeyPatcher
 			self._monkeyPatcher = MonkeyPatcher()
 		configuredOperatingMode = configuration.getOperatingMode()
-		if configuredOperatingMode & configuration.OperatingMode.SERVER:
-			self.initializeOperatingModeServer()
-		if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
-			self.initializeOperatingModeSecureDesktop()
 		if (
 			configuredOperatingMode & configuration.OperatingMode.CLIENT
 			or configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
@@ -142,6 +138,10 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self.initializeOperatingModeCommonClient()
 		if configuredOperatingMode & configuration.OperatingMode.CLIENT:
 			self.initializeOperatingModeRdClient()
+		if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
+			self.initializeOperatingModeSecureDesktop()
+		if configuredOperatingMode & configuration.OperatingMode.SERVER:
+			self.initializeOperatingModeServer()
 		if _isSecureDesktop():
 			return
 		config.post_configProfileSwitch.register(self._handlePostConfigProfileSwitch)
@@ -229,13 +229,13 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 				self.terminateOperatingModeServer()
 			if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
 				self.terminateOperatingModeSecureDesktop()
+			if configuredOperatingMode & configuration.OperatingMode.CLIENT:
+				self.terminateOperatingModeRdClient()
 			if (
 				configuredOperatingMode & configuration.OperatingMode.CLIENT
 				or configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
 			):
 				self.terminateOperatingModeCommonClient()
-			if configuredOperatingMode & configuration.OperatingMode.CLIENT:
-				self.terminateOperatingModeRdClient()
 			if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
 				del self._monkeyPatcher
 		finally:
@@ -272,10 +272,6 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self.terminateOperatingModeSecureDesktop()
 		elif not oldSecureDesktop and newSecureDesktop:
 			self.initializeOperatingModeSecureDesktop()
-		if oldSecureDesktopOrClient and not newSecureDesktopOrClient:
-			self.terminateOperatingModeCommonClient()
-		elif not oldSecureDesktopOrClient and newSecureDesktopOrClient:
-			self.initializeOperatingModeCommonClient()
 		if oldClient and not newClient:
 			self.terminateOperatingModeRdClient()
 		elif not oldClient and newClient:
@@ -294,6 +290,10 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			newCitrix = configuration.getCitrixSupport(False)
 			if oldCitrix is not newCitrix:
 				self._updateRegistryForRdPipe(newCitrix, False, True)
+		if oldSecureDesktopOrClient and not newSecureDesktopOrClient:
+			self.terminateOperatingModeCommonClient()
+		elif not oldSecureDesktopOrClient and newSecureDesktopOrClient:
+			self.initializeOperatingModeCommonClient()
 		configuration.updateConfigCache()
 
 	def _handleLockStateChanged(self, isNowLocked):
