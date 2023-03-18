@@ -48,5 +48,6 @@ class SecureDesktopHandler(AutoPropertyObject):
 		sdId = f"NVDA_SD-{handlerType.driverType.name}"
 		sdPort = os.path.join(namedPipe.PIPE_DIRECTORY, sdId)
 		handler = handlerType(bgThread, sdPort, False)
+		handler.hasFocus = True
 		handler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
 		return handler

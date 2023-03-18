@@ -13,6 +13,8 @@ from autoSettingsUtils.driverSetting import DriverSetting
 from autoSettingsUtils.utils import StringParameterInfo
 from braille import AUTOMATIC_PORT
 from collections import OrderedDict
+import globalVars
+import os.path
 
 if typing.TYPE_CHECKING:
 	from ..lib import driver
@@ -69,6 +71,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		return False
 
 	def handle_decidePlayWaveFile(self, **kwargs):
+		kwargs['fileName'] = os.path.relpath(kwargs['fileName'], globalVars.appDir)
 		try:
 			self.writeMessage(protocol.SpeechCommand.PLAY_WAVE_FILE, self._pickle(kwargs))
 		except WindowsError:

@@ -8,7 +8,7 @@ from typing import (
 )
 from .namedPipe import PIPE_DIRECTORY, getSecureDesktopNamedPipes
 import os.path
-import globalVars
+from systemUtils import _isSecureDesktop
 
 KEY_VIRTUAL_CHANNEL = "WTSVirtualChannel"
 KEY_NAMED_PIPE_SERVER = "NamedPipeServer"
@@ -27,7 +27,7 @@ def bgScanRD(
 		port = f"NVDA-{driverType.name}"
 		yield (RemoteDriver.name, bdDetect.DeviceMatch(type=KEY_VIRTUAL_CHANNEL, id=port, port=port, deviceInfo={}))
 	if (
-		not globalVars.appArgs.secure
+		not _isSecureDesktop()
 		or not (operatingMode & configuration.OperatingMode.SECURE_DESKTOP)
 	):
 		return

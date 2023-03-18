@@ -7,6 +7,7 @@ import sys
 from extensionPoints import AccumulatingDecider
 from hwIo.ioThread import IoThread
 from abc import abstractmethod
+from ..objects import OutOfProcessChannelRemoteDesktopControl
 
 if typing.TYPE_CHECKING:
 	from ....lib import configuration
@@ -34,7 +35,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 
 	def __new__(cls, *args, **kwargs):
 		obj = super().__new__(cls, *args, **kwargs)
-		obj.decide_remoteDisconnect = AccumulatingDecider(False)
+		obj.decide_remoteDisconnect = AccumulatingDecider(defaultDecision=False)
 		return obj
 
 	def __init__(
@@ -101,10 +102,19 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX):].decode("ASCII")
 		return self._pickle(getattr(self._driver, name))
 
+	_remoteProcessHasFocus: bool
+
+	def _get__remoteProcessHasFocus(self):
+		focus = api.getFocusObject()
+		return (
+			focus.processID == self._dev.pipeProcessId
+			or isinstance(focus, OutOfProcessChannelRemoteDesktopControl)
+		)
+
 	hasFocus: bool
 
 	def _get_hasFocus(self) -> bool:
-		remoteProcessHasFocus = api.getFocusObject().processID == self._dev.pipeProcessId
+		remoteProcessHasFocus = self._remoteProcessHasFocus
 		if not remoteProcessHasFocus:
 			return remoteProcessHasFocus
 		if self._remoteSessionhasFocus is not None:

@@ -4,6 +4,7 @@ from ctypes import (
 	byref,
 	c_ulong,
 	GetLastError,
+	sizeof,
 	windll,
 	WinError,
 )
@@ -20,6 +21,7 @@ from enum import IntFlag
 from .ioBaseEx import IoBaseEx
 import os
 from glob import iglob
+from appModuleHandler import processEntry32W
 
 
 ERROR_INVALID_HANDLE = 0x6
@@ -28,6 +30,27 @@ ERROR_PIPE_BUSY = 0xE7
 PIPE_DIRECTORY = "\\\\?\\pipe\\"
 RD_PIPE_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
 SECURE_DESKTOP_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "NVDA_SD-*")
+TH32CS_SNAPPROCESS = 0x00000002
+
+
+def getProcessEntryFromProcessId(processId: int) -> Optional[processEntry32W]:
+	FSnapshotHandle = windll.kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
+	try:
+		FProcessEntry32 = processEntry32W()
+		FProcessEntry32.dwSize = sizeof(processEntry32W)
+		ContinueLoop = windll.kernel32.Process32FirstW(FSnapshotHandle, byref(FProcessEntry32))
+		while ContinueLoop:
+			if FProcessEntry32.th32ProcessID == processId:
+				return FProcessEntry32
+			ContinueLoop = windll.kernel32.Process32NextW(FSnapshotHandle, byref(FProcessEntry32))
+		else:
+			return None
+	finally:
+		windll.kernel32.CloseHandle(FSnapshotHandle)
+
+
+def getNamedPipes() -> Iterator[str]:
+	yield from iglob(os.path.join(PIPE_DIRECTORY, "*"))
 
 
 def getRdPipeNamedPipes() -> Iterator[str]:
@@ -61,9 +84,13 @@ MAX_PIPE_MESSAGE_SIZE = 1024 * 64
 
 
 class NamedPipeBase(IoBaseEx):
-	pipeProcessId: int
+	pipeProcessId: Optional[int] = None
 	pipeMode: PipeMode = PipeMode.READMODE_BYTE | PipeMode.WAIT
 	pipeName: str
+
+	@property
+	def _pipeProcessInfo(self) -> Optional[processEntry32W]:
+		return getProcessEntryFromProcessId(self.pipeProcessId) if self.pipeProcessId else None
 
 	def __init__(
 			self,
@@ -83,6 +110,9 @@ class NamedPipeBase(IoBaseEx):
 			onReadError=onReadError,
 			ioThread=ioThread
 		)
+
+	def _get_isAlive(self) -> bool:
+		return self.pipeName in getNamedPipes()
 
 
 class NamedPipeServer(NamedPipeBase):
@@ -156,6 +186,10 @@ class NamedPipeServer(NamedPipeBase):
 				self._ioDone(GetLastError(), 0, ol)
 				return
 		self._connected = True
+		clientProcessId = c_ulong()
+		if not windll.kernel32.GetNamedPipeClientProcessId(HANDLE(self._file), byref(clientProcessId)):
+			raise WinError()
+		self.pipeProcessId = clientProcessId.value
 		for message in self._messageQueue:
 			self.write(message)
 		self._messageQueue.clear()
@@ -209,9 +243,6 @@ class NamedPipeClient(NamedPipeBase):
 		if not windll.kernel32.GetNamedPipeServerProcessId(HANDLE(fileHandle), byref(serverProcessId)):
 			raise WinError()
 		self.pipeProcessId = serverProcessId.value
-
-	def _get_isAlive(self) -> bool:
-		return self.pipeName in getRdPipeNamedPipes()
 
 	def close(self):
 		super().close()
