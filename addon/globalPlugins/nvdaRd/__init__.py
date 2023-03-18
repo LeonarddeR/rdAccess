@@ -335,7 +335,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def _handleSecureDesktop(self, state: bool):
 		if state:
-			self._sdHandler = SecureDesktopHandler()
+			self._sdHandler = SecureDesktopHandler(self._ioThread)
 		elif self._sdHandler:
 			self._sdHandler.terminate()
 			self._sdHandler = None

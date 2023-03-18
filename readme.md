@@ -9,11 +9,11 @@ This enables a user experience where managing a remote system feels just as perf
 
 ## Features
 
-* Support for Microsoft Remote Desktop and Citrix XenApp
+* Support for Microsoft Remote Desktop, Citrix and VMware Horizon
 * Speech and braille output
 * Automatic detection of remote braille using NVDA's automatic braille display detection
 * Automatic detection of remote speech using a dedicated detection process that can be disabled in NVDA's settings dialog
-* Partial support for portable copies of NVDA running on a server (no additional administrative privileges required for Microsoft Remote Desktop)
+* Support for portable copies of NVDA running on a server (additional configuration required for Fitrix)
 * Full support for portable copies of NVDA running on a client (no additional administrative privileges required to install the add-on)
 * Multiple active client sessions at the same time
 * Remote desktop instantly available after NVDA start
@@ -23,7 +23,7 @@ This enables a user experience where managing a remote system feels just as perf
 ## Getting started
 
 1. Install this add-on in both a client and server copy of NVDA.
-1. To let the remote system speak using the local speech synthesizer, in the NVDA instance on the server, select the remote speech synthesizer from NVDA"s synthesizer selection dialog.
+1. The remote system should automatically start speaking using the local speech synthesizer. If not, in the NVDA instance on the server, select the remote speech synthesizer from NVDA"s synthesizer selection dialog.
 1. To use braille, enable automatic braille display detection using the braille display selection dialog.
 
 ## Configuration
@@ -105,21 +105,18 @@ In Citrix Virtual Apps and Desktops 2109, Citrix enabled the so called virtual c
 
 Explicitly allowing the RdPipe channel required by NVDA Remote Desktop is not yet tested. For now, it is probably your best bet to disable the allow list altogether. If your system administrator is unhappy with this, feel free to [drop a line in the devoted issue][3]
 
-## Todo list
+## Issues and contributing
 
-* [Test client side support for Vmware Horizon][4]
-* [Test explicitly allowing the RdPipe channel in the Virtual Channel Allow List][3]]
-* [ ] Improve stability
+If you want to report an issue or contribute, take a look at [the issues page on Github][3]
 
 ## External components
 
-This add-on relies on [RD Pipe][6], a library written in Rust backing the remote desktop client support.
-RD Pipe is redistributed as part of this add-on under the terms of [version 3 of the GNU Affero General Public License][7] as
+This add-on relies on [RD Pipe][4], a library written in Rust backing the remote desktop client support.
+RD Pipe is redistributed as part of this add-on under the terms of [version 3 of the GNU Affero General Public License][5] as
 published by the Free Software Foundation.
 
 [1]: https://github.com/leonardder/
 [2]: https://en.wikipedia.org/wiki/Jump_server
-[3]: https://github.com/leonardder/nvdaRd/issues/1
-[4]: https://github.com/leonardder/nvdaRd/issues/2
-[6]: https://github.com/leonardder/rd_pipe-rs
-[7]: https://github.com/leonardder/rd_pipe-rs/blob/master/LICENSE
+[3]: https://github.com/leonardder/nvdaRd/issues
+[4]: https://github.com/leonardder/rd_pipe-rs
+[5]: https://github.com/leonardder/rd_pipe-rs/blob/master/LICENSE
