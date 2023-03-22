@@ -91,7 +91,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._monkeyPatcher.patchBdDetect()
 		else:
 			bdDetect.scanForDevices.register(detection.bgScanRD)
-			bdDetect.scanForDevices.moveToEnd(detection.bgScanRD)
+			bdDetect.scanForDevices.moveToEnd(detection.bgScanRD, last=False)
 		if configuration.getRecoverRemoteSpeech():
 			self._synthDetector = _SynthDetector()
 		self._triggerBackgroundDetectRescan(True)
@@ -140,7 +140,10 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self.initializeOperatingModeRdClient()
 		if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
 			self.initializeOperatingModeSecureDesktop()
-		if configuredOperatingMode & configuration.OperatingMode.SERVER:
+		if (
+			configuredOperatingMode & configuration.OperatingMode.SERVER
+			or configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
+		):
 			self.initializeOperatingModeServer()
 		if _isSecureDesktop():
 			return
@@ -225,7 +228,10 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 				gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(settingsPanel.NvdaRDSettingsPanel)
 				config.post_configProfileSwitch.unregister(self._handlePostConfigProfileSwitch)
 			configuredOperatingMode = configuration.getOperatingMode()
-			if configuredOperatingMode & configuration.OperatingMode.SERVER:
+			if (
+				configuredOperatingMode & configuration.OperatingMode.SERVER
+				or configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
+			):
 				self.terminateOperatingModeServer()
 			if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
 				self.terminateOperatingModeSecureDesktop()
