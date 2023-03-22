@@ -106,10 +106,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 
 	def _get__remoteProcessHasFocus(self):
 		focus = api.getFocusObject()
-		return (
-			focus.processID == self._dev.pipeProcessId
-			or isinstance(focus, OutOfProcessChannelRemoteDesktopControl)
-		)
+		return focus.processID in (self._dev.pipeProcessId, self._dev.pipeParentProcessId)
 
 	hasFocus: bool
 
