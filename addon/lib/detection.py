@@ -31,6 +31,6 @@ def bgScanRD(
 				RemoteDriver.name,
 				bdDetect.DeviceMatch(type=KEY_NAMED_PIPE_CLIENT, id=sdId, port=sdPort, deviceInfo={})
 			)
-	if operatingMode & configuration.OperatingMode.SERVER and getRemoteSessionMetrics():
+	if operatingMode & configuration.OperatingMode.SERVER and getRemoteSessionMetrics() == 1:
 		port = f"NVDA-{driverType.name}"
 		yield (RemoteDriver.name, bdDetect.DeviceMatch(type=KEY_VIRTUAL_CHANNEL, id=port, port=port, deviceInfo={}))
