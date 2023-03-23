@@ -7,7 +7,6 @@ import sys
 from extensionPoints import AccumulatingDecider
 from hwIo.ioThread import IoThread
 from abc import abstractmethod
-from ..objects import OutOfProcessChannelRemoteDesktopControl
 
 if typing.TYPE_CHECKING:
 	from ....lib import configuration
