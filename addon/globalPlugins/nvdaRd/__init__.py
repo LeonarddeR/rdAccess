@@ -142,7 +142,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self.initializeOperatingModeSecureDesktop()
 		if (
 			configuredOperatingMode & configuration.OperatingMode.SERVER
-			or configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
+			or (configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP and _isSecureDesktop())
 		):
 			self.initializeOperatingModeServer()
 		if _isSecureDesktop():
@@ -230,7 +230,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			configuredOperatingMode = configuration.getOperatingMode()
 			if (
 				configuredOperatingMode & configuration.OperatingMode.SERVER
-				or configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
+				or (configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP and _isSecureDesktop())
 			):
 				self.terminateOperatingModeServer()
 			if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
