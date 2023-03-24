@@ -17,7 +17,7 @@ from .settingsAccessor import SettingsAccessorBase
 import sys
 from baseObject import AutoPropertyObject
 import time
-
+from utils.security import post_sessionLockStateChanged
 
 ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_NOT_CONNECTED = 0xe9
@@ -97,6 +97,12 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			self._dev.close()
 		else:
 			raise RuntimeError("No remote device found")
+
+		post_sessionLockStateChanged.register(self._handleLockStateChanged)
+
+	def terminate(self):
+		post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
+		super().terminate()
 
 	def __getattribute__(self, name: str) -> Any:
 		getter = super().__getattribute__
@@ -181,3 +187,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	@protocol.attributeSender(protocol.GenericAttribute.TIME_SINCE_INPUT)
 	def _outgoing_timeSinceInput(self) -> bytes:
 		return inputTime.getTimeSinceInput().to_bytes(4, sys.byteorder, signed=False)
+
+	def _handleLockStateChanged(self, isNowLocked):
+		if not self.check():
+			self._handleRemoteDisconnect()
