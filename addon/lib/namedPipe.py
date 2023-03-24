@@ -191,11 +191,14 @@ class NamedPipeServer(NamedPipeBase):
 		for message in self._messageQueue:
 			self.write(message)
 		self._messageQueue.clear()
+		self._asyncRead()
 
-	def _asyncRead(self):
+	def _asyncRead(self, param: Optional[int] = None):
 		if not self._connected:
+			# _handleConnect will call _asyncRead when it is finished.
 			self._handleConnect()
-		super()._asyncRead()
+		else:
+			super()._asyncRead()
 
 	def close(self):
 		super().close()
