@@ -27,4 +27,7 @@ class IoBaseEx(IoBase):
 		ioThread = self._ioThreadRef()
 		if not ioThread:
 			raise RuntimeError("I/O thread is no longer available")
-		ioThread.queueAsApc(lambda param: self._asyncRead())
+		ioThread.queueAsApc(self._asyncRead)
+
+	def _asyncRead(self, param: Optional[int] = None):
+		return super()._asyncRead()
