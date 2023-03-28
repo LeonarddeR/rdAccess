@@ -40,41 +40,51 @@ CONFIG_SPEC = {
 }
 
 
-def getOperatingMode(fromCache: bool = False) -> OperatingMode:
+def _getSetting(setting: str, fromCache: bool) -> Any:
+	if not initialized:
+		initializeConfig()
 	section = _cachedConfig if fromCache else config.conf[CONFIG_SECTION_NAME]
-	return OperatingMode(int(section[OPERATING_MODE_SETTING_NAME]))
+	return section[setting]
+
+
+def getOperatingMode(fromCache: bool = False) -> OperatingMode:
+	return OperatingMode(int(
+		_getSetting(OPERATING_MODE_SETTING_NAME, fromCache)
+	))
 
 
 def getPersistentRegistration(fromCache: bool = False) -> bool:
-	section = _cachedConfig if fromCache else config.conf[CONFIG_SECTION_NAME]
-	return section[PERSISTENT_REGISTRATION_SETTING_NAME]
+	return _getSetting(PERSISTENT_REGISTRATION_SETTING_NAME, fromCache)
 
 
 def getRemoteDesktopSupport(fromCache: bool = False) -> bool:
-	section = _cachedConfig if fromCache else config.conf[CONFIG_SECTION_NAME]
-	return section[REMOTE_DESKTOP_SETTING_NAME]
+	return _getSetting(REMOTE_DESKTOP_SETTING_NAME, fromCache)
 
 
 def getCitrixSupport(fromCache: bool = False) -> bool:
-	section = _cachedConfig if fromCache else config.conf[CONFIG_SECTION_NAME]
-	return section[CITRIX_SETTING_NAME]
+	return _getSetting(CITRIX_SETTING_NAME, fromCache)
 
 
 def getRecoverRemoteSpeech(fromCache: bool = False) -> bool:
-	section = _cachedConfig if fromCache else config.conf[CONFIG_SECTION_NAME]
-	return section[RECOVER_REMOTE_SPEECH_SETTING_NAME]
+	return _getSetting(RECOVER_REMOTE_SPEECH_SETTING_NAME, fromCache)
 
 
 def getDriverSettingsManagement(fromCache: bool = False) -> bool:
-	section = _cachedConfig if fromCache else config.conf[CONFIG_SECTION_NAME]
-	return section[DRIVER_settings_MANAGEMENT_SETTING_NAME]
+	return _getSetting(DRIVER_settings_MANAGEMENT_SETTING_NAME, fromCache)
+
+
+initialized: bool = False
 
 
 def initializeConfig():
+	global initialized
+	if initialized:
+		return
 	if CONFIG_SECTION_NAME not in config.conf:
 		config.conf[CONFIG_SECTION_NAME] = {}
 	config.conf[CONFIG_SECTION_NAME].spec.update(CONFIG_SPEC)
 	updateConfigCache()
+	initialized = True
 
 
 def updateConfigCache():
