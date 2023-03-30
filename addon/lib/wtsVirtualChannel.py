@@ -1,5 +1,4 @@
 from winAPI import _wtsApi32 as wtsApi32
-from .ioBaseEx import IoBaseEx
 from hwIo.base import _isDebug
 from hwIo.ioThread import IoThread
 from typing import Callable, Optional
@@ -26,6 +25,12 @@ from ctypes.wintypes import (
 from serial.win32 import INVALID_HANDLE_VALUE, ERROR_IO_PENDING
 from logHandler import log
 import winKernel
+import versionInfo
+if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
+	from .ioBaseEx import IoBaseEx as IoBase
+else:
+	from hwIo.base import IoBase
+
 
 WTS_CHANNEL_OPTION_DYNAMIC = 0x00000001
 WTS_CHANNEL_OPTION_DYNAMIC_PRI_HIGH = 0x00000004
@@ -80,7 +85,7 @@ def getRemoteSessionMetrics() -> bool:
 	return bool(GetSystemMetrics(SM_REMOTESESSION))
 
 
-class WTSVirtualChannel(IoBaseEx):
+class WTSVirtualChannel(IoBase):
 	_rawOutput: bool
 
 	def __init__(

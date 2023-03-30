@@ -18,11 +18,14 @@ from serial.win32 import (
 )
 import winKernel
 from enum import IntFlag
-from .ioBaseEx import IoBaseEx
 import os
 from glob import iglob
 from appModuleHandler import processEntry32W
-
+import versionInfo
+if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
+	from .ioBaseEx import IoBaseEx as IoBase
+else:
+	from hwIo.base import IoBase
 
 ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_CONNECTED = 0x217
@@ -83,7 +86,7 @@ class PipeOpenMode(IntFlag):
 MAX_PIPE_MESSAGE_SIZE = 1024 * 64
 
 
-class NamedPipeBase(IoBaseEx):
+class NamedPipeBase(IoBase):
 	pipeProcessId: Optional[int] = None
 	pipeParentProcessId: Optional[int] = None
 	pipeMode: PipeMode = PipeMode.READMODE_BYTE | PipeMode.WAIT
