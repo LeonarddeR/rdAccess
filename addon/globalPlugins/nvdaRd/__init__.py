@@ -309,8 +309,13 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def _triggerBackgroundDetectRescan(self, force: bool = False):
 		if self._synthDetector:
 			self._synthDetector.rescan(force)
-		if braille.handler._detector is not None:
-			braille.handler._detector.rescan()
+		detector = braille.handler._detector
+		if detector is not None:
+			detector.rescan(
+				usb=detector._detectUsb,
+				bluetooth=detector._detectBluetooth,
+				limitToDevices=detector._limitToDevices
+			)
 
 	def _handleRemoteDisconnect(self, handler: handlers.RemoteHandler, error: int) -> bool:
 		if isinstance(WinError(error), BrokenPipeError):
