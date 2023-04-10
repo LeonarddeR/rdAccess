@@ -142,6 +142,7 @@ class WTSVirtualChannel(IoBase):
 		super().close()
 		if hasattr(self, "_file") and self._file is not INVALID_HANDLE_VALUE:
 			winKernel.closeHandle(self._file)
+			self._file = INVALID_HANDLE_VALUE
 
 	def _notifyReceive(self, data: bytes):
 		if self._rawOutput:

@@ -20,6 +20,7 @@ import winKernel
 from enum import IntFlag
 import os
 from glob import iglob
+from logHandler import log
 from appModuleHandler import processEntry32W
 import versionInfo
 if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
@@ -208,6 +209,7 @@ class NamedPipeServer(NamedPipeBase):
 		if hasattr(self, "_file") and self._file is not INVALID_HANDLE_VALUE:
 			windll.kernel32.DisconnectNamedPipe(self._file)
 			winKernel.closeHandle(self._file)
+			self._file = INVALID_HANDLE_VALUE
 
 
 class NamedPipeClient(NamedPipeBase):
@@ -253,3 +255,4 @@ class NamedPipeClient(NamedPipeBase):
 		super().close()
 		if hasattr(self, "_file") and self._file is not INVALID_HANDLE_VALUE:
 			winKernel.closeHandle(self._file)
+			self._file = INVALID_HANDLE_VALUE
