@@ -5,6 +5,7 @@ from hwIo import intToByte, IoThread
 import typing
 import inputCore
 import threading
+import versionInfo
 
 if typing.TYPE_CHECKING:
 	from ....lib import protocol
@@ -46,6 +47,10 @@ class RemoteBrailleHandler(RemoteHandler):
 	def _outgoing_gestureMap(self, gestureMap: typing.Optional[inputCore.GlobalGestureMap] = None) -> bytes:
 		if gestureMap is None:
 			gestureMap = self._driver.gestureMap
+		if not (versionInfo.version_year == 2023 and versionInfo.version_major == 1):
+			export = gestureMap.export()
+			gestureMap = inputCore.GlobalGestureMap(export)
+			gestureMap.update(inputCore.manager.userGestureMap.export())
 		return self._pickle(gestureMap)
 
 	@protocol.commandHandler(protocol.BrailleCommand.DISPLAY)
