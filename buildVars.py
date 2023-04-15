@@ -23,7 +23,9 @@ addon_info = {
 	"addon_summary": _("NVDA Remote Desktop Support"),
 	# Add-on description
 	# Translators: Long description to be shown for this add-on on add-on information from add-ons manager
-	"addon_description": _("""Allows using speech and braille with Microsoft Remote Desktop, Citrix Workspace and VMware Horizon"""),
+	"addon_description": _(
+		"Allows using speech and braille with Microsoft Remote Desktop, Citrix Workspace and VMware Horizon"
+	),
 	# version
 	"addon_version": "0.2.0",
 	# Author(s)

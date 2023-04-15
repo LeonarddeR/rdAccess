@@ -20,7 +20,6 @@ import winKernel
 from enum import IntFlag
 import os
 from glob import iglob
-from logHandler import log
 from appModuleHandler import processEntry32W
 import versionInfo
 if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
