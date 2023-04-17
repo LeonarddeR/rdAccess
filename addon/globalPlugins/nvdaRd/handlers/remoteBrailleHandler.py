@@ -47,7 +47,7 @@ class RemoteBrailleHandler(RemoteHandler):
 	def _outgoing_gestureMap(self, gestureMap: typing.Optional[inputCore.GlobalGestureMap] = None) -> bytes:
 		if gestureMap is None:
 			gestureMap = self._driver.gestureMap
-		if not (versionInfo.version_year == 2023 and versionInfo.version_major == 1):
+		if gestureMap and not (versionInfo.version_year == 2023 and versionInfo.version_major == 1):
 			export = gestureMap.export()
 			gestureMap = inputCore.GlobalGestureMap(export)
 			gestureMap.update(inputCore.manager.userGestureMap.export())
