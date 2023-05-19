@@ -16,7 +16,6 @@ from .objects import findExtraOverlayClasses
 import config
 import gui
 import api
-import versionInfo
 import bdDetect
 import atexit
 from systemUtils import _isSecureDesktop
@@ -87,11 +86,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			atexit.register(cls._unregisterRdPipeFromRegistry)
 
 	def initializeOperatingModeServer(self):
-		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-			self._monkeyPatcher.patchBdDetect()
-		else:
-			bdDetect.scanForDevices.register(detection.bgScanRD)
-			bdDetect.scanForDevices.moveToEnd(detection.bgScanRD, last=False)
+		bdDetect.scanForDevices.register(detection.bgScanRD)
+		bdDetect.scanForDevices.moveToEnd(detection.bgScanRD, last=False)
 		if configuration.getRecoverRemoteSpeech():
 			self._synthDetector = _SynthDetector()
 		self._triggerBackgroundDetectRescan(True)
@@ -101,8 +97,6 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def initializeOperatingModeCommonClient(self):
 		if _isSecureDesktop():
 			return
-		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-			self._monkeyPatcher.patchSynthDriverHandler()
 		self._ioThread = hwIo.ioThread.IoThread()
 		self._ioThread.start()
 
@@ -127,9 +121,6 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def __init__(self):
 		super().__init__()
 		configuration.initializeConfig()
-		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-			from .monkeyPatcher import MonkeyPatcher
-			self._monkeyPatcher = MonkeyPatcher()
 		configuredOperatingMode = configuration.getOperatingMode()
 		if (
 			configuredOperatingMode & configuration.OperatingMode.CLIENT
@@ -183,10 +174,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
 		if self._synthDetector:
 			self._synthDetector.terminate()
-		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-			self._monkeyPatcher.unpatchBdDetect()
-		else:
-			bdDetect.scanForDevices.unregister(detection.bgScanRD)
+		bdDetect.scanForDevices.unregister(detection.bgScanRD)
 
 	def terminateOperatingModeRdClient(self):
 		if _isSecureDesktop():
@@ -206,8 +194,6 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if self._ioThread:
 			self._ioThread.stop()
 			self._ioThread = None
-		if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-			self._monkeyPatcher.unpatchSynthDriverHandler()
 
 	def terminateOperatingModeSecureDesktop(self):
 		if _isSecureDesktop():
@@ -242,8 +228,6 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 				or configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
 			):
 				self.terminateOperatingModeCommonClient()
-			if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-				del self._monkeyPatcher
 		finally:
 			super().terminate()
 

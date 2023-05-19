@@ -21,11 +21,7 @@ from enum import IntFlag
 import os
 from glob import iglob
 from appModuleHandler import processEntry32W
-import versionInfo
-if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-	from .ioBaseEx import IoBaseEx as IoBase
-else:
-	from hwIo.base import IoBase
+from hwIo.base import IoBase
 
 ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_CONNECTED = 0x217

@@ -1,5 +1,5 @@
 from winAPI import _wtsApi32 as wtsApi32
-from hwIo.base import _isDebug
+from hwIo.base import _isDebug, IoBase
 from hwIo.ioThread import IoThread
 from typing import Callable, Optional
 from ctypes import (
@@ -25,11 +25,6 @@ from ctypes.wintypes import (
 from serial.win32 import INVALID_HANDLE_VALUE, ERROR_IO_PENDING
 from logHandler import log
 import winKernel
-import versionInfo
-if versionInfo.version_year == 2023 and versionInfo.version_major == 1:
-	from .ioBaseEx import IoBaseEx as IoBase
-else:
-	from hwIo.base import IoBase
 
 
 WTS_CHANNEL_OPTION_DYNAMIC = 0x00000001
