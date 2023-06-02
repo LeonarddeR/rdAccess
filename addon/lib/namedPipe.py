@@ -175,11 +175,11 @@ class NamedPipeServer(NamedPipeBase):
 				elif waitRes == winKernel.WAIT_IO_COMPLETION:
 					continue
 				else:
-					self._ioDone(GetLastError(), 0, ol)
+					self._ioDone(GetLastError(), 0, byref(ol))
 					return
 			numberOfBytes = DWORD()
 			if not windll.kernel32.GetOverlappedResult(self._file, byref(ol), byref(numberOfBytes), False):
-				self._ioDone(GetLastError(), 0, ol)
+				self._ioDone(GetLastError(), 0, byref(ol))
 				return
 		self._connected = True
 		clientProcessId = c_ulong()

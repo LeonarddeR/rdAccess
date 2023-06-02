@@ -4,7 +4,7 @@ from hwIo.base import LPOVERLAPPED_COMPLETION_ROUTINE
 from hwIo.ioThread import IoThread
 from extensionPoints import Action
 import winKernel
-from serial.win32 import FILE_FLAG_OVERLAPPED, OVERLAPPED, CreateFile, INVALID_HANDLE_VALUE
+from serial.win32 import FILE_FLAG_OVERLAPPED, CreateFile, INVALID_HANDLE_VALUE, OVERLAPPED, LPOVERLAPPED
 from enum import IntFlag, IntEnum
 from ctypes import windll, WinError, sizeof, byref, create_string_buffer
 from struct import unpack, calcsize
@@ -62,7 +62,6 @@ class DirectoryWatcher(IoThread):
 		self._dirHandle = dirHandle
 		self._buffer = create_string_buffer(4096)
 		self._overlapped = OVERLAPPED()
-		self._ioDoneInst = LPOVERLAPPED_COMPLETION_ROUTINE(self._ioDone)
 
 	def start(self):
 		if self._watching:
@@ -100,12 +99,12 @@ class DirectoryWatcher(IoThread):
 			self._notifyFilter,
 			None,
 			byref(self._overlapped),
-			self._ioDoneInst
+			self.queueAsCompletionRoutine(self._ioDone, self._overlapped)
 		)
 		if not res:
 			raise WinError()
 
-	def _ioDone(self, error, numberOfBytes: int, overlapped: OVERLAPPED):
+	def _ioDone(self, error, numberOfBytes: int, overlapped: LPOVERLAPPED):
 		if not self._watching:
 			# We stopped watching
 			return
