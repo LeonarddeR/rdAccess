@@ -1,7 +1,7 @@
 # NVDA Remote Desktop
 
 * Authors: [Leonard de Ruijter][1]
-* NVDA compatibility: 2023.1 and later
+* NVDA compatibility: 2023.2 and later
 
 This add-on adds support to access remote desktop sessions to NVDA using Microsoft Remote Desktop, Citrix or VMware Horizon.
 When installed in NVDA on both the client and the server, speech and braille generated on the server will be spoken and brailled by the client machine.
