@@ -1,0 +1,109 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the nvdaRd package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: nvdaRd 0.1.0\n"
+"Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
+"POT-Creation-Date: 2023-03-31 14:06+0000\n"
+"PO-Revision-Date: 2023-04-21 17:13+0300\n"
+"Last-Translator: Kostadin Kolev <k_kolev1985@mail.bg>\n"
+"Language-Team: \n"
+"Language: bg\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. Translators: Name for a remote braille display.
+msgid "Remote Braille"
+msgstr "Отдалечен брайл"
+
+#. Translators: The label for the NVDA Remote Desktop settings panel.
+msgid "Remote Desktop"
+msgstr "Отдалечен работен плот"
+
+#. Translators: The label for a list of check boxes in NVDA RD settings to set operating mode.
+msgid "&Enable NVDA RD for"
+msgstr "&Разреши NVDA RD за"
+
+#. Translators: This is the label for a group of options in the
+#. Remote Desktop settings panel.
+msgid "Server"
+msgstr "Сървър"
+
+#. Translators: The label for a setting in NVDA RD settings to enable
+#. automatic recovery of remote speech when the connection was lost.
+msgid "&Automatically recover remote speech after connection loss"
+msgstr "&Автоматично възстановявай отдалечената реч след загуба на връзка"
+
+#. Translators: This is the label for a group of options in the
+#. Remote Desktop settings panel.
+msgid "Client"
+msgstr "Клиент"
+
+#. Translators: The label for a setting in NVDA RD settings to enable
+#. support for exchanging driver settings between the local and the remote system.
+msgid "&Allow remote system to control driver settings"
+msgstr "&Позволи на отдалечената система да контролира настройките на драйвера"
+
+#. Translators: The label for a setting in NVDA RD settings to enable
+#. persistent registration of RD Pipe to the Windows registry.
+msgid "&Persist client support when exiting NVDA"
+msgstr "&Продължавай поддръжката на клиента след изход от NVDA"
+
+#. Translators: The label for a setting in NVDA RD settings to enable
+#. registration of RD Pipe to the Windows registry for remote desktop support.
+msgid "Enable Microsoft &Remote Desktop support"
+msgstr "&Разреши поддръжката на Microsoft Remote Desktop"
+
+#. Translators: The label for a setting in NVDA RD settings to enable
+#. registration of RD Pipe to the Windows registry for Citrix support.
+msgid "Enable &Citrix Workspace support"
+msgstr "Р&азреши поддръжката на Citrix Workspace"
+
+#. Translators: Message to report wrong configuration of operating mode.
+msgid ""
+"You need to enable NVDA RD for at least incoming or outgoing connections."
+msgstr "Трябва да разрешите NVDA RD поне за входящи или изходящи връзки."
+
+#. Translators: The title of the message box
+msgid "Error"
+msgstr "Грешка"
+
+msgid "Incoming connections (Remote Desktop Server)"
+msgstr "Входящи връзки (сървър за отдалечен работен плот)"
+
+msgid "Outgoing connections (Remote Desktop Client)"
+msgstr "Изходящи връзки (клиент за отдалечен работен плот)"
+
+msgid "Secure Desktop pass through"
+msgstr "Пропускане на защитен екран"
+
+#. Translators: Name for a remote braille display.
+msgid "Remote speech"
+msgstr "Отдалечена реч"
+
+#. Translators: The name of a remote synthesizer setting to select the fallback synthesizer.
+msgid "&Fallback synthesizer"
+msgstr "Ре&зервен синтезатор"
+
+#. Add-on summary, usually the user visible name of the addon.
+#. Translators: Summary for this add-on
+#. to be shown on installation and add-on information found in Add-ons Manager.
+msgid "NVDA Remote Desktop Support"
+msgstr "Отдалечен работен плот с NVDA"
+
+#. Add-on description
+#. Translators: Long description to be shown for this add-on on add-on information from add-ons manager
+msgid ""
+"Allows using speech and braille with Microsoft Remote Desktop, Citrix "
+"Workspace and VMware Horizon"
+msgstr ""
+"Позволява използването на реч и брайл с Microsoft Remote Desktop, Citrix "
+"Workspace и VMware Horizon"
+
+#~ msgid "Bidirectional connections (Remote Desktop Server and Client)"
+#~ msgstr "Двупосочни връзки (сървър и клиент за отдалечен работен плот)"
