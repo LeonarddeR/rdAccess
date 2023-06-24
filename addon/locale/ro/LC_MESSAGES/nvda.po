@@ -1,0 +1,109 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the nvdaRd package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: nvdaRd 0.2.0\n"
+"Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
+"POT-Creation-Date: 2023-04-07 14:06+0000\n"
+"PO-Revision-Date: 2023-06-17 11:25+0300\n"
+"Last-Translator: Florian Ionașcu <florianionascu@hotmail.com>\n"
+"Language-Team: \n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.3.1\n"
+
+#. Translators: Name for a remote braille display.
+msgid "Remote Braille"
+msgstr "Braille la distanță"
+
+#. Translators: The label for the NVDA Remote Desktop settings panel.
+msgid "Remote Desktop"
+msgstr "Spațiu de lucru la distanță"
+
+#. Translators: The label for a list of check boxes in NVDA RD settings to set operating mode.
+msgid "&Enable NVDA RD for"
+msgstr "Activea&ză NVDA RD pentru"
+
+#. Translators: This is the label for a group of options in the
+#. Remote Desktop settings panel.
+msgid "Server"
+msgstr "Server"
+
+#. Translators: The label for a setting in NVDA RD settings to enable
+#. automatic recovery of remote speech when the connection was lost.
+msgid "&Automatically recover remote speech after connection loss"
+msgstr ""
+"&Recuperează automat vorbirea la distanță după pierderea conexiunii"
+
+#. Translators: This is the label for a group of options in the
+#. Remote Desktop settings panel.
+msgid "Client"
+msgstr "Client"
+
+#. Translators: The label for a setting in NVDA RD settings to enable
+#. support for exchanging driver settings between the local and the remote system.
+msgid "&Allow remote system to control driver settings"
+msgstr "&Permite sistemului la distanță să controleze setările driver-ului"
+
+#. Translators: The label for a setting in NVDA RD settings to enable
+#. persistent registration of RD Pipe to the Windows registry.
+msgid "&Persist client support when exiting NVDA"
+msgstr "&Suportul pentru client persistă la închiderea NVDA"
+
+#. Translators: The label for a setting in NVDA RD settings to enable
+#. registration of RD Pipe to the Windows registry for remote desktop support.
+msgid "Enable Microsoft &Remote Desktop support"
+msgstr "Activează suportul pentru &Microsoft Remote Desktop"
+
+#. Translators: The label for a setting in NVDA RD settings to enable
+#. registration of RD Pipe to the Windows registry for Citrix support.
+msgid "Enable &Citrix Workspace support"
+msgstr "Activează suportul pentru &Citrix Workspace"
+
+#. Translators: Message to report wrong configuration of operating mode.
+msgid ""
+"You need to enable NVDA RD for at least incoming or outgoing connections."
+msgstr ""
+"Trebuie să activați NVDA RD cel puțin pentru conexiunile de intrare și "
+"de ieșire."
+
+#. Translators: The title of the message box
+msgid "Error"
+msgstr "Eroare"
+
+msgid "Incoming connections (Remote Desktop Server)"
+msgstr "Conexiuni de intrare (Server Remote Desktop)"
+
+msgid "Outgoing connections (Remote Desktop Client)"
+msgstr "Conexiuni de ieșire (Client Remote Desktop)"
+
+msgid "Secure Desktop pass through"
+msgstr "Trecere prin spațiul de lucru sigur"
+
+#. Translators: Name for a remote braille display.
+msgid "Remote speech"
+msgstr "Vorbire la distanță"
+
+#. Translators: The name of a remote synthesizer setting to select the fallback synthesizer.
+msgid "&Fallback synthesizer"
+msgstr "&Sintetizator alternativ"
+
+#. Add-on summary, usually the user visible name of the addon.
+#. Translators: Summary for this add-on
+#. to be shown on installation and add-on information found in Add-ons Manager.
+msgid "NVDA Remote Desktop Support"
+msgstr "Suport NVDA Remote Desktop "
+
+#. Add-on description
+#. Translators: Long description to be shown for this add-on on add-on information from add-ons manager
+msgid ""
+"Allows using speech and braille with Microsoft Remote Desktop, Citrix "
+"Workspace and VMware Horizon"
+msgstr ""
+"Permite folosirea vorbirii și a Braille cu Microsoft Remote Desktop, "
+"Citrix Workspace și VMware Horizon"
