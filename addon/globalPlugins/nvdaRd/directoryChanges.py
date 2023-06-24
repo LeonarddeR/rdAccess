@@ -1,7 +1,6 @@
 import sys
 import os.path
-from hwIo.base import LPOVERLAPPED_COMPLETION_ROUTINE
-from hwIo.ioThread import IoThread
+from hwIo.ioThread import LPOVERLAPPED_COMPLETION_ROUTINE, IoThread
 from extensionPoints import Action
 import winKernel
 from serial.win32 import FILE_FLAG_OVERLAPPED, CreateFile, INVALID_HANDLE_VALUE, OVERLAPPED, LPOVERLAPPED
