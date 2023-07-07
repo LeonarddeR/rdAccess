@@ -18,7 +18,7 @@ import gui
 import api
 import bdDetect
 import atexit
-from systemUtils import _isSecureDesktop
+from systemUtils import isSecureDesktop
 from IAccessibleHandler import SecureDesktopNVDAObject
 from .secureDesktop import SecureDesktopHandler
 
@@ -46,7 +46,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	@classmethod
 	def _updateRegistryForRdPipe(cls, install, rdp, citrix):
-		if _isSecureDesktop():
+		if isSecureDesktop():
 			return
 		if citrix and not rdPipe.isCitrixSupported():
 			citrix = False
@@ -91,17 +91,17 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if configuration.getRecoverRemoteSpeech():
 			self._synthDetector = _SynthDetector()
 		self._triggerBackgroundDetectRescan(True)
-		if not _isSecureDesktop():
+		if not isSecureDesktop():
 			post_sessionLockStateChanged.register(self._handleLockStateChanged)
 
 	def initializeOperatingModeCommonClient(self):
-		if _isSecureDesktop():
+		if isSecureDesktop():
 			return
 		self._ioThread = hwIo.ioThread.IoThread()
 		self._ioThread.start()
 
 	def initializeOperatingModeRdClient(self):
-		if _isSecureDesktop():
+		if isSecureDesktop():
 			return
 		self._registerRdPipeInRegistry()
 		self._handlers: Dict[str, handlers.RemoteHandler] = {}
@@ -114,7 +114,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._initializeExistingPipes()
 
 	def initializeOperatingModeSecureDesktop(self):
-		if _isSecureDesktop():
+		if isSecureDesktop():
 			return
 		self._sdHandler: typing.Optional[SecureDesktopHandler] = None
 
@@ -133,10 +133,10 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self.initializeOperatingModeSecureDesktop()
 		if (
 			configuredOperatingMode & configuration.OperatingMode.SERVER
-			or (configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP and _isSecureDesktop())
+			or (configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP and isSecureDesktop())
 		):
 			self.initializeOperatingModeServer()
-		if _isSecureDesktop():
+		if isSecureDesktop():
 			return
 		config.post_configProfileSwitch.register(self._handlePostConfigProfileSwitch)
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(settingsPanel.NvdaRDSettingsPanel)
@@ -170,14 +170,14 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 				handler.terminate()
 
 	def terminateOperatingModeServer(self):
-		if not _isSecureDesktop():
+		if not isSecureDesktop():
 			post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
 		if self._synthDetector:
 			self._synthDetector.terminate()
 		bdDetect.scanForDevices.unregister(detection.bgScanRD)
 
 	def terminateOperatingModeRdClient(self):
-		if _isSecureDesktop():
+		if isSecureDesktop():
 			return
 		if self._pipeWatcher:
 			self._pipeWatcher.stop()
@@ -189,14 +189,14 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._unregisterRdPipeFromRegistry()
 
 	def terminateOperatingModeCommonClient(self):
-		if _isSecureDesktop():
+		if isSecureDesktop():
 			return
 		if self._ioThread:
 			self._ioThread.stop()
 			self._ioThread = None
 
 	def terminateOperatingModeSecureDesktop(self):
-		if _isSecureDesktop():
+		if isSecureDesktop():
 			return
 		self._handleSecureDesktop(False)
 
@@ -209,14 +209,14 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def terminate(self):
 		try:
-			if not _isSecureDesktop():
+			if not isSecureDesktop():
 				settingsPanel.NvdaRDSettingsPanel.post_onSave.unregister(self._handlePostConfigProfileSwitch)
 				gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(settingsPanel.NvdaRDSettingsPanel)
 				config.post_configProfileSwitch.unregister(self._handlePostConfigProfileSwitch)
 			configuredOperatingMode = configuration.getOperatingMode()
 			if (
 				configuredOperatingMode & configuration.OperatingMode.SERVER
-				or (configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP and _isSecureDesktop())
+				or (configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP and isSecureDesktop())
 			):
 				self.terminateOperatingModeServer()
 			if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
@@ -240,10 +240,10 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		newServer = newOperatingMode & configuration.OperatingMode.SERVER
 		oldSecureDesktop = oldOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
 		newSecureDesktop = newOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
-		oldSecureDesktopOrServer = (oldSecureDesktop and _isSecureDesktop()) or oldServer
-		newSecureDesktopOrServer = (newSecureDesktop and _isSecureDesktop()) or newServer
-		oldSecureDesktopOrClient = (oldSecureDesktop and not _isSecureDesktop()) or oldClient
-		newSecureDesktopOrClient = (newSecureDesktop and not _isSecureDesktop()) or newClient
+		oldSecureDesktopOrServer = (oldSecureDesktop and isSecureDesktop()) or oldServer
+		newSecureDesktopOrServer = (newSecureDesktop and isSecureDesktop()) or newServer
+		oldSecureDesktopOrClient = (oldSecureDesktop and not isSecureDesktop()) or oldClient
+		newSecureDesktopOrClient = (newSecureDesktop and not isSecureDesktop()) or newClient
 		if oldSecureDesktopOrServer and not newSecureDesktopOrServer:
 			self.terminateOperatingModeServer()
 		elif not oldSecureDesktopOrServer and newSecureDesktopOrServer:
@@ -311,7 +311,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def event_gainFocus(self, obj, nextHandler):
 		configuredOperatingMode = configuration.getOperatingMode()
-		if not _isSecureDesktop():
+		if not isSecureDesktop():
 			if configuredOperatingMode & configuration.OperatingMode.CLIENT:
 				for handler in self._handlers.values():
 					try:
