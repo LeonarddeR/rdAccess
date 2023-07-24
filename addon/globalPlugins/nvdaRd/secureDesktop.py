@@ -25,8 +25,11 @@ class SecureDesktopHandler(AutoPropertyObject):
 	_ioThreadRef: weakref.ReferenceType[IoThread]
 	_brailleHandler: RemoteBrailleHandler
 	_speechHandler: RemoteSpeechHandler
+	_terminating: bool = False
 
 	def _handleRemoteDisconnect(self, handler: RemoteHandler, error: int) -> bool:
+		if self._terminating:
+			return True
 		if isinstance(WinError(error), BrokenPipeError):
 			ioThread = self._ioThreadRef()
 			pipeName = handler._dev.pipeName
@@ -43,6 +46,7 @@ class SecureDesktopHandler(AutoPropertyObject):
 		self._speechHandler = self._initializeHandler(RemoteSpeechHandler)
 
 	def terminate(self):
+		self._terminating = True
 		self._speechHandler.terminate()
 		braille.handler.display.loadSettings()
 		self._brailleHandler.terminate()
