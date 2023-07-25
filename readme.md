@@ -1,9 +1,9 @@
-# NVDA Remote Desktop
+# RDAccess: Remote Desktop Accessibility
 
 * Authors: [Leonard de Ruijter][1]
 * NVDA compatibility: 2023.2 and later
 
-This add-on adds support to access remote desktop sessions to NVDA using Microsoft Remote Desktop, Citrix or VMware Horizon.
+The RDAccess add-on (Remote Desktop Accessibility) adds support to access remote desktop sessions to NVDA using Microsoft Remote Desktop, Citrix or VMware Horizon.
 When installed in NVDA on both the client and the server, speech and braille generated on the server will be spoken and brailled by the client machine.
 This enables a user experience where managing a remote system feels just as performant as operating the local system.
 
@@ -22,13 +22,13 @@ This enables a user experience where managing a remote system feels just as perf
 
 ## Getting started
 
-1. Install this add-on in both a client and server copy of NVDA.
+1. Install RDAccess in both a client and server copy of NVDA.
 1. The remote system should automatically start speaking using the local speech synthesizer. If not, in the NVDA instance on the server, select the remote speech synthesizer from NVDA"s synthesizer selection dialog.
 1. To use braille, enable automatic braille display detection using the braille display selection dialog.
 
 ## Configuration
 
-After installation, the NVDA Remote Desktop add-on can be configured using NVDA's settings dialog, which can be accessed from the NVDA Menu by choosing Preferences > Settings...
+After installation, the rdAccess add-on can be configured using NVDA's settings dialog, which can be accessed from the NVDA Menu by choosing Preferences > Settings...
 After that, choose the Remote Desktop category.
 
 This dialog contains the following settings:
@@ -66,7 +66,7 @@ Otherwise, you are advised to disable it, as it implies some performance degrada
 This client option is only available on installed copies of NVDA.
 When enabled, it ensures that the client portion of NVDA is loaded in your remote desktop client, even when NVDA is not running.
 
-To use the client portion of NVDA Remote Desktop, several changes have to be maede in the Windows Registry.
+To use the client portion of RDAccess, several changes have to be maede in the Windows Registry.
 The add-on ensures that these changes are made under the profile of the current user.
 These changes don't require administrative privileges.
 Therefore, NVDA can automatically apply the necessary changes when loaded, and undo these changes when exiting NVDA.
@@ -76,34 +76,34 @@ However, if you are running an installed copy and you are the only user of the s
 
 ### Enable Microsoft Remote Desktop support
 
-This option is enabled by default and ensures that the client portion of NVDA Remote Desktop is loaded in the Microsoft Remote Desktop client (mstsc) when starting NVDA.
+This option is enabled by default and ensures that the client portion of RDAccess is loaded in the Microsoft Remote Desktop client (mstsc) when starting NVDA.
 Unless persistent client support is enabled by enabling the previous option, these changes will be automatically undone when exiting NVDA.
 
 ### Enable Citrix Workspace support
 
-This option is enabled by default and ensures that the client portion of NVDA Remote Desktop is loaded in the Citrix Workspace app when starting NVDA.
+This option is enabled by default and ensures that the client portion of RDAccess is loaded in the Citrix Workspace app when starting NVDA.
 Unless persistent client support is enabled by enabling the previous option, these changes will be automatically undone when exiting NVDA.
 
 This option is only available in the following cases:
 
 * Citrix Workspace is installed. Note that the Windows Store version of the app is not supported due to limitations in that app itself
-* It is possible to register NVDA Remote Desktop under the current user context. After installing the app, you have to start a remote session once to make this possible
+* It is possible to register RDAccess under the current user context. After installing the app, you have to start a remote session once to make this possible
 
 ## Citrix specific instructions
 
-There are some important points of attention when using NVDA Remote Desktop with the Citrix Workspace app.
+There are some important points of attention when using RDAccess with the Citrix Workspace app.
 
 ### Client side requirements
 
 1. The Windows Store variant of the app is *not* supported.
 
-2. After installing Citrix Workspace, you have to start a remote session once to allow NVDA Remote Desktop registering itself. The reason behind this is that the application copies the system configuration to the user configuration when it establishes a session for the first time. After that, NVDA Remote Desktop can register itself under the current user context.
+2. After installing Citrix Workspace, you have to start a remote session once to allow RDAccess registering itself. The reason behind this is that the application copies the system configuration to the user configuration when it establishes a session for the first time. After that, NVDA Remote Desktop can register itself under the current user context.
 
 ### Server side requirement
 
-In Citrix Virtual Apps and Desktops 2109, Citrix enabled the so called virtual channel allow list. This means that third party virtual channels, including the channel required bij NVDA Remote Desktop, is not allowed by default. For more information, [see this Citrix blog post](https://www.citrix.com/blogs/2021/10/14/virtual-channel-allow-list-now-enabled-by-default/)
+In Citrix Virtual Apps and Desktops 2109, Citrix enabled the so called virtual channel allow list. This means that third party virtual channels, including the channel required by RDAccess, is not allowed by default. For more information, [see this Citrix blog post](https://www.citrix.com/blogs/2021/10/14/virtual-channel-allow-list-now-enabled-by-default/)
 
-Explicitly allowing the RdPipe channel required by NVDA Remote Desktop is not yet tested. For now, it is probably your best bet to disable the allow list altogether. If your system administrator is unhappy with this, feel free to [drop a line in the devoted issue][3]
+Explicitly allowing the RdPipe channel required by RDAccess is not yet tested. For now, it is probably your best bet to disable the allow list altogether. If your system administrator is unhappy with this, feel free to [drop a line in the devoted issue][3]
 
 ## Issues and contributing
 
@@ -117,6 +117,6 @@ published by the Free Software Foundation.
 
 [1]: https://github.com/leonardder/
 [2]: https://en.wikipedia.org/wiki/Jump_server
-[3]: https://github.com/leonardder/nvdaRd/issues
+[3]: https://github.com/leonardder/rdAccess/issues
 [4]: https://github.com/leonardder/rd_pipe-rs
 [5]: https://github.com/leonardder/rd_pipe-rs/blob/master/LICENSE

@@ -137,8 +137,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if isRunningOnSecureDesktop():
 			return
 		config.post_configProfileSwitch.register(self._handlePostConfigProfileSwitch)
-		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(settingsPanel.NvdaRDSettingsPanel)
-		settingsPanel.NvdaRDSettingsPanel.post_onSave.register(self._handlePostConfigProfileSwitch)
+		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(settingsPanel.RemoteDesktopSettingsPanel)
+		settingsPanel.RemoteDesktopSettingsPanel.post_onSave.register(self._handlePostConfigProfileSwitch)
 
 	def _initializeExistingPipes(self):
 		for match in namedPipe.getRdPipeNamedPipes():
@@ -208,8 +208,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def terminate(self):
 		try:
 			if not isRunningOnSecureDesktop():
-				settingsPanel.NvdaRDSettingsPanel.post_onSave.unregister(self._handlePostConfigProfileSwitch)
-				gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(settingsPanel.NvdaRDSettingsPanel)
+				settingsPanel.RemoteDesktopSettingsPanel.post_onSave.unregister(self._handlePostConfigProfileSwitch)
+				gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(settingsPanel.RemoteDesktopSettingsPanel)
 				config.post_configProfileSwitch.unregister(self._handlePostConfigProfileSwitch)
 			configuredOperatingMode = configuration.getOperatingMode()
 			if (

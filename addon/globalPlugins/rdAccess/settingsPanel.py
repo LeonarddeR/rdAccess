@@ -19,7 +19,7 @@ else:
 addonHandler.initTranslation()
 
 
-class NvdaRDSettingsPanel(SettingsPanel):
+class RemoteDesktopSettingsPanel(SettingsPanel):
 	# Translators: The label for the NVDA Remote Desktop settings panel.
 	title = _("Remote Desktop")
 	post_onSave = Action()
