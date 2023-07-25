@@ -114,12 +114,14 @@ class NamedPipeBase(IoBase):
 class NamedPipeServer(NamedPipeBase):
 	_connected: bool = False
 	_messageQueue: List[bytes]
+	_onConnected: Optional[Callable[[bool], None]] = None
 
 	def __init__(
 			self,
 			pipeName: str,
 			onReceive: Callable[[bytes], None],
 			onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
+			onConnected: Optional[Callable[[bool], None]] = None,
 			onReadError: Optional[Callable[[int], bool]] = None,
 			ioThread: Optional[IoThread] = None,
 			pipeMode: PipeMode = PipeMode.READMODE_BYTE,
@@ -143,6 +145,7 @@ class NamedPipeServer(NamedPipeBase):
 		if fileHandle == INVALID_HANDLE_VALUE:
 			raise WinError()
 		self._messageQueue = []
+		self._onConnected = onConnected
 		super().__init__(
 			pipeName,
 			fileHandle,
@@ -166,7 +169,8 @@ class NamedPipeServer(NamedPipeBase):
 		if error.winerror == ERROR_PIPE_CONNECTED:
 			windll.kernel32.SetEvent(self._recvEvt)
 		else:
-			if connectRes or error.winerror != ERROR_IO_PENDING:
+			if not connectRes and error.winerror != ERROR_IO_PENDING:
+				self.close()
 				raise error
 			while True:
 				waitRes = winKernel.waitForSingleObjectEx(self._recvEvt, winKernel.INFINITE, True)
@@ -182,6 +186,8 @@ class NamedPipeServer(NamedPipeBase):
 				self._ioDone(GetLastError(), 0, byref(ol))
 				return
 		self._connected = True
+		if self._onConnected is not None:
+			self._onConnected(True)
 		clientProcessId = c_ulong()
 		if not windll.kernel32.GetNamedPipeClientProcessId(HANDLE(self._file), byref(clientProcessId)):
 			raise WinError()
@@ -200,6 +206,7 @@ class NamedPipeServer(NamedPipeBase):
 			super()._asyncRead()
 
 	def close(self):
+		self._onConnected = None
 		super().close()
 		if hasattr(self, "_file") and self._file is not INVALID_HANDLE_VALUE:
 			windll.kernel32.DisconnectNamedPipe(self._file)

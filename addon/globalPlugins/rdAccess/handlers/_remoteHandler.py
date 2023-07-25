@@ -40,13 +40,21 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 
 	def initializeIo(self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool):
 		try:
-			IO = namedPipe.NamedPipeClient if isNamedPipeClient else namedPipe.NamedPipeServer
-			self._dev = IO(
-				pipeName=pipeName,
-				onReceive=self._onReceive,
-				onReadError=self._onReadError,
-				ioThread=ioThread
-			)
+			if isNamedPipeClient:
+				self._dev = namedPipe.NamedPipeClient(
+					pipeName=pipeName,
+					onReceive=self._onReceive,
+					onReadError=self._onReadError,
+					ioThread=ioThread
+				)
+			else:
+				self._dev = namedPipe.NamedPipeServer(
+					pipeName=pipeName,
+					onReceive=self._onReceive,
+					onReadError=self._onReadError,
+					onConnected=lambda connected: setattr(self, "_remoteSessionhasFocus", connected),
+					ioThread=ioThread
+				)
 		except EnvironmentError:
 			raise
 
