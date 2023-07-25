@@ -25,6 +25,7 @@ MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS = 200
 class RemoteHandler(protocol.RemoteProtocolHandler):
 	_dev: namedPipe.NamedPipeBase
 	decide_remoteDisconnect: AccumulatingDecider
+	_isSecureDesktopHandler: bool = False
 	_remoteSessionhasFocus: typing.Optional[bool] = None
 	_driver: Driver
 	_abstract__driver = True
@@ -55,11 +56,15 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			pipeName: str,
 			isNamedPipeClient: bool = True,
 	):
+		self._isSecureDesktopHandler = not isNamedPipeClient
 		super().__init__()
 		self.initializeIo(ioThread=ioThread, pipeName=pipeName, isNamedPipeClient=isNamedPipeClient)
 		self._handleDriverChanged(self._driver)
 
 	def event_gainFocus(self, obj):
+		if self._isSecureDesktopHandler:
+			self._remoteSessionhasFocus = True
+			return
 		# Invalidate the property cache to ensure that hasFocus will be fetched again.
 		# Normally, hasFocus should be cached since it is pretty expensive
 		# and should never try to fetch the time since input from the remote driver
@@ -106,6 +111,9 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 	_remoteProcessHasFocus: bool
 
 	def _get__remoteProcessHasFocus(self):
+		if self._isSecureDesktopHandler:
+			self._remoteProcessHasFocus = True
+			return self._remoteProcessHasFocus
 		focus = api.getFocusObject()
 		return focus.processID in (self._dev.pipeProcessId, self._dev.pipeParentProcessId)
 
