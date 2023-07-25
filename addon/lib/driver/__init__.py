@@ -78,6 +78,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 					self._dev = namedPipe.NamedPipeClient(
 						port,
 						onReceive=self._onReceive,
+						onReadError=self._onReadError,
 					)
 			except EnvironmentError:
 				log.debugWarning("", exc_info=True)
