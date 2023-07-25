@@ -37,13 +37,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		obj.decide_remoteDisconnect = AccumulatingDecider(defaultDecision=False)
 		return obj
 
-	def __init__(
-			self,
-			ioThread: IoThread,
-			pipeName: str,
-			isNamedPipeClient: bool = True,
-	):
-		super().__init__()
+	def initializeIo(self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool):
 		try:
 			IO = namedPipe.NamedPipeClient if isNamedPipeClient else namedPipe.NamedPipeServer
 			self._dev = IO(
@@ -55,6 +49,14 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		except EnvironmentError:
 			raise
 
+	def __init__(
+			self,
+			ioThread: IoThread,
+			pipeName: str,
+			isNamedPipeClient: bool = True,
+	):
+		super().__init__()
+		self.initializeIo(ioThread=ioThread, pipeName=pipeName, isNamedPipeClient=isNamedPipeClient)
 		self._handleDriverChanged(self._driver)
 
 	def event_gainFocus(self, obj):

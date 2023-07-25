@@ -325,6 +325,10 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 				self._attributeValueProcessor.register(getattr(self, k))
 		return self
 
+	def terminateIo(self):
+		# Make sure the device gets closed.
+		self._dev.close()
+
 	def __init__(self):
 		super().__init__()
 		self._bgExecutor = ThreadPoolExecutor(4, thread_name_prefix=self.__class__.__name__)
@@ -336,8 +340,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 			if superTerminate:
 				superTerminate()
 		finally:
-			# Make sure the device gets closed.
-			self._dev.close()
+			self.terminateIo()
 			self._attributeValueProcessor.clearCache()
 			self._bgExecutor.shutdown(False)
 
