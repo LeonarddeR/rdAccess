@@ -16,7 +16,6 @@ from .objects import findExtraOverlayClasses
 import config
 import gui
 import api
-import bdDetect
 import atexit
 from utils.security import isRunningOnSecureDesktop
 from IAccessibleHandler import SecureDesktopNVDAObject
@@ -86,8 +85,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			atexit.register(cls._unregisterRdPipeFromRegistry)
 
 	def initializeOperatingModeServer(self):
-		bdDetect.scanForDevices.register(detection.bgScanRD)
-		bdDetect.scanForDevices.moveToEnd(detection.bgScanRD, last=False)
+		detection.register()
 		if configuration.getRecoverRemoteSpeech():
 			self._synthDetector = _SynthDetector()
 		self._triggerBackgroundDetectRescan(True)
@@ -174,7 +172,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
 		if self._synthDetector:
 			self._synthDetector.terminate()
-		bdDetect.scanForDevices.unregister(detection.bgScanRD)
+		detection.unregister()
 
 	def terminateOperatingModeRdClient(self):
 		if isRunningOnSecureDesktop():
