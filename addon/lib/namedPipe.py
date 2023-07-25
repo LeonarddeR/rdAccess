@@ -113,7 +113,6 @@ class NamedPipeBase(IoBase):
 
 class NamedPipeServer(NamedPipeBase):
 	_connected: bool = False
-	_messageQueue: List[bytes]
 	_onConnected: Optional[Callable[[bool], None]] = None
 
 	def __init__(
@@ -155,12 +154,6 @@ class NamedPipeServer(NamedPipeBase):
 			pipeMode=pipeMode,
 		)
 
-	def write(self, data: bytes):
-		if not self._connected:
-			self._messageQueue.append(data)
-		else:
-			return super().write(data)
-
 	def _handleConnect(self):
 		ol = OVERLAPPED()
 		ol.hEvent = self._recvEvt
@@ -193,9 +186,6 @@ class NamedPipeServer(NamedPipeBase):
 			raise WinError()
 		self.pipeProcessId = clientProcessId.value
 		self.pipeParentProcessId = getParentProcessId(self.pipeProcessId)
-		for message in self._messageQueue:
-			self.write(message)
-		self._messageQueue.clear()
 		self._asyncRead()
 
 	def _asyncRead(self, param: Optional[int] = None):

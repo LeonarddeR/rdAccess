@@ -52,7 +52,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 					pipeName=pipeName,
 					onReceive=self._onReceive,
 					onReadError=self._onReadError,
-					onConnected=lambda connected: setattr(self, "_remoteSessionhasFocus", connected),
+					onConnected=self._onConnected,
 					ioThread=ioThread
 				)
 		except EnvironmentError:
@@ -67,6 +67,12 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		self._isSecureDesktopHandler = not isNamedPipeClient
 		super().__init__()
 		self.initializeIo(ioThread=ioThread, pipeName=pipeName, isNamedPipeClient=isNamedPipeClient)
+		if not self._isSecureDesktopHandler:
+			self._handleDriverChanged(self._driver)
+
+	def _onConnected(self, connected: bool):
+		assert self._isSecureDesktopHandler
+		self._remoteSessionhasFocus = True
 		self._handleDriverChanged(self._driver)
 
 	def event_gainFocus(self, obj):
