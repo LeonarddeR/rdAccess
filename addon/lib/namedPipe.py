@@ -1,5 +1,9 @@
+# RDAccess: Remote Desktop Accessibility for NVDA
+# Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
+# License: GNU General Public License version 2.0
+
 from hwIo.ioThread import IoThread
-from typing import Callable, Iterator, List, Optional, Union
+from typing import Callable, Iterator, Optional, Union
 from ctypes import (
 	byref,
 	c_ulong,

@@ -1,3 +1,7 @@
+# RDAccess: Remote Desktop Accessibility for NVDA
+# Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
+# License: GNU General Public License version 2.0
+
 from winAPI import _wtsApi32 as wtsApi32
 from hwIo.base import _isDebug, IoBase
 from hwIo.ioThread import IoThread

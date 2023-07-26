@@ -1,3 +1,7 @@
+# RDAccess: Remote Desktop Accessibility for NVDA
+# Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
+# License: GNU General Public License version 2.0
+
 from __future__ import annotations
 from .handlers import RemoteBrailleHandler, RemoteSpeechHandler
 from .handlers._remoteHandler import RemoteHandler
