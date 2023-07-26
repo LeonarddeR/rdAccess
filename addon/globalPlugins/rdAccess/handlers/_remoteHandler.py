@@ -38,7 +38,14 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		obj.decide_remoteDisconnect = AccumulatingDecider(defaultDecision=False)
 		return obj
 
-	def initializeIo(self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool):
+	def __init__(
+			self,
+			ioThread: IoThread,
+			pipeName: str,
+			isNamedPipeClient: bool = True,
+	):
+		self._isSecureDesktopHandler = not isNamedPipeClient
+		super().__init__()
 		try:
 			if isNamedPipeClient:
 				self._dev = namedPipe.NamedPipeClient(
@@ -58,26 +65,18 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		except EnvironmentError:
 			raise
 
-	def __init__(
-			self,
-			ioThread: IoThread,
-			pipeName: str,
-			isNamedPipeClient: bool = True,
-	):
-		self._isSecureDesktopHandler = not isNamedPipeClient
-		super().__init__()
-		self.initializeIo(ioThread=ioThread, pipeName=pipeName, isNamedPipeClient=isNamedPipeClient)
 		if not self._isSecureDesktopHandler:
-			self._handleDriverChanged(self._driver)
+			self._onConnected()
+		elif self._remoteSessionhasFocus is None:
+			self._remoteSessionhasFocus = False
 
-	def _onConnected(self, connected: bool):
-		assert self._isSecureDesktopHandler
-		self._remoteSessionhasFocus = True
+	def _onConnected(self):
+		if self._isSecureDesktopHandler:
+			self._remoteSessionhasFocus = True
 		self._handleDriverChanged(self._driver)
 
 	def event_gainFocus(self, obj):
 		if self._isSecureDesktopHandler:
-			self._remoteSessionhasFocus = True
 			return
 		# Invalidate the property cache to ensure that hasFocus will be fetched again.
 		# Normally, hasFocus should be cached since it is pretty expensive

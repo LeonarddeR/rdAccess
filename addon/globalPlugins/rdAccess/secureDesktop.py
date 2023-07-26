@@ -10,6 +10,7 @@ import braille
 import synthDriverHandler
 from ctypes import WinError
 import weakref
+from logHandler import log
 
 if typing.TYPE_CHECKING:
 	from ...lib import namedPipe
@@ -30,7 +31,9 @@ class SecureDesktopHandler(AutoPropertyObject):
 	def _handleRemoteDisconnect(self, handler: RemoteHandler, error: int) -> bool:
 		if self._terminating:
 			return True
-		if isinstance(WinError(error), BrokenPipeError):
+		winErr = WinError(error)
+		if isinstance(winErr, BrokenPipeError):
+			log.warning(f"Handling remote disconnect of secure desktop handler {handler}: {winErr}")
 			ioThread = self._ioThreadRef()
 			pipeName = handler._dev.pipeName
 			handler.terminate()

@@ -4,11 +4,12 @@ from ctypes import (
 	byref,
 	c_ulong,
 	GetLastError,
+	POINTER,
 	sizeof,
 	windll,
 	WinError,
 )
-from ctypes.wintypes import HANDLE, DWORD
+from ctypes.wintypes import HANDLE, DWORD, LPCWSTR
 from serial.win32 import (
 	CreateFile,
 	ERROR_IO_PENDING,
@@ -22,6 +23,7 @@ import os
 from glob import iglob
 from appModuleHandler import processEntry32W
 from hwIo.base import IoBase
+from logHandler import log
 
 ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_CONNECTED = 0x217
@@ -30,6 +32,17 @@ PIPE_DIRECTORY = "\\\\?\\pipe\\"
 RD_PIPE_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
 SECURE_DESKTOP_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "NVDA_SD-*")
 TH32CS_SNAPPROCESS = 0x00000002
+windll.kernel32.CreateNamedPipeW.restype = HANDLE
+windll.kernel32.CreateNamedPipeW.argtypes = (
+	LPCWSTR,
+	DWORD,
+	DWORD,
+	DWORD,
+	DWORD,
+	DWORD,
+	DWORD,
+	POINTER(winKernel.SECURITY_ATTRIBUTES)
+)
 
 
 def getParentProcessId(processId: int) -> Optional[int]:
@@ -113,14 +126,14 @@ class NamedPipeBase(IoBase):
 
 class NamedPipeServer(NamedPipeBase):
 	_connected: bool = False
-	_onConnected: Optional[Callable[[bool], None]] = None
+	_onConnected: Optional[Callable[[], None]] = None
 
 	def __init__(
 			self,
 			pipeName: str,
 			onReceive: Callable[[bytes], None],
 			onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
-			onConnected: Optional[Callable[[bool], None]] = None,
+			onConnected: Optional[Callable[[], None]] = None,
 			onReadError: Optional[Callable[[int], bool]] = None,
 			ioThread: Optional[IoThread] = None,
 			pipeMode: PipeMode = PipeMode.READMODE_BYTE,
@@ -131,6 +144,7 @@ class NamedPipeServer(NamedPipeBase):
 			),
 			maxInstances: int = 1
 	):
+		log.debug(f"Initializing named pipe: Name={pipeName}")
 		fileHandle = windll.kernel32.CreateNamedPipeW(
 			pipeName,
 			pipeOpenMode,
@@ -143,7 +157,7 @@ class NamedPipeServer(NamedPipeBase):
 		)
 		if fileHandle == INVALID_HANDLE_VALUE:
 			raise WinError()
-		self._messageQueue = []
+		log.debug(f"Initialized named pipe: Name={pipeName}, handle={fileHandle}")
 		self._onConnected = onConnected
 		super().__init__(
 			pipeName,
@@ -155,38 +169,47 @@ class NamedPipeServer(NamedPipeBase):
 		)
 
 	def _handleConnect(self):
+		if self._file == INVALID_HANDLE_VALUE:
+			# Connection closed, cancelling connect.
+			return
 		ol = OVERLAPPED()
 		ol.hEvent = self._recvEvt
+		log.debug(f"Connecting server end of named pipe: Name={self.pipeName}")
 		connectRes = windll.kernel32.ConnectNamedPipe(self._file, byref(ol))
 		error = WinError()
 		if error.winerror == ERROR_PIPE_CONNECTED:
+			log.debug(f"Server end of named pipe already connected")
 			windll.kernel32.SetEvent(self._recvEvt)
 		else:
 			if not connectRes and error.winerror != ERROR_IO_PENDING:
-				self.close()
 				raise error
+			log.debug(f"Named pipe pending client connection")
 			while True:
 				waitRes = winKernel.waitForSingleObjectEx(self._recvEvt, winKernel.INFINITE, True)
 				if waitRes == winKernel.WAIT_OBJECT_0:
+					log.debug(f"Event set, server end of named pipe connected")
 					break
 				elif waitRes == winKernel.WAIT_IO_COMPLETION:
+					log.debug(f"IO received, moving on to next iteration of connection loop")
 					continue
 				else:
-					self._ioDone(GetLastError(), 0, byref(ol))
+					error = GetLastError()
+					self._ioDone(error, 0, byref(ol))
 					return
 			numberOfBytes = DWORD()
 			if not windll.kernel32.GetOverlappedResult(self._file, byref(ol), byref(numberOfBytes), False):
-				self._ioDone(GetLastError(), 0, byref(ol))
+				error = GetLastError()
+				self._ioDone(error, 0, byref(ol))
 				return
 		self._connected = True
-		if self._onConnected is not None:
-			self._onConnected(True)
 		clientProcessId = c_ulong()
 		if not windll.kernel32.GetNamedPipeClientProcessId(HANDLE(self._file), byref(clientProcessId)):
 			raise WinError()
 		self.pipeProcessId = clientProcessId.value
 		self.pipeParentProcessId = getParentProcessId(self.pipeProcessId)
 		self._asyncRead()
+		if self._onConnected is not None:
+			self._onConnected()
 
 	def _asyncRead(self, param: Optional[int] = None):
 		if not self._connected:
