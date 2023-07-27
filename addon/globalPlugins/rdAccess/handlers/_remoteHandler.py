@@ -42,6 +42,28 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		obj.decide_remoteDisconnect = AccumulatingDecider(defaultDecision=False)
 		return obj
 
+	def initIo(
+			self,
+			ioThread: IoThread,
+			pipeName: str,
+			isNamedPipeClient: bool = True,
+	):
+		if isNamedPipeClient:
+			self._dev = namedPipe.NamedPipeClient(
+				pipeName=pipeName,
+				onReceive=self._onReceive,
+				onReadError=self._onReadError,
+				ioThread=ioThread
+			)
+		else:
+			self._dev = namedPipe.NamedPipeServer(
+				pipeName=pipeName,
+				onReceive=self._onReceive,
+				onReadError=self._onReadError,
+				onConnected=self._onConnected,
+				ioThread=ioThread
+			)
+
 	def __init__(
 			self,
 			ioThread: IoThread,
@@ -50,24 +72,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 	):
 		self._isSecureDesktopHandler = not isNamedPipeClient
 		super().__init__()
-		try:
-			if isNamedPipeClient:
-				self._dev = namedPipe.NamedPipeClient(
-					pipeName=pipeName,
-					onReceive=self._onReceive,
-					onReadError=self._onReadError,
-					ioThread=ioThread
-				)
-			else:
-				self._dev = namedPipe.NamedPipeServer(
-					pipeName=pipeName,
-					onReceive=self._onReceive,
-					onReadError=self._onReadError,
-					onConnected=self._onConnected,
-					ioThread=ioThread
-				)
-		except EnvironmentError:
-			raise
+		self.initIo(ioThread, pipeName, isNamedPipeClient)
 
 		if not self._isSecureDesktopHandler:
 			self._onConnected()

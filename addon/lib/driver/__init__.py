@@ -66,7 +66,6 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	def __init__(self, port="auto"):
 		super().__init__()
-		initialTime = time.time()
 		self._connected = False
 		for portType, portId, port, portInfo in self._getTryPorts(port):
 			try:
@@ -94,7 +93,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 					continue
 			else:
 				self._connected = True
-			if self._waitForAttributeUpdate(protocol.GenericAttribute.SUPPORTED_SETTINGS, initialTime):
+			if self._waitForAttributeUpdate(protocol.GenericAttribute.SUPPORTED_SETTINGS):
 				break
 			else:
 				log.debugWarning("Error getting supported settings")

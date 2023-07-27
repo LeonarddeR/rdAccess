@@ -13,12 +13,13 @@ from ctypes import (
 	windll,
 	WinError,
 )
-from ctypes.wintypes import HANDLE, DWORD, LPCWSTR
+from ctypes.wintypes import BOOL, HANDLE, DWORD, LPCWSTR
 from serial.win32 import (
 	CreateFile,
 	ERROR_IO_PENDING,
 	FILE_FLAG_OVERLAPPED,
 	INVALID_HANDLE_VALUE,
+	LPOVERLAPPED,
 	OVERLAPPED,
 )
 import winKernel
@@ -47,7 +48,11 @@ windll.kernel32.CreateNamedPipeW.argtypes = (
 	DWORD,
 	POINTER(winKernel.SECURITY_ATTRIBUTES)
 )
+windll.kernel32.ConnectNamedPipe.restype = BOOL
+windll.kernel32.ConnectNamedPipe.argtypes = (HANDLE, LPOVERLAPPED)
 
+windll.kernel32.DisconnectNamedPipe.restype = BOOL
+windll.kernel32.DisconnectNamedPipe.argtypes = (HANDLE,)
 
 def getParentProcessId(processId: int) -> Optional[int]:
 	FSnapshotHandle = windll.kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
@@ -173,20 +178,19 @@ class NamedPipeServer(NamedPipeBase):
 		)
 
 	def _handleConnect(self):
-		if self._file == INVALID_HANDLE_VALUE:
-			# Connection closed, cancelling connect.
-			return
 		ol = OVERLAPPED()
 		ol.hEvent = self._recvEvt
 		log.debug(f"Connecting server end of named pipe: Name={self.pipeName}")
 		connectRes = windll.kernel32.ConnectNamedPipe(self._file, byref(ol))
-		error = WinError()
-		if error.winerror == ERROR_PIPE_CONNECTED:
+		error: int = GetLastError()
+		if error == ERROR_PIPE_CONNECTED:
 			log.debug(f"Server end of named pipe already connected")
 			windll.kernel32.SetEvent(self._recvEvt)
 		else:
-			if not connectRes and error.winerror != ERROR_IO_PENDING:
-				raise error
+			if not connectRes and error != ERROR_IO_PENDING:
+				log.error(self._file)
+				self._ioDone(error, 0, byref(ol))
+				return
 			log.debug(f"Named pipe pending client connection")
 			while True:
 				waitRes = winKernel.waitForSingleObjectEx(self._recvEvt, winKernel.INFINITE, True)

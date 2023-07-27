@@ -451,7 +451,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 			timeout: Optional[float] = None,
 	):
 		if initialTime is None:
-			initialTime = time.time()
+			initialTime = 0.0
 		log.debug(f"Waiting for attribute {attribute!r}")
 		return self._safeWait(
 			lambda: self._attributeValueProcessor.hasNewValueSince(attribute, initialTime),
