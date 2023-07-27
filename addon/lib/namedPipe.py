@@ -135,15 +135,14 @@ class NamedPipeBase(IoBase):
 
 class NamedPipeServer(NamedPipeBase):
 	_connected: bool = False
-	_onConnected: Optional[Callable[[], None]] = None
+	_onConnected: Optional[Callable[[bool], None]] = None
 
 	def __init__(
 			self,
 			pipeName: str,
 			onReceive: Callable[[bytes], None],
 			onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
-			onConnected: Optional[Callable[[], None]] = None,
-			onReadError: Optional[Callable[[int], bool]] = None,
+			onConnected: Optional[Callable[[bool], None]] = None,
 			ioThread: Optional[IoThread] = None,
 			pipeMode: PipeMode = PipeMode.READMODE_BYTE,
 			pipeOpenMode: PipeOpenMode = (
@@ -172,7 +171,7 @@ class NamedPipeServer(NamedPipeBase):
 			pipeName,
 			fileHandle,
 			onReceive,
-			onReadError=onReadError,
+			onReadError=self._onReadError,
 			ioThread=ioThread,
 			pipeMode=pipeMode,
 		)
@@ -215,9 +214,17 @@ class NamedPipeServer(NamedPipeBase):
 			raise WinError()
 		self.pipeProcessId = clientProcessId.value
 		self.pipeParentProcessId = getParentProcessId(self.pipeProcessId)
-		self._asyncRead()
+		super()._asyncRead()
 		if self._onConnected is not None:
 			self._onConnected()
+
+	def _onReadError(self, error: int):
+		winErr = WinError(error)
+		if isinstance(winErr, BrokenPipeError):
+			self.disconnect()
+			self._initialRead()
+			return True
+		return False
 
 	def _asyncRead(self, param: Optional[int] = None):
 		if not self._connected:
@@ -226,13 +233,32 @@ class NamedPipeServer(NamedPipeBase):
 		else:
 			super()._asyncRead()
 
+	def disconnect(self):
+		if not 			windll.kernel32.DisconnectNamedPipe(self._file):
+			raise WinError()
+		self._connected = False
+		self.pipeProcessId = None
+		self.pipeParentProcessId = None
+		if self._onConnected:
+			self._onConnected(False)
+
 	def close(self):
-		self._onConnected = None
 		super().close()
 		if hasattr(self, "_file") and self._file is not INVALID_HANDLE_VALUE:
-			windll.kernel32.DisconnectNamedPipe(self._file)
+			self.disconnect()
+			self._onConnected = None
 			winKernel.closeHandle(self._file)
 			self._file = INVALID_HANDLE_VALUE
+
+	@property
+	def _ioDone(self):
+		return super()._ioDone
+
+	@_ioDone.setter
+	def _ioDone(self, value):
+		"""Hack, we don't want _ioDone to set itself to None.
+		"""
+		pass
 
 
 class NamedPipeClient(NamedPipeBase):

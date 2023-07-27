@@ -30,20 +30,6 @@ class SecureDesktopHandler(AutoPropertyObject):
 	_ioThreadRef: weakref.ReferenceType[IoThread]
 	_brailleHandler: RemoteBrailleHandler
 	_speechHandler: RemoteSpeechHandler
-	_terminating: bool = False
-
-	def _handleRemoteDisconnect(self, handler: RemoteHandler, error: int) -> bool:
-		if self._terminating:
-			return True
-		winErr = WinError(error)
-		if isinstance(winErr, BrokenPipeError):
-			log.warning(f"Handling remote disconnect of secure desktop handler {handler}: {winErr}")
-			ioThread = self._ioThreadRef()
-			pipeName = handler._dev.pipeName
-			handler.terminate()
-			handler.__init__(ioThread=ioThread, pipeName=pipeName, isNamedPipeClient=False)
-			return True
-		return False
 
 	def __init__(self, ioThread: IoThread):
 		self._ioThreadRef = weakref.ref(ioThread)
@@ -53,7 +39,6 @@ class SecureDesktopHandler(AutoPropertyObject):
 		self._speechHandler = self._initializeHandler(RemoteSpeechHandler)
 
 	def terminate(self):
-		self._terminating = True
 		self._speechHandler.terminate()
 		braille.handler.display.loadSettings()
 		self._brailleHandler.terminate()
@@ -63,5 +48,4 @@ class SecureDesktopHandler(AutoPropertyObject):
 		sdId = f"NVDA_SD-{handlerType.driverType.name}"
 		sdPort = os.path.join(namedPipe.PIPE_DIRECTORY, sdId)
 		handler = handlerType(self._ioThreadRef(), sdPort, False)
-		handler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
 		return handler

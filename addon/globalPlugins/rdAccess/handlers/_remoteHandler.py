@@ -59,7 +59,6 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			self._dev = namedPipe.NamedPipeServer(
 				pipeName=pipeName,
 				onReceive=self._onReceive,
-				onReadError=self._onReadError,
 				onConnected=self._onConnected,
 				ioThread=ioThread
 			)
@@ -79,10 +78,11 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		elif self._remoteSessionhasFocus is None:
 			self._remoteSessionhasFocus = False
 
-	def _onConnected(self):
+	def _onConnected(self, connected: bool = True):
 		if self._isSecureDesktopHandler:
-			self._remoteSessionhasFocus = True
-		self._handleDriverChanged(self._driver)
+			self._remoteSessionhasFocus = connected
+		if connected:
+			self._handleDriverChanged(self._driver)
 
 	def event_gainFocus(self, obj):
 		if self._isSecureDesktopHandler:
