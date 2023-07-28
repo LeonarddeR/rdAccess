@@ -44,7 +44,8 @@ class RemoteBrailleHandler(RemoteHandler):
 	@protocol.attributeSender(protocol.BrailleAttribute.NUM_CELLS)
 	def _outgoing_numCells(self, numCells=None) -> bytes:
 		if numCells is None:
-			numCells = self._driver.numCells
+			# Use the display size of the local braille handler
+			numCells = braille.handler.displaySize
 		return intToByte(numCells)
 
 	@protocol.attributeSender(protocol.BrailleAttribute.GESTURE_MAP)

@@ -5,6 +5,7 @@
 from hwIo.ioThread import IoThread
 from typing import Callable, Iterator, Optional, Union
 from ctypes import (
+	WINFUNCTYPE,
 	byref,
 	c_ulong,
 	GetLastError,
@@ -13,7 +14,7 @@ from ctypes import (
 	windll,
 	WinError,
 )
-from ctypes.wintypes import BOOL, HANDLE, DWORD, LPCWSTR
+from ctypes.wintypes import BOOL, BOOLEAN, HANDLE, DWORD, LPCWSTR, LPVOID
 from serial.win32 import (
 	CreateFile,
 	ERROR_IO_PENDING,
@@ -33,10 +34,14 @@ from logHandler import log
 ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_CONNECTED = 0x217
 ERROR_PIPE_BUSY = 0xE7
+WT_EXECUTEINWAITTHREAD = 0x00000004
+WT_EXECUTELONGFUNCTION = 0x00000010
+WT_EXECUTEONLYONCE = 0x00000008
 PIPE_DIRECTORY = "\\\\?\\pipe\\"
 RD_PIPE_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
 SECURE_DESKTOP_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "NVDA_SD-*")
 TH32CS_SNAPPROCESS = 0x00000002
+WaitOrTimerCallback = WINFUNCTYPE(None, LPVOID, BOOLEAN)
 windll.kernel32.CreateNamedPipeW.restype = HANDLE
 windll.kernel32.CreateNamedPipeW.argtypes = (
 	LPCWSTR,
@@ -50,9 +55,11 @@ windll.kernel32.CreateNamedPipeW.argtypes = (
 )
 windll.kernel32.ConnectNamedPipe.restype = BOOL
 windll.kernel32.ConnectNamedPipe.argtypes = (HANDLE, LPOVERLAPPED)
-
 windll.kernel32.DisconnectNamedPipe.restype = BOOL
 windll.kernel32.DisconnectNamedPipe.argtypes = (HANDLE,)
+windll.kernel32.RegisterWaitForSingleObject.restype = BOOL
+windll.kernel32.RegisterWaitForSingleObject.argtypes = (POINTER(HANDLE), HANDLE, WaitOrTimerCallback, LPVOID, DWORD, DWORD)
+
 
 def getParentProcessId(processId: int) -> Optional[int]:
 	FSnapshotHandle = windll.kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
@@ -136,6 +143,9 @@ class NamedPipeBase(IoBase):
 class NamedPipeServer(NamedPipeBase):
 	_connected: bool = False
 	_onConnected: Optional[Callable[[bool], None]] = None
+	_waitObject: Optional[HANDLE] = None
+	_connectOl: Optional[OVERLAPPED] = None
+	_handleConnectCallbackWotc: Optional[WaitOrTimerCallback] = None
 
 	def __init__(
 			self,
@@ -177,48 +187,64 @@ class NamedPipeServer(NamedPipeBase):
 		)
 
 	def _handleConnect(self):
-		ol = OVERLAPPED()
+		self._handleConnectCallbackWotc = WaitOrTimerCallback(self._handleConnectCallback)
+		self._connectOl = ol = OVERLAPPED()
 		ol.hEvent = self._recvEvt
 		log.debug(f"Connecting server end of named pipe: Name={self.pipeName}")
 		connectRes = windll.kernel32.ConnectNamedPipe(self._file, byref(ol))
 		error: int = GetLastError()
 		if error == ERROR_PIPE_CONNECTED:
-			log.debug(f"Server end of named pipe already connected")
+			log.debug(f"Server end of named pipe {self.pipeName} already connected")
 			windll.kernel32.SetEvent(self._recvEvt)
 		else:
 			if not connectRes and error != ERROR_IO_PENDING:
-				log.error(self._file)
+				log.error(f"Error while calling ConnectNamedPipe for {self.pipeName}: {WinError(error)}")
 				self._ioDone(error, 0, byref(ol))
 				return
-			log.debug(f"Named pipe pending client connection")
-			while True:
-				waitRes = winKernel.waitForSingleObjectEx(self._recvEvt, winKernel.INFINITE, True)
-				if waitRes == winKernel.WAIT_OBJECT_0:
-					log.debug(f"Event set, server end of named pipe connected")
-					break
-				elif waitRes == winKernel.WAIT_IO_COMPLETION:
-					log.debug(f"IO received, moving on to next iteration of connection loop")
-					continue
-				else:
-					error = GetLastError()
-					self._ioDone(error, 0, byref(ol))
-					return
-			numberOfBytes = DWORD()
-			if not windll.kernel32.GetOverlappedResult(self._file, byref(ol), byref(numberOfBytes), False):
+			log.debug(f"Named pipe {self.pipeName} pending client connection")
+			self._waitObject = HANDLE()
+			waitRes = windll.kernel32.RegisterWaitForSingleObject(byref(self._waitObject), self._recvEvt, self._handleConnectCallbackWotc, None, winKernel.INFINITE, WT_EXECUTEINWAITTHREAD | WT_EXECUTELONGFUNCTION | WT_EXECUTEONLYONCE)
+			if not waitRes:
 				error = GetLastError()
+				log.error(f"Error while calling RegisterWaitForSingleObject for {self.pipeName}: {WinError(error)}")
 				self._ioDone(error, 0, byref(ol))
+
+	def _handleConnectCallback(self, parameter, timerOrWaitFired):
+		try:
+			assert timerOrWaitFired == 0
+			log.debug(f"Event set for {self.pipeName}")
+			numberOfBytes = DWORD()
+			log.debug(f"Getting overlapped result for {self.pipeName} after wait for event")
+			if not windll.kernel32.GetOverlappedResult(self._file, byref(self._connectOl), byref(numberOfBytes), False):
+				error = GetLastError()
+				log.debugWarning(f"Error while getting overlapped result for {self.pipeName}: {WinError(error)}")
+				self._ioDone(error, 0, byref(self._connectOl))
 				return
-		self._connected = True
-		clientProcessId = c_ulong()
-		if not windll.kernel32.GetNamedPipeClientProcessId(HANDLE(self._file), byref(clientProcessId)):
-			raise WinError()
-		self.pipeProcessId = clientProcessId.value
-		self.pipeParentProcessId = getParentProcessId(self.pipeProcessId)
-		super()._asyncRead()
-		if self._onConnected is not None:
-			self._onConnected()
+			self._connected = True
+			log.debug("Succesfully connected {self.pipeName}, handling post connection logic")
+			clientProcessId = c_ulong()
+			if not windll.kernel32.GetNamedPipeClientProcessId(HANDLE(self._file), byref(clientProcessId)):
+				raise WinError()
+			self.pipeProcessId = clientProcessId.value
+			self.pipeParentProcessId = getParentProcessId(self.pipeProcessId)
+			if self._onConnected is not None:
+				self._onConnected(True)
+			log.debug("End of handleConnectCallback for {self.pipeName}")
+			self._initialRead()
+		finally:
+			self._ioThreadRef().queueAsApc(self._cleanupHandleConnect)
+
+	def _cleanupHandleConnect(self, param: Optional[int] = None):
+		if self._waitObject is None:
+			return
+		windll.kernel32.UnregisterWaitEx(self._waitObject, INVALID_HANDLE_VALUE)
+		self._waitObject = None
+		self._connectOl = None
+		self._handleConnectCallbackWotc = None
 
 	def _onReadError(self, error: int):
+		import tones
+		tones.beep(440, 30)
 		winErr = WinError(error)
 		if isinstance(winErr, BrokenPipeError):
 			self.disconnect()
