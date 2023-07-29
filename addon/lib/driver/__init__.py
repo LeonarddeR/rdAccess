@@ -163,11 +163,12 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			attribute: protocol.AttributeT,
 			settings: Iterable[DriverSetting]
 	):
+		log.debug(f"Initializing settings accessor for {len(settings)} settings")
 		self._settingsAccessor = SettingsAccessorBase.createFromSettings(self, settings) if settings else None
 		self._handleRemoteDriverChange()
 
 	def _handleRemoteDriverChange(self):
-		return
+		log.debug("Handling remote driver change")
 
 	def _get_supportedSettings(self):
 		settings = []

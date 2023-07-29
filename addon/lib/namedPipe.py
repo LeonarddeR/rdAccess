@@ -217,11 +217,11 @@ class NamedPipeServer(NamedPipeBase):
 			raise WinError()
 		self.pipeProcessId = clientProcessId.value
 		self.pipeParentProcessId = getParentProcessId(self.pipeProcessId)
+		self._initialRead()
 		if self._onConnected is not None:
 			self._onConnected(True)
 		log.debug("End of handleConnectCallback for {self.pipeName}")
 		self._connectOl = None
-		self._initialRead()
 
 	def _onReadError(self, error: int):
 		winErr = WinError(error)
@@ -288,6 +288,19 @@ class NamedPipeClient(NamedPipeBase):
 		)
 		if fileHandle == INVALID_HANDLE_VALUE:
 			raise WinError()
+		try:
+			if pipeMode:
+				dwPipeMode = DWORD(pipeMode)
+				if not windll.kernel32.SetNamedPipeHandleState(fileHandle, byref(dwPipeMode), 0, 0):
+					raise WinError()
+			serverProcessId = c_ulong()
+			if not windll.kernel32.GetNamedPipeServerProcessId(HANDLE(fileHandle), byref(serverProcessId)):
+				raise WinError()
+			self.pipeProcessId = serverProcessId.value
+			self.pipeParentProcessId = getParentProcessId(self.pipeProcessId)
+		except Exception:
+			winKernel.closeHandle(fileHandle)
+			raise
 		super().__init__(
 			pipeName,
 			fileHandle,
@@ -296,15 +309,6 @@ class NamedPipeClient(NamedPipeBase):
 			ioThread=ioThread,
 			pipeMode=pipeMode,
 		)
-		if pipeMode:
-			dwPipeMode = DWORD(pipeMode)
-			if not windll.kernel32.SetNamedPipeHandleState(fileHandle, byref(dwPipeMode), 0, 0):
-				raise WinError()
-		serverProcessId = c_ulong()
-		if not windll.kernel32.GetNamedPipeServerProcessId(HANDLE(fileHandle), byref(serverProcessId)):
-			raise WinError()
-		self.pipeProcessId = serverProcessId.value
-		self.pipeParentProcessId = getParentProcessId(self.pipeProcessId)
 
 	def close(self):
 		super().close()

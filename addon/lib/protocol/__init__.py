@@ -254,6 +254,7 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 		self._pendingAttributeRequests.clear()
 
 	def setAttributeRequestPending(self, attribute, state: bool = True):
+		log.debug(f"Request pending for attribute {attribute!r} set to {state!r}")
 		self._pendingAttributeRequests[attribute] = state
 
 	def isAttributeRequestPending(self, attribute):
@@ -273,8 +274,8 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 	def _invokeUpdateCallback(self, attribute: AttributeT, value: AttributeValueT):
 		handler = self._getRawHandler(attribute)
 		if handler._updateCallback is not None:
-			log.debug(f"Calling update callback {handler._updateCallback!r} for attribute {attribute!r}")
 			callback = handler._updateCallback.__get__(handler.__self__)
+			log.debug(f"Calling update callback {callback!r} for attribute {attribute!r}")
 			handler.__self__._bgExecutor.submit(callback, attribute, value)
 
 	def getValue(self, attribute: AttributeT, fallBackToDefault: bool = False):

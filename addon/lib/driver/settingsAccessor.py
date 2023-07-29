@@ -31,16 +31,18 @@ class SettingsAccessorBase(AutoPropertyObject):
 			dct[f"_set_{s.id}"] = cls._makeSetSetting(s.id)
 			if not isinstance(s, (driverSetting.BooleanDriverSetting, driverSetting.NumericDriverSetting)):
 				dct[f"_get_{cls._getAvailableSettingsPropertyName(s.id)}"] = cls._makeGetAvailableSettings(s.id)
+		log.debug("Constructed dictionary to generate new dynamic SettingsAccessor")
 		return type("SettingsAccessor", (SettingsAccessorBase, ), dct)(driver, settingNames)
 
 	def _get_driver(self):
 		return self._driverRef()
 
 	def __init__(self, driver: "RemoteDriver", settingNames: List[str]):
+		log.debug(f"Initializing {self} for driver {driver}, settings {settingNames}")
 		self._driverRef = weakref.ref(driver)
 		self._settingNames = settingNames
 		for name in self._settingNames:
-			self.driver.requestRemoteAttribute(self._getSettingAttributeName(name))
+			driver.requestRemoteAttribute(self._getSettingAttributeName(name))
 
 	@classmethod
 	def _getSettingAttributeName(cls, setting: str) -> protocol.AttributeT:
