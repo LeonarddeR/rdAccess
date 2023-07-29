@@ -79,6 +79,8 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 			log.error("Unexpected NoInputGestureAction", exc_info=True)
 
 	def display(self, cells: List[int]):
+		#if len(cells) == 0:
+		#	return
 		# cells will already be padded up to numCells.
 		arg = bytes(cells)
 		self.writeMessage(protocol.BrailleCommand.DISPLAY, arg)

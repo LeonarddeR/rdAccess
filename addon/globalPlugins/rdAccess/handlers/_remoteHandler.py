@@ -60,7 +60,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 				pipeName=pipeName,
 				onReceive=self._onReceive,
 				onConnected=self._onConnected,
-				ioThread=ioThread
+				ioThreadEx=ioThread
 			)
 
 	def __init__(

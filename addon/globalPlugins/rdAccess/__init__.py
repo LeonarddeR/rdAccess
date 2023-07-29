@@ -28,6 +28,7 @@ from .secureDesktop import SecureDesktopHandler
 if typing.TYPE_CHECKING:
 	from ...lib import configuration
 	from ...lib import detection
+	from ...lib import ioThreadEx
 	from ...lib import namedPipe
 	from ...lib import protocol
 	from ...lib import rdPipe
@@ -35,6 +36,7 @@ else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	configuration = addon.loadModule("lib.configuration")
 	detection = addon.loadModule("lib.detection")
+	ioThreadEx = addon.loadModule("lib.ioThreadEx")
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
@@ -42,7 +44,7 @@ else:
 
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	_synthDetector: typing.Optional[_SynthDetector] = None
-	_ioThread: typing.Optional[hwIo.ioThread.IoThread] = None
+	_ioThread: typing.Optional[ioThreadEx.IoThreadEx] = None
 
 	def chooseNVDAObjectOverlayClasses(self, obj: NVDAObject, clsList: List[Type[NVDAObject]]):
 		findExtraOverlayClasses(obj, clsList)
@@ -99,7 +101,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def initializeOperatingModeCommonClient(self):
 		if isRunningOnSecureDesktop():
 			return
-		self._ioThread = hwIo.ioThread.IoThread()
+		self._ioThread = ioThreadEx.IoThreadEx()
 		self._ioThread.start()
 
 	def initializeOperatingModeRdClient(self):

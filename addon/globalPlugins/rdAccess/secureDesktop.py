@@ -8,7 +8,6 @@ from .handlers._remoteHandler import RemoteHandler
 import typing
 from baseObject import AutoPropertyObject
 import addonHandler
-from hwIo.ioThread import IoThread
 import os.path
 import braille
 import synthDriverHandler
@@ -17,9 +16,11 @@ import weakref
 from logHandler import log
 
 if typing.TYPE_CHECKING:
+	from ...lib import ioThreadEx
 	from ...lib import namedPipe
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
+	ioTrheadEx = addon.loadModule("lib.ioThreadEx")
 	namedPipe = addon.loadModule("lib.namedPipe")
 
 
@@ -27,11 +28,11 @@ HandlerTypeT = typing.TypeVar("HandlerTypeT", bound=RemoteHandler)
 
 
 class SecureDesktopHandler(AutoPropertyObject):
-	_ioThreadRef: weakref.ReferenceType[IoThread]
+	_ioThreadRef: weakref.ReferenceType[ioThreadEx.IoThreadEx]
 	_brailleHandler: RemoteBrailleHandler
 	_speechHandler: RemoteSpeechHandler
 
-	def __init__(self, ioThread: IoThread):
+	def __init__(self, ioThread: ioThreadEx.IoThreadEx):
 		self._ioThreadRef = weakref.ref(ioThread)
 		braille.handler.display.saveSettings()
 		self._brailleHandler = self._initializeHandler(RemoteBrailleHandler)
