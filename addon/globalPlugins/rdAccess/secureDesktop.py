@@ -11,9 +11,7 @@ import addonHandler
 import os.path
 import braille
 import synthDriverHandler
-from ctypes import WinError
 import weakref
-from logHandler import log
 
 if typing.TYPE_CHECKING:
 	from ...lib import ioThreadEx

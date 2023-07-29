@@ -1,5 +1,9 @@
-from ctypes import POINTER, WINFUNCTYPE, WinError, addressof, byref, cast, windll
-from ctypes.wintypes import BOOL, BOOLEAN, DWORD, HANDLE, LPVOID, LPHANDLE
+# RDAccess: Remote Desktop Accessibility for NVDA
+# Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
+# License: GNU General Public License version 2.0
+
+from ctypes import POINTER, WINFUNCTYPE, WinError, addressof, byref, windll
+from ctypes.wintypes import BOOL, BOOLEAN, DWORD, HANDLE, LPVOID
 from inspect import ismethod
 import threading
 from typing import Callable, Dict, Tuple, Union
@@ -25,7 +29,14 @@ WaitOrTimerCallbackStoreT = Dict[
 	]
 ]
 windll.kernel32.RegisterWaitForSingleObject.restype = BOOL
-windll.kernel32.RegisterWaitForSingleObject.argtypes = (POINTER(HANDLE), HANDLE, WaitOrTimerCallback, LPVOID, DWORD, DWORD)
+windll.kernel32.RegisterWaitForSingleObject.argtypes = (
+	POINTER(HANDLE),
+	HANDLE,
+	WaitOrTimerCallback,
+	LPVOID,
+	DWORD,
+	DWORD
+)
 
 
 class IoThreadEx(hwIo.ioThread.IoThread):
@@ -33,7 +44,10 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 
 	@WaitOrTimerCallback
 	def _internalWaitOrTimerCallback(param: WaitOrTimerCallbackIdT, timerOrWaitFired: bool):
-		(threadIdent, waitObject, reference, actualParam) = IoThreadEx._waitOrTimerCallbackStore.pop(param, (0, 0, None, 0))
+		(threadIdent, waitObject, reference, actualParam) = IoThreadEx._waitOrTimerCallbackStore.pop(
+			param,
+			(0, 0, None, 0)
+		)
 		threadInst: IoThreadEx = threading._active.get(threadIdent)
 		if not isinstance(threadInst, IoThreadEx):
 			log.error(f"Internal WaitOrTimerCallback called from unknown thread")
@@ -45,14 +59,18 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 		function = reference()
 		if not function:
 			log.debugWarning(
-				f"Not executing queued WaitOrTimerCallback {param}:{reference.funcName} with param {actualParam} because reference died"
+				f"Not executing queued WaitOrTimerCallback {param}:{reference.funcName} with param {actualParam} "
+				"because reference died"
 			)
 			return
 
 		try:
 			function(actualParam, bool(timerOrWaitFired))
 		except Exception:
-			log.error(f"Error in WaitOrTimerCallback function {function!r} with id {param} queued to IoThread", exc_info=True)
+			log.error(
+				f"Error in WaitOrTimerCallback function {function!r} with id {param} queued to IoThread",
+				exc_info=True
+			)
 		finally:
 			threadInst.queueAsApc(threadInst._postWaitOrTimerCallback, waitObject)
 
@@ -73,9 +91,20 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 
 		waitObject = HANDLE()
 		reference = BoundMethodWeakref(func) if ismethod(func) else AnnotatableWeakref(func)
+		reference.funcName = repr(func)
 		waitObjectAddr = addressof(waitObject)
 		self._waitOrTimerCallbackStore[waitObjectAddr] = (self.ident, waitObject, reference, param)
-		waitRes = windll.kernel32.RegisterWaitForSingleObject(byref(waitObject), objectHandle, self._internalWaitOrTimerCallback, waitObjectAddr, waitTime, flags)
-		if not waitRes:
-			raise WinError()
-		reference.funcName = repr(func)
+		try:
+			waitRes = windll.kernel32.RegisterWaitForSingleObject(
+				byref(waitObject),
+				objectHandle,
+				self._internalWaitOrTimerCallback,
+				waitObjectAddr,
+				waitTime,
+				flags
+			)
+			if not waitRes:
+				raise WinError()
+		except Exception:
+			del self._waitOrTimerCallbackStore[waitObjectAddr]
+			raise

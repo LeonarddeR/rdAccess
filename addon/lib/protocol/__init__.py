@@ -343,10 +343,13 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 			superTerminate = getattr(super(), "terminate", None)
 			if superTerminate:
 				superTerminate()
+				# We must sleep before closing the  connection as not doing this
+				# can leave a remote handler in a bad state where it can not be re-initialized.
+				time.sleep(self.timeout / 10)
 		finally:
 			self.terminateIo()
 			self._attributeValueProcessor.clearCache()
-			self._bgExecutor.shutdown(False)
+			self._bgExecutor.shutdown()
 
 	def _onReceive(self, message: bytes):
 		if self._receiveBuffer:

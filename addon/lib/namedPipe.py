@@ -6,7 +6,6 @@ from .ioThreadEx import IoThreadEx
 from hwIo.ioThread import IoThread
 from typing import Callable, Iterator, Optional, Union
 from ctypes import (
-	WINFUNCTYPE,
 	byref,
 	c_ulong,
 	GetLastError,
@@ -15,7 +14,7 @@ from ctypes import (
 	windll,
 	WinError,
 )
-from ctypes.wintypes import BOOL, BOOLEAN, HANDLE, DWORD, LPCWSTR, LPVOID
+from ctypes.wintypes import BOOL, HANDLE, DWORD, LPCWSTR
 from serial.win32 import (
 	CreateFile,
 	ERROR_IO_PENDING,
@@ -203,13 +202,12 @@ class NamedPipeServer(NamedPipeBase):
 			self._ioDone(error, 0, byref(ol))
 
 	def _handleConnectCallback(self, parameter: int, timerOrWaitFired: bool):
-		assert timerOrWaitFired == False
 		log.debug(f"Event set for {self.pipeName}")
 		numberOfBytes = DWORD()
 		log.debug(f"Getting overlapped result for {self.pipeName} after wait for event")
 		if not windll.kernel32.GetOverlappedResult(self._file, byref(self._connectOl), byref(numberOfBytes), False):
 			error = GetLastError()
-			log.debugWarning(f"Error while getting overlapped result for {self.pipeName}: {WinError(error)}")
+			log.debug(f"Error while getting overlapped result for {self.pipeName}: {WinError(error)}")
 			self._ioDone(error, 0, byref(self._connectOl))
 			return
 		self._connected = True
@@ -226,9 +224,8 @@ class NamedPipeServer(NamedPipeBase):
 		self._initialRead()
 
 	def _onReadError(self, error: int):
-		import tones
-		tones.beep(440, 30)
 		winErr = WinError(error)
+		log.debug(f"Read error: {winErr}")
 		if isinstance(winErr, BrokenPipeError):
 			self.disconnect()
 			self._initialRead()
@@ -243,7 +240,7 @@ class NamedPipeServer(NamedPipeBase):
 			super()._asyncRead()
 
 	def disconnect(self):
-		if not 			windll.kernel32.DisconnectNamedPipe(self._file):
+		if not windll.kernel32.DisconnectNamedPipe(self._file):
 			raise WinError()
 		self._connected = False
 		self.pipeProcessId = None

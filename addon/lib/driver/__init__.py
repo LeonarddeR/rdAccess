@@ -20,7 +20,6 @@ from autoSettingsUtils.driverSetting import DriverSetting
 from .settingsAccessor import SettingsAccessorBase
 import sys
 from baseObject import AutoPropertyObject
-import time
 from utils.security import post_sessionLockStateChanged, isRunningOnSecureDesktop
 
 ERROR_INVALID_HANDLE = 0x6

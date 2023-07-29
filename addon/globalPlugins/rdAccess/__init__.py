@@ -4,7 +4,6 @@
 
 import globalPluginHandler
 import addonHandler
-import hwIo
 from . import directoryChanges, settingsPanel
 import typing
 from fnmatch import fnmatch
