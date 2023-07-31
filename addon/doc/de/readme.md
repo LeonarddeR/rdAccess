@@ -1,21 +1,22 @@
-# NVDA Remote Desktop #
+# Zugänglichkeit von Remote Desktop #
 
 * Autor: [Leonard de Ruijter][1]
 * [Beta-Version herunterladen][2]
-* NVDA-Kompatibilität: 2023.1 und neuer
+* NVDA-Kompatibilität: 2023.2 und neuer
 
-Diese NVDA-Erweiterung bietet Unterstützung für den Zugriff auf
-Remote-Desktop-Sitzungen mit NVDA über Microsoft Remote Desktop, Citrix oder
-VMware Horizon.  Wenn NVDA sowohl auf dem Client als auch auf dem Server
-installiert ist, wird die auf dem Server erzeugte Sprachausgabe und
-Braille-Schrift auf dem Client mitgeteilt. Damit wird die Verwaltung eines
-Remote-Systems genauso leistungsstark wie die Bedienung eines lokalen
-Systems.
+Die NVDA-Erweiterung RDAccess (Remote Desktop Accessibility) bietet
+Unterstützung für den Zugriff auf Remote-Desktop-Sitzungen mit NVDA über
+Microsoft Remote Desktop, Citrix oder VMware Horizon. Wenn es in NVDA sowohl
+auf dem Client als auch auf dem Server installiert ist, wird  auf dem Server
+die Sprachausgabe und Braille-Schrift auf dem Client-Rechner ausgegeben und
+mit der Braille-Schrift versehen. Dies ermöglicht eine Benutzererfahrung,
+bei der die Verwaltung eines entfernten Systems genauso leistungsfähig ist
+wie die Bedienung des lokalen Systems.
 
 ## Features
 
 * Unterstützung für Microsoft Remote Desktop, Citrix und VMware Horizon
-* Ausgabe via Sprachausgabe und Braille
+* Ausgabe via Sprachausgabe und Braille-Schrift
 * Automatische Erkennung auf dem Remote-System von Braillezeilen mit Hilfe
   der automatischen Erkennung von Braillezeilen durch NVDA
 * Automatische Erkennung der Sprachausgabe auf dem Remote-System mit Hilfe
@@ -26,25 +27,26 @@ Systems.
 * Vollständige Unterstützung für portable NVDA-Versionen auf einem Client
   (keine zusätzlichen administrativen Berechtigungen für die Installation
   der NVDA-Erweiterung erforderlich)
-* Mehrere aktive Client-Sitzungen zur gleichen Zeit
-* Remote-Desktop sofort nach NVDA-Start verfügbar
+* Mehrere parallellaufende aktive Client-Sitzungen
+* Remote Desktop sofort nach NVDA-Start verfügbar
 * Möglichkeit, bestimmte Einstellungen der Sprachausgabe und der
   Braillezeile zu steuern, ohne die Remote-Sitzung zu verlassen
-* Möglichkeit der Nutzung von Sprachausgabe und Braille aus der
+* Möglichkeit der Nutzung von Sprachausgabe und Braille-Schrift aus der
   Benutzersitzung heraus beim Zugriff auf geschützte Desktops
 
-## Einstieg
+## Erste Schritte
 
-1. Installieren Sie diese NVDA-Erweiterung sowohl in einer Client- als auch
-   in einer Server-Umgebung mit NVDA.
+1. Installieren Sie RDAccess in einer NVDA-Version sowohl in einer Client-
+   als auch in einer Server-Umgebung.
 1. Das Remote-System sollte automatisch mit der lokalen Sprachausgabe
    beginnen zu sprechen. Wenn dies nicht der Fall ist, wählen Sie dort in
-   der NVDA-Instanz auf dem Server die Sprachausgabe aus dem NVDA-Dialogfeld
-   zur Auswahl der Sprachausgaben aus.
-1. Um Braille zu verwenden, aktivieren Sie die automatische Erkennung der
-   Braillezeile im Dialogfeld zur Auswahl der Braillezeilen.
+   der NVDA-Instanz auf dem Server die Sprachausgabe aus dem Dialogfeld zur
+   Auswahl der Sprachausgaben in NVDA aus.
+1. Um die Braille-Unterstützung zu verwenden, aktivieren Sie die
+   automatische Erkennung der Braillezeile im Dialogfeld zur Auswahl der
+   Braillezeilen.
 
-## Probleme und Beiträge
+## Themen und Beiträge
 
 Wenn Sie ein Problem melden oder einen Beitrag leisten möchten, schauen Sie
 sich [die Themen-Seite auf GitHub][3] an.
@@ -61,9 +63,9 @@ Foundation veröffentlicht wurde, weiterverteilt.
 
 [1]: https://github.com/leonardder/
 
-[2]: https://www.nvaccess.org/addonStore/legacy?file=nvdaRd-beta
+[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess-beta
 
-[3]: https://github.com/leonardder/nvdaRd/issues
+[3]: https://github.com/leonardder/rdAccess/issues
 
 [4]: https://github.com/leonardder/rd_pipe-rs
 
