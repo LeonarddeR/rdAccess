@@ -27,7 +27,8 @@ def bgScanRD(
 	operatingMode = configuration.getOperatingMode()
 	if limitToDevices and RemoteDriver.name not in limitToDevices:
 		return
-	if isRunningOnSecureDesktop() and operatingMode & configuration.OperatingMode.SECURE_DESKTOP:
+	isSecureDesktop: bool = isRunningOnSecureDesktop()
+	if isSecureDesktop and operatingMode & configuration.OperatingMode.SECURE_DESKTOP:
 		sdId = f"NVDA_SD-{driverType.name}"
 		sdPort = os.path.join(PIPE_DIRECTORY, sdId)
 		if sdPort in getSecureDesktopNamedPipes():
@@ -35,7 +36,11 @@ def bgScanRD(
 				RemoteDriver.name,
 				bdDetect.DeviceMatch(type=KEY_NAMED_PIPE_CLIENT, id=sdId, port=sdPort, deviceInfo={})
 			)
-	if operatingMode & configuration.OperatingMode.SERVER and getRemoteSessionMetrics() == 1:
+	if (
+		operatingMode & configuration.OperatingMode.SERVER
+		and not isSecureDesktop
+		and getRemoteSessionMetrics() == 1
+	):
 		port = f"NVDA-{driverType.name}"
 		yield (RemoteDriver.name, bdDetect.DeviceMatch(type=KEY_VIRTUAL_CHANNEL, id=port, port=port, deviceInfo={}))
 

@@ -9,6 +9,7 @@ from hwIo import intToByte, IoThread
 import typing
 import inputCore
 import threading
+from brailleViewer import postBrailleViewerToolToggledAction
 import versionInfo
 
 if typing.TYPE_CHECKING:
@@ -30,10 +31,12 @@ class RemoteBrailleHandler(RemoteHandler):
 		super().__init__(ioThread, pipeName, isNamedPipeClient=isNamedPipeClient)
 		braille.decide_enabled.register(self._handleBrailleHandlerEnabled)
 		braille.displayChanged.register(self._handleDriverChanged)
+		postBrailleViewerToolToggledAction.register(self._handlePostBrailleViewerToolToggled)
 		inputCore.decide_executeGesture.register(self._handleExecuteGesture)
 
 	def terminate(self):
 		inputCore.decide_executeGesture.unregister(self._handleExecuteGesture)
+		postBrailleViewerToolToggledAction.unregister(self._handlePostBrailleViewerToolToggled)
 		braille.displayChanged.unregister(self._handleDriverChanged)
 		braille.decide_enabled.unregister(self._handleBrailleHandlerEnabled)
 		super().terminate()
@@ -105,5 +108,8 @@ class RemoteBrailleHandler(RemoteHandler):
 
 	def _handleDriverChanged(self, display: braille.BrailleDisplayDriver):
 		super()._handleDriverChanged(display)
-		self._attributeSenderStore(protocol.BrailleAttribute.NUM_CELLS, numCells=display.numCells	)
+		self._attributeSenderStore(protocol.BrailleAttribute.NUM_CELLS)
 		self._attributeSenderStore(protocol.BrailleAttribute.GESTURE_MAP, gestureMap=display.gestureMap)
+
+	def _handlePostBrailleViewerToolToggled(self):
+		self._attributeSenderStore(protocol.BrailleAttribute.NUM_CELLS)

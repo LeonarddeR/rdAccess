@@ -80,6 +80,9 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 
 	def display(self, cells: List[int]):
 		# cells will already be padded up to numCells.
+		assert len(cells) == self.numCells
+		if len(cells) == 0:
+			return
 		arg = bytes(cells)
 		self.writeMessage(protocol.BrailleCommand.DISPLAY, arg)
 

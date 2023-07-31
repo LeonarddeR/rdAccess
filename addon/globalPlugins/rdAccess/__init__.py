@@ -49,44 +49,55 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		findExtraOverlayClasses(obj, clsList)
 
 	@classmethod
-	def _updateRegistryForRdPipe(cls, install, rdp, citrix):
+	def _updateRegistryForRdPipe(
+			cls,
+			install: bool,
+			rdp: bool,
+			citrix: bool
+	) -> bool:
 		if isRunningOnSecureDesktop():
-			return
+			return False
 		if citrix and not rdPipe.isCitrixSupported():
 			citrix = False
 		if not rdp and not citrix:
-			return
+			return False
 		if rdPipe.DEFAULT_ARCHITECTURE == rdPipe.Architecture.X86:
-			rdPipe.dllInstall(
+			return rdPipe.dllInstall(
 				install=install,
 				comServer=True,
 				rdp=rdp,
 				citrix=citrix,
 			)
 		else:
+			res = False
 			if rdp:
-				rdPipe.dllInstall(
+				if rdPipe.dllInstall(
 					install=install,
 					comServer=True,
 					rdp=True,
 					citrix=False,
-				)
+				):
+					res = True
 			if citrix:
-				rdPipe.dllInstall(
+				if rdPipe.dllInstall(
 					install=install,
 					comServer=True,
 					rdp=False,
 					citrix=True,
 					architecture=rdPipe.Architecture.X86
-				)
+				):
+					res = True
+		return res
 
 	@classmethod
 	def _registerRdPipeInRegistry(cls):
 		persistent = config.isInstalledCopy() and configuration.getPersistentRegistration()
 		rdp = configuration.getRemoteDesktopSupport()
 		citrix = configuration.getCitrixSupport()
-		cls._updateRegistryForRdPipe(True, rdp, citrix)
-		if not persistent:
+		if (
+			cls._updateRegistryForRdPipe(True, rdp, citrix)
+			and not persistent
+		):
 			atexit.register(cls._unregisterRdPipeFromRegistry)
 
 	def initializeOperatingModeServer(self):
@@ -204,11 +215,11 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._handleSecureDesktop(False)
 
 	@classmethod
-	def _unregisterRdPipeFromRegistry(cls):
+	def _unregisterRdPipeFromRegistry(cls) -> bool:
 		atexit.unregister(cls._unregisterRdPipeFromRegistry)
 		rdp = configuration.getRemoteDesktopSupport()
 		citrix = configuration.getCitrixSupport()
-		cls._updateRegistryForRdPipe(False, rdp, citrix)
+		return cls._updateRegistryForRdPipe(False, rdp, citrix)
 
 	def terminate(self):
 		try:
