@@ -1,15 +1,15 @@
-# NVDA Remote Desktop #
+# Remote Desktop Accessibility #
 
 * Автори: [Леонард де Руйтер][1]
 * Завантажити [бета-версію][2]
-* Сумісність з NVDA: 2023.1 і новіші версії
+* NVDA compatibility: 2023.2 and later
 
-Цей додаток додає підтримку доступу до сеансів віддаленого робочого столу в
-NVDA за допомогою Microsoft Remote Desktop, Citrix або VMware Horizon.  При
-встановленні NVDA як на клієнті, так і на сервері, мовлення і шрифт Брайля,
-згенеровані на сервері, будуть відтворюватися на клієнтському комп'ютері.
-Це дає користувачеві можливість керувати віддаленою системою так само
-ефективно, як і локальною системою.
+The RDAccess add-on (Remote Desktop Accessibility) adds support to access
+remote desktop sessions to NVDA using Microsoft Remote Desktop, Citrix or
+VMware Horizon.  When installed in NVDA on both the client and the server,
+speech and braille generated on the server will be spoken and brailled by
+the client machine.  This enables a user experience where managing a remote
+system feels just as performant as operating the local system.
 
 ## Особливості
 
@@ -32,7 +32,7 @@ NVDA за допомогою Microsoft Remote Desktop, Citrix або VMware Hori
 
 ## Початок роботи
 
-1. Встановіть цей додаток як на клієнтську, так і на серверну копію NVDA.
+1. Install RDAccess in both a client and server copy of NVDA.
 1. Віддалена система повинна автоматично почати розмовляти, використовуючи
    локальний синтезатор мовлення. Якщо ні, в копії NVDA на сервері виберіть
    віддалений синтезатор мовлення у діалозі вибору синтезатора NVDA.
@@ -56,9 +56,9 @@ Affero General Public License][5], опублікованої Фондом ві�
 
 [1]: https://github.com/leonardder/
 
-[2]: https://www.nvaccess.org/addonStore/legacy?file=nvdaRd-beta
+[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess-beta
 
-[3]: https://github.com/leonardder/nvdaRd/issues
+[3]: https://github.com/leonardder/rdAccess/issues
 
 [4]: https://github.com/leonardder/rd_pipe-rs
 

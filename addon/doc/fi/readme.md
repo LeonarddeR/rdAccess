@@ -1,20 +1,21 @@
-# NVDA Remote Desktop #
+# Etätyöpöydän saavutettavuus #
 
 * Tekijä: [Leonard de Ruijter][1]
 * Lataa [beetaversio][2]
-* Yhteensopivuus: NVDA 2023.1 ja uudemmat
+* Yhteensopivuus: NVDA 2023.2 ja uudemmat
 
-Tämä lisäosa lisää NVDA:han tuen etätyöpöytäistunnoille Microsoft
-Etätyöpöytää, Citrixiä tai VMware Horizonia käyttäen. Kun tämä lisäosa on
-asennettu NVDA:han sekä asiakas- että palvelinkoneessa, palvelimella
-tuotettu puhe ja pistekirjoitus puhutaan ja näytetään asiakaskoneessa. Tämä
-mahdollistaa käyttäjäkokemuksen, jossa etäjärjestelmän hallitseminen tuntuu
-aivan paikallisen järjestelmän käyttämiseltä.
+RDAccess-lisäosa (Remote Desktop Accessibility, Etätyöpöydän saavutettavuus)
+lisää NVDA:han tuen etätyöpöytäistunnoille Microsoft Etätyöpöytää, Citrixiä
+tai VMware Horizonia käyttäen. Kun tämä lisäosa on asennettu NVDA:han sekä
+asiakas- että palvelinkoneessa, palvelimella tuotettu puhe ja pistekirjoitus
+puhutaan ja näytetään asiakaskoneessa. Tämä mahdollistaa käyttäjäkokemuksen,
+jossa etäjärjestelmän hallinta tuntuu aivan paikallisen järjestelmän
+käyttämiseltä.
 
 ## Ominaisuudet
 
 * Tuki Microsoft Etätyöpöydälle, Citrixille ja VMware Horizonille
-* Puheen ja pistekirjoituksen tulostus
+* Puheen ja pistekirjoituksen tuottaminen
 * Automaattinen etäpistenäyttöjen tunnistus NVDA:n automaattista pistenäytön
   tunnistusta käyttäen
 * Automaattinen etäpuhesyntetisaattoreiden tunnistus erityistä
@@ -24,7 +25,7 @@ aivan paikallisen järjestelmän käyttämiseltä.
   (Citrixiä varten tarvitaan lisämäärityksiä)
 * Täysi tuki asiakaskoneessa käynnissä oleville NVDA:n massamuistiversioille
   (lisäosan asentamiseen ei tarvita järjestelmänvalvojan lisäoikeuksia)
-* Useita aktiivisia asiakasistuntoja samanaikaisesti
+* Useita samanaikaisia aktiivisia asiakasistuntoja
 * Etätyöpöytä käytettävissä heti NVDA:n käynnistyksen jälkeen
 * Mahdollisuus säätää tiettyjä syntetisaattori- ja pistenäyttöasetuksia
   etäistunnosta poistumatta
@@ -33,7 +34,7 @@ aivan paikallisen järjestelmän käyttämiseltä.
 
 ## Aloittaminen
 
-1. Asenna tämä lisäosa sekä asiakas- että palvelinkoneelle.
+1. Asenna RDAccess NVDA:han sekä asiakas- että palvelinkoneella.
 1. Etäjärjestelmän pitäisi alkaa puhua paikallista puhesyntetisaattoria
    käyttäen. Jos näin ei tapahdu, valitse etäpuhesyntetisaattori
    palvelimella käynnissä olevan NVDA:n Valitse syntetisaattori
@@ -57,9 +58,9 @@ Pipeä jaetaan tämän lisäosan mukana Free Software Foundationin julkaiseman
 
 [1]: https://github.com/leonardder/
 
-[2]: https://www.nvaccess.org/addonStore/legacy?file=nvdaRd-beta
+[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess-beta
 
-[3]: https://github.com/leonardder/nvdaRd/issues
+[3]: https://github.com/leonardder/rdAccess/issues
 
 [4]: https://github.com/leonardder/rd_pipe-rs
 

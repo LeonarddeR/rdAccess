@@ -1,16 +1,16 @@
-# NVDA Remote Desktop #
+# Remote Desktop Accessibility #
 
 * Auteurs:  [Leonard de Ruijter][1]
 * Télécharger [version béta][2]
-* Compatibilité NVDA : 2023.1 et plus
+* Compatibilité NVDA : 2023.2 et plus
 
-Cette extension ajoute une prise en charge pour accéder aux sessions de
-bureau à distance à NVDA en utilisant Microsoft Remote Desktop, Citrix ou
-VMware Horizon. Lorsqu'il est installé dans NVDA sur le client et le
-serveur, la parole et le braille générées sur le serveur seront verbalisées
-et braillées par la machine client. Cela permet une expérience utilisateur
-où la gestion d'un système distant semble tout aussi performante que le
-fonctionnement du système local.
+L'extension RDAccess (Remote Desktop Accessibility) ajoute une prise en
+charge pour accéder aux sessions de bureau à distance à NVDA en utilisant
+Microsoft Remote Desktop, Citrix ou VMware Horizon. Lorsqu'il est installé
+dans NVDA sur le client et le serveur, la parole et le braille générées sur
+le serveur seront verbalisées et braillées par la machine client. Cela
+permet une expérience utilisateur où la gestion d'un système distant semble
+tout aussi performante que le fonctionnement du système local.
 
 ## Caractéristiques
 
@@ -35,8 +35,8 @@ fonctionnement du système local.
 
 ## Premiers pas
 
-1. Installez cette extension à la fois dans le client et serveur de la copie
-   de NVDA.
+1. Installez RDAccess à la fois dans le client et serveur de la copie de
+   NVDA.
 1. Le système distant doit commencer automatiquement à parler en utilisant
    le synthétiseur de la parole local. Sinon, dans l'instance NVDA sur le
    serveur, sélectionnez le synthétiseur de la parole à distance dans le
@@ -60,9 +60,9 @@ Affero General Public License][5] publiée par la Free Software Foundation.
 
 [1]: https://github.com/leonardder/
 
-[2]: https://www.nvaccess.org/addonStore/legacy?file=nvdaRd-beta
+[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess-beta
 
-[3]: https://github.com/leonardder/nvdaRd/issues
+[3]: https://github.com/leonardder/rdAccess/issues
 
 [4]: https://github.com/leonardder/rd_pipe-rs
 
