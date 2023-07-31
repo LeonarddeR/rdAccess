@@ -1,16 +1,15 @@
-# NVDA Remote Desktop #
+# Remote Desktop Accessibility #
 
 * Auteurs: [Leonard de Ruijter][1]
 * Download [betaversie][2]
-* NVDA-compatibiliteit: 2023.1 en later
+* NVDA compatibility: 2023.2 and later
 
-Deze add-on voegt ondersteuning toe voor toegang tot externe
-bureaubladsessies bij gebruik van Microsoft Remote Desktop, Citrix of VMware
-Horizon. Wanneer geïnstalleerd in NVDA op zowel de client als de server,
-worden spraak en braille die op de server worden gegenereerd, uitgesproken
-en in braille weergegeven op de clientcomputer. Dit maakt een
-gebruikerservaring mogelijk waarbij het beheer van een systeem op afstand
-net zo vlot aanvoelt als het bedienen van het lokale systeem.
+The RDAccess add-on (Remote Desktop Accessibility) adds support to access
+remote desktop sessions to NVDA using Microsoft Remote Desktop, Citrix or
+VMware Horizon.  When installed in NVDA on both the client and the server,
+speech and braille generated on the server will be spoken and brailled by
+the client machine.  This enables a user experience where managing a remote
+system feels just as performant as operating the local system.
 
 ## Functies
 
@@ -35,7 +34,7 @@ net zo vlot aanvoelt als het bedienen van het lokale systeem.
 
 ## Aan de slag
 
-1. Installeer deze add-on in zowel een client- als een serverkopie van NVDA.
+1. Install RDAccess in both a client and server copy of NVDA.
 1. Het beheerde systeem zou automatisch moeten werken met behulp van de
    lokale spraaksynthesizer. Als dit niet het geval is, selecteer je in de
    NVDA-kopie op de server de optie Externe Spraak in het
@@ -62,9 +61,9 @@ door de Free Software Foundation.
 
 [1]: https://github.com/leonardder/
 
-[2]: https://www.nvaccess.org/addonStore/legacy?file=nvdaRd-beta
+[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess-beta
 
-[3]: https://github.com/leonardder/nvdaRd/issues
+[3]: https://github.com/leonardder/rdAccess/issues
 
 [4]: https://github.com/leonardder/rd_pipe-rs
 

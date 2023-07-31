@@ -1,13 +1,14 @@
-# NVDA Uzak Masaüstü #
+# Uzak Masaüstü Erişilebilirliği #
 
 * Yazarlar: [Leonard de Ruijter][1]
 * [Beta sürümünü indir][2]
-* NVDA uyumluluğu: 2023.1 ve sonrası
+* NVDA uyumluluğu: 2023.2 ve sonrası
 
-Bu eklenti, Microsoft Uzak Masaüstü, Citrix veya VMware Horizon kullanarak
-NVDA'ya uzak masaüstü oturumlarına erişim desteği ekler. NVDA hem istemciye
-hem de sunucuya yüklendiğinde, sunucuda oluşturulan konuşma ve braille,
-istemci makine tarafından konuşulur ve braille yazılır. Bu, uzak bir sistemi
+RDAccess eklentisi (Uzak Masaüstü Erişilebilirliği), Microsoft Uzak
+Masaüstü, Citrix veya VMware Horizon kullanarak NVDA'ya uzak masaüstü
+oturumlarına erişim desteği ekler. NVDA'ya hem istemciye hem de sunucuya
+yüklendiğinde, sunucuda oluşturulan konuşma ve Braille alfabesi istemci
+makine tarafından seslendirilir ve böbürlenir. Bu, uzak bir sistemi
 yönetmenin yerel sistemi çalıştırmak kadar performanslı olduğu bir kullanıcı
 deneyimi sağlar.
 
@@ -32,7 +33,7 @@ deneyimi sağlar.
 
 ## Başlarken
 
-1. Bu eklentiyi NVDA'nın hem istemci hem de sunucu kopyasına kurun.
+1. RDAccess'i NVDA'nın hem istemci hem de sunucu kopyasına kurun.
 1. Uzak sistem, yerel konuşma sentezleyicisini kullanarak otomatik olarak
    konuşmaya başlamalıdır. Değilse, sunucudaki NVDA örneğinde, NVDA'nın
    sentezleyici seçim iletişim kutusundan uzak konuşma sentezleyicisini
@@ -56,9 +57,9 @@ koşulları altında bu eklentinin bir parçası olarak yeniden dağıtılır.
 
 [1]: https://github.com/leonardder/
 
-[2]: https://www.nvaccess.org/addonStore/legacy?file=nvdaRd-beta
+[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess-beta
 
-[3]: https://github.com/leonardder/nvdaRd/issues
+[3]: https://github.com/leonardder/rdAccess/issues
 
 [4]: https://github.com/leonardder/rd_pipe-rs
 
