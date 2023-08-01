@@ -29,20 +29,20 @@ This enables a user experience where managing a remote system feels just as perf
 
 ## Configuration
 
-After installation, the rdAccess add-on can be configured using NVDA's settings dialog, which can be accessed from the NVDA Menu by choosing Preferences > Settings...
+After installation, the RDAccess add-on can be configured using NVDA's settings dialog, which can be accessed from the NVDA Menu by choosing Preferences > Settings...
 After that, choose the Remote Desktop category.
 
 This dialog contains the following settings:
 
 ### Enable remote desktop accessibility for
 
-This list of check boxes buttons controls the operating mode of the add-on. You can choose between:
+This list of check boxes controls the operating mode of the add-on. You can choose between:
 
 * Incoming connections (Remote Desktop Server): Choose this option if the current instance of NVDA is running on a remote desktop server
 
 * Outgoing connections (Remote Desktop Client): Choose this option if the current instance of NVDA is running on a remote desktop client that connects to one or more servers
 
-* Secure Desktop pass through: : Choose this option if you want to use braille and speech from the user instance of NVDA when accessing the remote desktop. Note that for this to work, you need to make the RDAccess add-on available on the secure desktop copy of NVDA. For this, choose "Use currently saved settings during sign-in and on secure screens (requires administrator privileges)" in NVDA's general settings.
+* Secure Desktop pass through: : Choose this option if you want to use braille and speech from the user instance of NVDA when accessing the secure desktop. Note that for this to work, you need to make the RDAccess add-on available on the secure desktop copy of NVDA. For this, choose "Use currently saved settings during sign-in and on secure screens (requires administrator privileges)" in NVDA's general settings.
 
 To ensure a smooth start with the add-on, all options are enabled by default. You are however encouraged to disable server or client mode as appropriate.
 
@@ -72,8 +72,9 @@ The add-on ensures that these changes are made under the profile of the current 
 These changes don't require administrative privileges.
 Therefore, NVDA can automatically apply the necessary changes when loaded, and undo these changes when exiting NVDA.
 This ensures that the add-on is fully compatible with portable versions of NVDA.
-To allow for this scenario, this option is disabled by default.
-However, if you are running an installed copy and you are the only user of the system, you are advised to enable this option to ensure smooth operation in case NVDA started or is not active when connecting to a remote system.
+This option is disabled by default.
+However, if you are running an installed copy and you are the only user of the system, you are advised to enable this option.
+This ensures smooth operation in case NVDA is not active when connecting to a remote system and is then started afterwards.
 
 ### Enable Microsoft Remote Desktop support
 
