@@ -98,9 +98,13 @@ class RemoteSpeechHandler(RemoteHandler):
 			self.writeMessage(protocol.SpeechCommand.INDEX_REACHED, indexBytes)
 
 	def _onSynthDoneSpeaking(self, synth: typing.Optional[synthDriverHandler.SynthDriver] = None):
-		self._indexesSpeaking.clear()
+		assert synth == self._driver
+		if len(self._indexesSpeaking) > 0:
+			self._indexesSpeaking.clear()
+			self.writeMessage(protocol.SpeechCommand.INDEX_REACHED, b'\x00\x00')
 
 	def _handleDriverChanged(self, synth: synthDriverHandler.SynthDriver):
+		self._indexesSpeaking.clear()
 		super()._handleDriverChanged(synth)
 		self._attributeSenderStore(protocol.SpeechAttribute.SUPPORTED_COMMANDS, commands=synth.supportedCommands)
 		self._attributeSenderStore(protocol.SpeechAttribute.LANGUAGE, language=synth.language)

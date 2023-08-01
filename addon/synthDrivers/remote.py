@@ -137,7 +137,11 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 	def _command_indexReached(self, incomingPayload: bytes):
 		assert len(incomingPayload) == 2
 		index = int.from_bytes(incomingPayload, sys.byteorder)
-		synthDriverHandler.synthIndexReached.notify(synth=self, index=index)
+		if index:
+			synthDriverHandler.synthIndexReached.notify(synth=self, index=index)
+		else:
+			assert index == 0
+			synthDriverHandler.synthDoneSpeaking.notify(synth=self)
 
 	def _handleRemoteDriverChange(self):
 		super()._handleRemoteDriverChange()
