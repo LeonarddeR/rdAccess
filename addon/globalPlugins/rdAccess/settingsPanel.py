@@ -25,13 +25,13 @@ addonHandler.initTranslation()
 
 class RemoteDesktopSettingsPanel(SettingsPanel):
 	# Translators: The label for the NVDA Remote Desktop settings panel.
-	title = _("Remote Desktop")
+	title = _("Remote Desktop Accessibility")
 	post_onSave = Action()
 
 	def makeSettings(self, settingsSizer):
 		sizer_helper = guiHelper.BoxSizerHelper(self, sizer=settingsSizer)
-		# Translators: The label for a list of check boxes in NVDA RD settings to set operating mode.
-		operatingModeText = _("&Enable NVDA RD for")
+		# Translators: The label for a list of check boxes in RDAccess settings to set operating mode.
+		operatingModeText = _("&Enable remote desktop accessibility for")
 		operatingModeChoices = [i.displayString for i in configuration.OperatingMode]
 		self.operatingModes = list(configuration.OperatingMode)
 		self.operatingModeList = sizer_helper.addLabeledControl(
@@ -54,7 +54,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		serverGroup = guiHelper.BoxSizerHelper(self, sizer=serverGroupSizer)
 		sizer_helper.addItem(serverGroup)
 
-		# Translators: The label for a setting in NVDA RD settings to enable
+		# Translators: The label for a setting in RDAccess settings to enable
 		# automatic recovery of remote speech when the connection was lost.
 		recoverRemoteSpeechText = _("&Automatically recover remote speech after connection loss")
 		self.recoverRemoteSpeechCheckbox = serverGroup.addItem(
@@ -72,7 +72,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		clientGroup = guiHelper.BoxSizerHelper(self, sizer=clientGroupSizer)
 		sizer_helper.addItem(clientGroup)
 
-		# Translators: The label for a setting in NVDA RD settings to enable
+		# Translators: The label for a setting in RDAccess settings to enable
 		# support for exchanging driver settings between the local and the remote system.
 		driverSettingsManagementText = _("&Allow remote system to control driver settings")
 		self.driverSettingsManagementCheckbox = clientGroup.addItem(
@@ -82,7 +82,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		))
 		self.driverSettingsManagementCheckbox.Value = configuration.getDriverSettingsManagement()
 
-		# Translators: The label for a setting in NVDA RD settings to enable
+		# Translators: The label for a setting in RDAccess settings to enable
 		# persistent registration of RD Pipe to the Windows registry.
 		persistentRegistrationText = _("&Persist client support when exiting NVDA")
 		self.persistentRegistrationCheckbox = clientGroup.addItem(
@@ -92,7 +92,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		))
 		self.persistentRegistrationCheckbox.Value = configuration.getPersistentRegistration()
 
-		# Translators: The label for a setting in NVDA RD settings to enable
+		# Translators: The label for a setting in RDAccess settings to enable
 		# registration of RD Pipe to the Windows registry for remote desktop support.
 		remoteDesktopSupportText = _("Enable Microsoft &Remote Desktop support")
 		self.remoteDesktopSupportCheckbox = clientGroup.addItem(
@@ -102,7 +102,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		))
 		self.remoteDesktopSupportCheckbox.Value = configuration.getRemoteDesktopSupport()
 
-		# Translators: The label for a setting in NVDA RD settings to enable
+		# Translators: The label for a setting in RDAccess settings to enable
 		# registration of RD Pipe to the Windows registry for Citrix support.
 		citrixSupportText = _("Enable &Citrix Workspace support")
 		self.citrixSupportCheckbox = clientGroup.addItem(
@@ -130,7 +130,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		if not self.operatingModeList.CheckedItems:
 			messageBox(
 				# Translators: Message to report wrong configuration of operating mode.
-				_("You need to enable NVDA RD for at least incoming or outgoing connections."),
+				_("You need to enable remote destkop accessibility support for at least incoming or outgoing connections."),
 				# Translators: The title of the message box
 				_("Error"),
 				wx.OK | wx.ICON_ERROR,

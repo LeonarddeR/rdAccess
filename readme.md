@@ -33,7 +33,7 @@ After that, choose the Remote Desktop category.
 
 This dialog contains the following settings:
 
-### Use NVDA RD for
+### Enable remote desktop accessibility for
 
 This list of check boxes buttons controls the operating mode of the add-on. You can choose between:
 
@@ -41,7 +41,7 @@ This list of check boxes buttons controls the operating mode of the add-on. You 
 
 * Outgoing connections (Remote Desktop Client): Choose this option if the current instance of NVDA is running on a remote desktop client that connects to one or more servers
 
-* Secure Desktop pass through: : Choose this option if you want to use braille and speech from the user instance of NVDA when accessing the remote desktop. Note that for this to work, you need to make the NVDA Remote Desktop add-on available on the secure desktop copy of NVDA. For this, choose "Use currently saved settings during sign-in and on secure screens (requires administrator privileges)" in NVDA's general settings.
+* Secure Desktop pass through: : Choose this option if you want to use braille and speech from the user instance of NVDA when accessing the remote desktop. Note that for this to work, you need to make the RDAccess add-on available on the secure desktop copy of NVDA. For this, choose "Use currently saved settings during sign-in and on secure screens (requires administrator privileges)" in NVDA's general settings.
 
 To ensure a smooth start with the add-on, all options are enabled by default. You are however encouraged to disable server or client mode as appropriate.
 
@@ -97,7 +97,7 @@ There are some important points of attention when using RDAccess with the Citrix
 
 1. The Windows Store variant of the app is *not* supported.
 
-2. After installing Citrix Workspace, you have to start a remote session once to allow RDAccess registering itself. The reason behind this is that the application copies the system configuration to the user configuration when it establishes a session for the first time. After that, NVDA Remote Desktop can register itself under the current user context.
+2. After installing Citrix Workspace, you have to start a remote session once to allow RDAccess registering itself. The reason behind this is that the application copies the system configuration to the user configuration when it establishes a session for the first time. After that, RDAccess can register itself under the current user context.
 
 ### Server side requirement
 
