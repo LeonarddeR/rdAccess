@@ -130,7 +130,9 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		if not self.operatingModeList.CheckedItems:
 			messageBox(
 				# Translators: Message to report wrong configuration of operating mode.
-				_("You need to enable remote destkop accessibility support for at least incoming or outgoing connections."),
+				_(
+					"You need to enable remote destkop accessibility support for at least incoming or outgoing connections."
+				),
 				# Translators: The title of the message box
 				_("Error"),
 				wx.OK | wx.ICON_ERROR,
