@@ -1,6 +1,7 @@
 # RDAccess: Remote Desktop Accessibility
 
 * Authors: [Leonard de Ruijter][1]
+* Download [latest beta version][2]
 * NVDA compatibility: 2023.2 and later
 
 The RDAccess add-on (Remote Desktop Accessibility) adds support to access remote desktop sessions to NVDA using Microsoft Remote Desktop, Citrix or VMware Horizon.
@@ -115,8 +116,14 @@ This add-on relies on [RD Pipe][4], a library written in Rust backing the remote
 RD Pipe is redistributed as part of this add-on under the terms of [version 3 of the GNU Affero General Public License][5] as
 published by the Free Software Foundation.
 
+[[!tag dev beta]]
+
 [1]: https://github.com/leonardder/
-[2]: https://en.wikipedia.org/wiki/Jump_server
+
+[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess-beta
+
 [3]: https://github.com/leonardder/rdAccess/issues
+
 [4]: https://github.com/leonardder/rd_pipe-rs
+
 [5]: https://github.com/leonardder/rd_pipe-rs/blob/master/LICENSE
