@@ -11,6 +11,7 @@ import inputCore
 import threading
 from brailleViewer import postBrailleViewerToolToggledAction
 import versionInfo
+from logHandler import log
 
 if typing.TYPE_CHECKING:
 	from ....lib import protocol
@@ -99,8 +100,11 @@ class RemoteBrailleHandler(RemoteHandler):
 				kwargs['dots'] = gesture.dots
 				kwargs['space'] = gesture.space
 			newGesture = protocol.braille.BrailleInputGesture(**kwargs)
-			self.writeMessage(protocol.BrailleCommand.EXECUTE_GESTURE, self._pickle(newGesture))
-			return False
+			try:
+				self.writeMessage(protocol.BrailleCommand.EXECUTE_GESTURE, self._pickle(newGesture))
+				return False
+			except WindowsError:
+				log.warning("Error calling _handleExecuteGesture", exc_info=True)
 		return True
 
 	def _handleBrailleHandlerEnabled(self):

@@ -10,6 +10,7 @@ import sys
 import tones
 import nvwave
 from hwIo.ioThread import IoThread
+from logHandler import log
 
 if typing.TYPE_CHECKING:
 	from ....lib import protocol
@@ -95,13 +96,20 @@ class RemoteSpeechHandler(RemoteHandler):
 				byteorder=sys.byteorder,  # for a single byte big/little endian does not matter.
 				signed=False
 			)
-			self.writeMessage(protocol.SpeechCommand.INDEX_REACHED, indexBytes)
+			try:
+				self.writeMessage(protocol.SpeechCommand.INDEX_REACHED, indexBytes)
+			except WindowsError:
+				log.warning("Error calling _onSynthIndexReached", exc_info=True)
+			self._indexesSpeaking.remove(index)
 
 	def _onSynthDoneSpeaking(self, synth: typing.Optional[synthDriverHandler.SynthDriver] = None):
 		assert synth == self._driver
 		if len(self._indexesSpeaking) > 0:
 			self._indexesSpeaking.clear()
-			self.writeMessage(protocol.SpeechCommand.INDEX_REACHED, b'\x00\x00')
+			try:
+				self.writeMessage(protocol.SpeechCommand.INDEX_REACHED, b'\x00\x00')
+			except WindowsError:
+				log.warning("Error calling _onSynthDoneSpeaking", exc_info=True)
 
 	def _handleDriverChanged(self, synth: synthDriverHandler.SynthDriver):
 		self._indexesSpeaking.clear()
