@@ -5,7 +5,7 @@
 from abc import abstractmethod
 import driverHandler
 from ..detection import bgScanRD, KEY_NAMED_PIPE_CLIENT, KEY_VIRTUAL_CHANNEL
-from .. import protocol, inputTime, wtsVirtualChannel, namedPipe
+from .. import protocol, inputTime, wtsVirtualChannel, namedPipe, secureDesktop
 from typing import (
 	Any,
 	Iterable,
@@ -100,12 +100,15 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			self._dev.close()
 		else:
 			raise RuntimeError("No remote device found")
+
 		if not isRunningOnSecureDesktop():
-			post_sessionLockStateChanged.register(self._handleLockStateChanged)
+			post_sessionLockStateChanged.register(self._handlePossibleSessionDisconnect)
+			secureDesktop.post_secureDesktopStateChange.register(self._handlePossibleSessionDisconnect)
 
 	def terminate(self):
 		if not isRunningOnSecureDesktop():
-			post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
+			secureDesktop.post_secureDesktopStateChange.unregister(self._handlePossibleSessionDisconnect)
+			post_sessionLockStateChanged.unregister(self._handlePossibleSessionDisconnect)
 		super().terminate()
 
 	def __getattribute__(self, name: str) -> Any:
@@ -193,6 +196,6 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	def _outgoing_timeSinceInput(self) -> bytes:
 		return inputTime.getTimeSinceInput().to_bytes(4, sys.byteorder, signed=False)
 
-	def _handleLockStateChanged(self, isNowLocked):
+	def _handlePossibleSessionDisconnect(self, isNowLocked):
 		if not self.check():
 			self._handleRemoteDisconnect()
