@@ -22,15 +22,18 @@ import api
 import atexit
 from utils.security import isRunningOnSecureDesktop
 from IAccessibleHandler import SecureDesktopNVDAObject
-from .secureDesktop import SecureDesktopHandler
+from .secureDesktopHandling import SecureDesktopHandler
 
 if typing.TYPE_CHECKING:
-	from ...lib import configuration
-	from ...lib import detection
-	from ...lib import ioThreadEx
-	from ...lib import namedPipe
-	from ...lib import protocol
-	from ...lib import rdPipe
+	from ...lib import (
+		configuration,
+		detection,
+		ioThreadEx,
+		namedPipe,
+		protocol,
+		rdPipe,
+		secureDesktop,
+	)
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	configuration = addon.loadModule("lib.configuration")
@@ -39,6 +42,7 @@ else:
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
+	secureDesktop = addon.loadModule("lib.secureDesktop")
 
 
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
@@ -130,6 +134,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def initializeOperatingModeSecureDesktop(self):
 		if isRunningOnSecureDesktop():
 			return
+		secureDesktop.post_secureDesktopStateChange.register(self._handleSecureDesktop)
 		self._sdHandler: typing.Optional[SecureDesktopHandler] = None
 
 	def __init__(self):
@@ -212,6 +217,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def terminateOperatingModeSecureDesktop(self):
 		if isRunningOnSecureDesktop():
 			return
+		secureDesktop.post_secureDesktopStateChange.unregister(self._handleSecureDesktop)
 		self._handleSecureDesktop(False)
 
 	@classmethod
@@ -335,15 +341,15 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 						continue
 			if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
 				if isinstance(obj, SecureDesktopNVDAObject):
-					self._handleSecureDesktop(True)
+					secureDesktop.post_secureDesktopStateChange.notify(isSecureDesktop=True)
 				elif self._sdHandler:
-					self._handleSecureDesktop(False)
+					secureDesktop.post_secureDesktopStateChange.notify(isSecureDesktop=False)
 		if configuredOperatingMode & configuration.OperatingMode.SERVER:
 			self._triggerBackgroundDetectRescan()
 		nextHandler()
 
-	def _handleSecureDesktop(self, state: bool):
-		if state:
+	def _handleSecureDesktop(self, isSecureDesktop: bool):
+		if isSecureDesktop:
 			self._sdHandler = SecureDesktopHandler(self._ioThread)
 		elif self._sdHandler:
 			self._sdHandler.terminate()

@@ -17,7 +17,7 @@ class OutOfProcessChannelRemoteDesktopControl(RemoteDesktopControl):
 def findExtraOverlayClasses(obj, clsList):
     if not isinstance(obj, IAccessible):
         return
-    if (
+    elif (
         (obj.windowClassName == 'IHWindowClass' and obj.appModule.appName == "mstsc")
         or (
             obj.windowClassName in ('CtxICADisp', 'Transparent Windows Client')

@@ -18,7 +18,7 @@ if typing.TYPE_CHECKING:
 	from ...lib import namedPipe
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
-	ioTrheadEx = addon.loadModule("lib.ioThreadEx")
+	ioThreadEx = addon.loadModule("lib.ioThreadEx")
 	namedPipe = addon.loadModule("lib.namedPipe")
 
 
