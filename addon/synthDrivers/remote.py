@@ -66,7 +66,8 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		nvwave.decide_playWaveFile.unregister(self.handle_decidePlayWaveFile)
 		super().terminate()
 
-	def handle_decideBeep(self, **kwargs):
+	def handle_decideBeep(self, **kwargs) -> bool:
+		log.debug(f"Sending BEEP command: {kwargs}")
 		try:
 			self.writeMessage(protocol.SpeechCommand.BEEP, self._pickle(kwargs))
 		except WindowsError:
@@ -74,8 +75,9 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 			return True
 		return False
 
-	def handle_decidePlayWaveFile(self, **kwargs):
+	def handle_decidePlayWaveFile(self, **kwargs) -> bool:
 		kwargs['fileName'] = os.path.relpath(kwargs['fileName'], globalVars.appDir)
+		log.debug(f"Sending PLAY_WAVE_FILE command: {kwargs}")
 		try:
 			self.writeMessage(protocol.SpeechCommand.PLAY_WAVE_FILE, self._pickle(kwargs))
 		except WindowsError:
