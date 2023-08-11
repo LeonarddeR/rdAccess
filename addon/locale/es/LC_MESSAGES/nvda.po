@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: rdAccess 0.5.0\n"
 "Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
 "POT-Creation-Date: 2023-07-31 03:58+0000\n"
-"PO-Revision-Date: 2023-07-31 13:08+0200\n"
+"PO-Revision-Date: 2023-08-04 23:02+0200\n"
 "Last-Translator: José Manuel Delicado <jm.delicado@nvda.es>\n"
 "Language-Team: \n"
 "Language: es\n"
@@ -29,9 +29,8 @@ msgid "Remote Desktop Accessibility"
 msgstr "Accesibilidad en Escritorio Remoto"
 
 #. Translators: The label for a list of check boxes in RDAccess settings to set operating mode.
-#, fuzzy
 msgid "&Enable remote desktop accessibility for"
-msgstr "Accesibilidad en Escritorio Remoto"
+msgstr "&Activar accesibilidad en Escritorio Remoto para"
 
 #. Translators: This is the label for a group of options in the
 #. Remote Desktop settings panel.
@@ -68,13 +67,12 @@ msgstr "Activar soporte para Escritorio &remoto de Microsoft"
 msgid "Enable &Citrix Workspace support"
 msgstr "Activar soporte para &Citrix Workspace"
 
-#, fuzzy
 msgid ""
 "You need to enable remote destkop accessibility support for at least "
 "incoming or outgoing connections."
 msgstr ""
-"Se debe activar NVDA RD al menos para las conexiones entrantes o las "
-"salientes."
+"Se debe activar el soporte de accesibilidad en escritorio remoto al menos "
+"para las conexiones entrantes o las salientes."
 
 #. Translators: The title of the message box
 msgid "Error"
@@ -114,9 +112,3 @@ msgid ""
 msgstr ""
 "Permite usar voz y braille en el escritorio remoto de Microsoft, Citrix "
 "Workspace y VMware Horizon"
-
-#~ msgid "Remote Desktop"
-#~ msgstr "Escritorio remoto"
-
-#~ msgid "&Enable NVDA RD for"
-#~ msgstr "&Activar NVDA RD para"

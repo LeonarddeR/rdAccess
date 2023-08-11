@@ -1,7 +1,7 @@
 # Accesibilidad en Escritorio Remoto #
 
 * Autores: [Leonard de Ruijter][1]
-* Download [latest beta version][2]
+* Descargar [versión beta más reciente][2]
 * Compatibilidad con NVDA: de 2023.2 en adelante
 
 El complemento RD Access (Accesibilidad en Escritorio Remoto, en inglés
@@ -43,125 +43,131 @@ al operar el sistema local.
 1. Para usar braille, activa la detección automática de pantallas braille
    utilizando el diálogo de selección de pantallas braille.
 
-## Configuration
+## Configuración
 
-After installation, the rdAccess add-on can be configured using NVDA's settings dialog, which can be accessed from the NVDA Menu by choosing Preferences > Settings...
-After that, choose the Remote Desktop category.
+Tras la instalación, se puede configurar el complemento RD Access desde el diálogo de opciones de NVDA, al que se puede acceder desde el menú NVDA eligiendo Preferencias > Opciones...
+Tras esto, elige la categoría Escritorio remoto.
 
-This dialog contains the following settings:
+Este diálogo contiene las siguientes opciones:
 
-### Enable remote desktop accessibility for
+### Activar accesibilidad en escritorio remoto para
 
-This list of check boxes buttons controls the operating mode of the
-add-on. You can choose between:
+Esta lista de casillas de verificación controla el modo de operación del
+complemento. Se puede elegir entre:
 
-* Incoming connections (Remote Desktop Server): Choose this option if the
-  current instance of NVDA is running on a remote desktop server
+* Conexiones entrantes (servidor de escritorio remoto): elige esta opción si
+  la copia actual de NVDA se ejecuta en un servidor de escritorio remoto
 
-* Outgoing connections (Remote Desktop Client): Choose this option if the
-  current instance of NVDA is running on a remote desktop client that
-  connects to one or more servers
+* Conexiones salientes (cliente de escritorio remoto): elige esta opción si
+  la copia actual de NVDA se ejecuta en un cliente de escritorio remoto que
+  se conecta a uno o más servidores
 
-* Secure Desktop pass through: : Choose this option if you want to use
-  braille and speech from the user instance of NVDA when accessing the
-  remote desktop. Note that for this to work, you need to make the RDAccess
-  add-on available on the secure desktop copy of NVDA. For this, choose "Use
-  currently saved settings during sign-in and on secure screens (requires
-  administrator privileges)" in NVDA's general settings.
+* Dejar pasar el escritorio seguro: elige esta opción si quieres usar
+  braille y voz de la instancia de usuario de NVDA al acceder al escritorio
+  remoto. Ten en cuenta que para que esto funcione, debes hacer que el
+  complemento RD Access esté disponible en la copia de NVDA del escritorio
+  seguro. Para ello, elige "Utilizar opciones actualmente guardadas durante
+  el inicio de sesión y en pantallas seguras (requiere privilegios de
+  administrador)" en las opciones generales de NVDA.
 
-To ensure a smooth start with the add-on, all options are enabled by
-default. You are however encouraged to disable server or client mode as
-appropriate.
+Para garantizar un inicio suave con el complemento, todas las opciones
+vienen activadas por defecto. Sin embargo, se aconseja desactivar el modo
+cliente o servidor según corresponda.
 
-### Automatically recover remote speech after connection loss
+### Recuperar automáticamente voz remota tras una pérdida de conexión
 
-This option is only available in server mode. It ensures that the connection
-will automatically be re-established when the Remote Speech synthesizer is
-active and the connection is lost.  The behavior is very similar to that of
-braille display auto detection.  This also clarifies why there is only such
-an option for speech.  The reconnection of the Remote Braille display is
-automatically handled when choosing the Automatic option from the Braille
-Display Selection dialog.
+Esta opción sólo está disponible en modo servidor. Garantiza que se volverá
+a establecer la conexión automáticamente cuando el sintetizador de voz
+remoto esté activo y la conexión se pierda. El comportamiento es similar al
+de detección automática de pantallas braille. Esto deja claro también por
+qué hay una opción sólo para la voz. La reconexión de la pantalla braille
+remota se maneja automáticamente al elegir automático en el diálogo de
+selección de pantalla braille.
 
-This option is enabled by defalt. You are strongly encouraged to leave this
-option enabled if the Remote Desktop server has no audio output.
+Esta opción viene activada por defecto. Se aconseja encarecidamente dejarla
+activada si el servidor de escritorio remoto no tiene salida de audio.
 
-### Allow remote system to control driver settings
+### Permitir que el sistema remoto modifique ajustes del controlador
 
-This client option, when enabled, allows you to control driver settings
-(such as synthesizer voice and pitch) from the remote system.  Changes
-performed on the remote system will automatically be reflected locally.  If
-you have difficulties accessing the local NVDA menu when controlling a
-remote system, you can enable this option.  Otherwise, you are advised to
-disable it, as it implies some performance degradation.
+Cuando esta opción del cliente está activada, permite modificar ajustes del
+controlador (como voz del sintetizador y tono) desde el sistema remoto. Los
+cambios realizados en el sistema remoto se reflejarán automáticamente en el
+local. Si tienes dificultades accediendo al menú de NVDA local al controlar
+un sistema remoto, puedes habilitar esta opción. En cualquier otro caso, se
+aconseja desactivarla, ya que conlleva cierta degradación del rendimiento.
 
-### Persist client support when exiting NVDA
+### Mantener soporte de cliente al salir de NVDA
 
-This client option is only available on installed copies of NVDA.  When
-enabled, it ensures that the client portion of NVDA is loaded in your remote
-desktop client, even when NVDA is not running.
+Esta opción de cliente sólo está disponible en copias instaladas de NVDA. Si
+está activada, garantiza que la parte cliente de NVDA se carga en tu cliente
+de escritorio remoto, incluso cuando NVDA no está en ejecución.
 
-To use the client portion of RDAccess, several changes have to be maede in
-the Windows Registry.  The add-on ensures that these changes are made under
-the profile of the current user.  These changes don't require administrative
-privileges.  Therefore, NVDA can automatically apply the necessary changes
-when loaded, and undo these changes when exiting NVDA.  This ensures that
-the add-on is fully compatible with portable versions of NVDA.  To allow for
-this scenario, this option is disabled by default.  However, if you are
-running an installed copy and you are the only user of the system, you are
-advised to enable this option to ensure smooth operation in case NVDA
-started or is not active when connecting to a remote system.
+Para usar la parte cliente de RDAccess, se deben realizar varios cambios en
+el registro de Windows. El complemento se asegura de hacer estos cambios en
+el perfil del usuario actual. Estos cambios no necesitan privilegios de
+administrador. Por lo tanto, NVDA puede aplicar automáticamente los cambios
+necesarios al cargarse, y deshacer estos cambios al salir. Esto asegura que
+el complemento es completamente compatible con versiones portables de
+NVDA. Para permitir este escenario, esta opción se desactiva por
+defecto. Sin embargo, si ejecutas una copia instalada de NVDA y eres el
+único usuario del sistema, se aconseja activar esta opción para garantizar
+una operación más suave en caso de que NVDA haya iniciado o no esté activo
+al conectar a un sistema remoto.
 
-### Enable Microsoft Remote Desktop support
+### Habilitar soporte para Escritorio Remoto de Microsoft
 
-This option is enabled by default and ensures that the client portion of
-RDAccess is loaded in the Microsoft Remote Desktop client (mstsc) when
-starting NVDA.  Unless persistent client support is enabled by enabling the
-previous option, these changes will be automatically undone when exiting
-NVDA.
+Esta opción está activada por defecto y garantiza que la parte cliente de RD
+Access se carga en el cliente de escritorio remoto de Microsoft (mstsc) al
+arrancar NVDA. A menos que se habilite el soporte persistente de cliente
+activando la opción anterior, estos cambios se desharán automáticamente al
+salir de NVDA.
 
-### Enable Citrix Workspace support
+### Habilitar soporte para Citrix Workspace
 
-This option is enabled by default and ensures that the client portion of
-RDAccess is loaded in the Citrix Workspace app when starting NVDA.  Unless
-persistent client support is enabled by enabling the previous option, these
-changes will be automatically undone when exiting NVDA.
+Esta opción está activada por defecto y garantiza que la parte cliente de RD
+Access se carga en la aplicación Citrix Workspace al arrancar NVDA. A menos
+que se habilite el soporte persistente de cliente activando la opción
+anterior, estos cambios se desharán automáticamente al salir de NVDA.
 
-This option is only available in the following cases:
+Esta opción sólo está disponible en los siguientes casos:
 
-* Citrix Workspace is installed. Note that the Windows Store version of the
-  app is not supported due to limitations in that app itself
-* It is possible to register RDAccess under the current user context. After
-  installing the app, you have to start a remote session once to make this
-  possible
+* Citrix Workspace está instalado. Ten en cuenta que la versión de esta
+  aplicación para la tienda de Windows no está soportada debido a
+  limitaciones en la propia aplicación
+* Es posible registrar RDAccess bajo el contexto del usuario actual. Después
+  de instalar la aplicación, se debe iniciar una sesión remota una vez para
+  hacerlo posible
 
-## Citrix specific instructions
+## Instrucciones específicas para Citrix
 
-There are some important points of attention when using RDAccess with the
-Citrix Workspace app.
+Se deben tener en cuenta algunas consideraciones importantes al usar RD
+Access con la aplicación Citrix Workspace.
 
-### Client side requirements
+### Requisitos del lado cliente
 
-1. The Windows Store variant of the app is *not* supported.
+1. La variante de esta aplicación para la tienda de Windows *no* está
+   soportada.
 
-2. After installing Citrix Workspace, you have to start a remote session
-   once to allow RDAccess registering itself. The reason behind this is that
-   the application copies the system configuration to the user configuration
-   when it establishes a session for the first time. After that, RDAccess
-   can register itself under the current user context.
+2. Tras instalar Citrix Workspace, tienes que iniciar una sesión remota una
+   vez para permitir que RD Access se registre. La razón detrás de esto es
+   que la aplicación copia la configuración del sistema a la configuración
+   del usuario al establecer una sesión por primera vez. Tras esto, RD
+   Access se puede registrar por sí mismo bajo el contexto del usuario
+   actual.
 
-### Server side requirement
+### Requisitos del lado servidor
 
-In Citrix Virtual Apps and Desktops 2109, Citrix enabled the so called
-virtual channel allow list. This means that third party virtual channels,
-including the channel required by RDAccess, is not allowed by default. For
-more information, [see this Citrix blog
-post](https://www.citrix.com/blogs/2021/10/14/virtual-channel-allow-list-now-enabled-by-default/)
+En Citrix Virtual Apps and Desktops 2109, Citrix habilitó algo llamado Lista
+de canales virtuales permitidos. Esto significa que los canales virtuales de
+terceros, incluido el canal que necesita RDAccess, no se permite por
+defecto. Para más información, [consulta esta entrada de blog de
+Citrix](https://www.citrix.com/blogs/2021/10/14/virtual-channel-allow-list-now-enabled-by-default/)
 
-Explicitly allowing the RdPipe channel required by RDAccess is not yet
-tested. For now, it is probably your best bet to disable the allow list
-altogether. If your system administrator is unhappy with this, feel free to
-[drop a line in the devoted issue][3]
+Permitir explícitamente el canal de RDPipe que necesita RDAccess es algo que
+no se ha probado todavía. Por ahora, lo mejor que se puede hacer es
+desactivar por completo la lista de permitidos. Si el administrador de tu
+sistema no está contento con esto, siéntete libre de [escribir unas líneas
+en la incidencia relacionada][3]
 
 ## Incidencias y colaboración
 
@@ -170,10 +176,10 @@ Si quieres informar de una incidencia o colaborar, echa un vistazo a la
 
 ## Componentes externos
 
-This add-on relies on [RD Pipe][4], a library written in Rust backing the
-remote desktop client support.  RD Pipe is redistributed as part of this
-add-on under the terms of [version 3 of the GNU Affero General Public
-License][5] as published by the Free Software Foundation.  published by the
+Este complemento se apoya en [RD Pipe][4], una biblioteca escrita en Rust
+que respalda el soporte para clientes de escritorio remoto. RD Pipe se
+redistribuye como parte de este complemento según los términos de la
+[versión 3 de la licencia pública GNU Affero][5] tal y como la publicó la
 Free Software Foundation.
 
 [[!tag dev beta]]

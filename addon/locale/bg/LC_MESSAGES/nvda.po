@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: rdAccess 0.5.0\n"
 "Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
 "POT-Creation-Date: 2023-07-31 03:58+0000\n"
-"PO-Revision-Date: 2023-07-31 08:51+0300\n"
+"PO-Revision-Date: 2023-08-04 21:49+0300\n"
 "Last-Translator: Kostadin Kolev <k_kolev1985@mail.bg>\n"
 "Language-Team: \n"
 "Language: bg\n"
@@ -29,9 +29,8 @@ msgid "Remote Desktop Accessibility"
 msgstr "Достъпност за отдалечен работен плот"
 
 #. Translators: The label for a list of check boxes in RDAccess settings to set operating mode.
-#, fuzzy
 msgid "&Enable remote desktop accessibility for"
-msgstr "Достъпност за отдалечен работен плот"
+msgstr "&Разреши достъпността за отдалечен работен плот за"
 
 #. Translators: This is the label for a group of options in the
 #. Remote Desktop settings panel.
@@ -68,11 +67,12 @@ msgstr "&Разреши поддръжката на Microsoft Remote Desktop"
 msgid "Enable &Citrix Workspace support"
 msgstr "Р&азреши поддръжката на Citrix Workspace"
 
-#, fuzzy
 msgid ""
 "You need to enable remote destkop accessibility support for at least "
 "incoming or outgoing connections."
-msgstr "Трябва да разрешите NVDA RD поне за входящи или изходящи връзки."
+msgstr ""
+"Трябва да разрешите поддръжката за достъпност на отдалечен работен плот поне "
+"за входящи или изходящи връзки."
 
 #. Translators: The title of the message box
 msgid "Error"

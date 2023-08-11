@@ -51,7 +51,7 @@ Après cela, choisissez la catégorie Bureau distant.
 
 Cette boîte de dialogue contient les paramètres suivants :
 
-### Activer NVDA RD pour
+### Activer remote desktop accessibility pour
 
 Cette liste des boutons de cases à cocher contrôle le mode de fonctionnement
 de l'extension. Vous pouvez choisir entre :

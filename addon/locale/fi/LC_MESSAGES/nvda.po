@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: rdAccess 0.5.0\n"
 "Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
 "POT-Creation-Date: 2023-07-31 03:58+0000\n"
-"PO-Revision-Date: 2023-08-02 22:15+0200\n"
+"PO-Revision-Date: 2023-08-05 21:19+0200\n"
 "Last-Translator: Jani Kinnunen <janikinnunen340@gmail.com>\n"
 "Language-Team: fi_FI <janikinnunen340@gmail.com>\n"
 "Language: fi\n"
@@ -31,9 +31,8 @@ msgid "Remote Desktop Accessibility"
 msgstr "Etätyöpöydän saavutettavuus"
 
 #. Translators: The label for a list of check boxes in RDAccess settings to set operating mode.
-#, fuzzy
 msgid "&Enable remote desktop accessibility for"
-msgstr "Etätyöpöydän saavutettavuus"
+msgstr "&Ota etätyöpöydän saavutettavuus käyttöön"
 
 #. Translators: This is the label for a group of options in the
 #. Remote Desktop settings panel.
@@ -63,20 +62,19 @@ msgstr "S&äilytä asiakastuki NVDA:ta suljettaessa"
 #. Translators: The label for a setting in RDAccess settings to enable
 #. registration of RD Pipe to the Windows registry for remote desktop support.
 msgid "Enable Microsoft &Remote Desktop support"
-msgstr "Ota käyttöön Microsoftin &etätyöpöydän tuki"
+msgstr "Ota käyttöön Microsoft-&etätyöpöydän tuki"
 
 #. Translators: The label for a setting in RDAccess settings to enable
 #. registration of RD Pipe to the Windows registry for Citrix support.
 msgid "Enable &Citrix Workspace support"
 msgstr "Ota käyttöön &Citrix Workspacen tuki"
 
-#, fuzzy
 msgid ""
 "You need to enable remote destkop accessibility support for at least "
 "incoming or outgoing connections."
 msgstr ""
-"Sinun on otettava käyttöön NVDA:n etätyöpöytätuki ainakin saapuville tai "
-"lähteville yhteyksille."
+"Sinun on otettava käyttöön etätyöpöydän saavutettavuuden tuki ainakin "
+"saapuville tai lähteville yhteyksille."
 
 #. Translators: The title of the message box
 msgid "Error"
@@ -115,7 +113,7 @@ msgid ""
 "Allows using speech and braille with Microsoft Remote Desktop, Citrix "
 "Workspace and VMware Horizon"
 msgstr ""
-"Mahdollistaa puheen ja pistenäytön käyttämisen Microsoftin etätyöpöydän, "
+"Mahdollistaa puheen ja pistenäytön käyttämisen Microsoft-etätyöpöydän, "
 "Citrix Workspacen ja VMware Horizonin kanssa"
 
 #~ msgid "Remote Desktop"
