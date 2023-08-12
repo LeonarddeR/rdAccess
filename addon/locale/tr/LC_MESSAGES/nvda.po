@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: rdAccess 0.5.0\n"
 "Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
 "POT-Creation-Date: 2023-07-31 03:58+0000\n"
-"PO-Revision-Date: 2023-07-31 16:55+0300\n"
+"PO-Revision-Date: 2023-08-05 13:38+0300\n"
 "Last-Translator: Umut KORKMAZ <umutkork@gmail.com>\n"
 "Language-Team: Umut KORKMAZ <umutkork@gmail.com>\n"
 "Language: tr_TR\n"
@@ -30,9 +30,8 @@ msgid "Remote Desktop Accessibility"
 msgstr "Uzak Masaüstü Erişilebilirliği"
 
 #. Translators: The label for a list of check boxes in RDAccess settings to set operating mode.
-#, fuzzy
 msgid "&Enable remote desktop accessibility for"
-msgstr "Uzak Masaüstü Erişilebilirliği"
+msgstr "Şunlar için uzak masaüstü &erişilebilirliğini etkinleştirin:"
 
 #. Translators: This is the label for a group of options in the
 #. Remote Desktop settings panel.
@@ -69,7 +68,6 @@ msgstr "Mic&rosoft Uzak Masaüstü desteğini etkinleştir"
 msgid "Enable &Citrix Workspace support"
 msgstr "&Citrix Workspace desteğini etkinleştir"
 
-#, fuzzy
 msgid ""
 "You need to enable remote destkop accessibility support for at least "
 "incoming or outgoing connections."
