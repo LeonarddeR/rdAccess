@@ -76,12 +76,17 @@ class RemoteSpeechHandler(RemoteHandler):
 	@protocol.commandHandler(protocol.SpeechCommand.BEEP)
 	def _command_beep(self, payload: bytes):
 		kwargs = self._unpickle(payload)
-		self._bgExecutor.submit(tones.beep, **kwargs)
+		log.debug(f"Received BEEP command: {kwargs}")
+		# Tones are always asynchronous
+		tones.beep(**kwargs)
 
 	@protocol.commandHandler(protocol.SpeechCommand.PLAY_WAVE_FILE)
 	def _command_playWaveFile(self, payload: bytes):
 		kwargs = self._unpickle(payload)
-		self._bgExecutor.submit(nvwave.playWaveFile, **kwargs)
+		log.debug(f"Received PLAY_WAVE_FILE command: {kwargs}")
+		# Ensure the wave plays asynchronous.
+		kwargs["asynchronous"] = True
+		nvwave.playWaveFile(**kwargs)
 
 	def _onSynthIndexReached(
 			self,
