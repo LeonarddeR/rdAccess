@@ -39,11 +39,8 @@ This dialog contains the following settings:
 This list of check boxes controls the operating mode of the add-on. You can choose between:
 
 * Incoming connections (Remote Desktop Server): Choose this option if the current instance of NVDA is running on a remote desktop server
-
 * Outgoing connections (Remote Desktop Client): Choose this option if the current instance of NVDA is running on a remote desktop client that connects to one or more servers
-
 * Secure Desktop pass through: : Choose this option if you want to use braille and speech from the user instance of NVDA when accessing the secure desktop. Note that for this to work, you need to make the RDAccess add-on available on the secure desktop copy of NVDA. For this, choose "Use currently saved settings during sign-in and on secure screens (requires administrator privileges)" in NVDA's general settings.
-
 To ensure a smooth start with the add-on, all options are enabled by default. You are however encouraged to disable server or client mode as appropriate.
 
 ### Automatically recover remote speech after connection loss
@@ -58,9 +55,11 @@ This option is enabled by defalt. You are strongly encouraged to leave this opti
 ### Allow remote system to control driver settings
 
 This client option, when enabled, allows you to control driver settings (such as synthesizer voice and pitch) from the remote system.
+This is especially useful when you have difficulties accessing the local NVDA menu when controlling a remote system.
 Changes performed on the remote system will automatically be reflected locally.
-If you have difficulties accessing the local NVDA menu when controlling a remote system, you can enable this option.
-Otherwise, you are advised to disable it, as it implies some performance degradation.
+
+While enabling this option implies some performance degradation, you are yet advised to enable it.
+When this option is disabled, speech synthesizer ppitch changes for capitals don't work.
 
 ### Persist client support when exiting NVDA
 
@@ -72,6 +71,7 @@ The add-on ensures that these changes are made under the profile of the current 
 These changes don't require administrative privileges.
 Therefore, NVDA can automatically apply the necessary changes when loaded, and undo these changes when exiting NVDA.
 This ensures that the add-on is fully compatible with portable versions of NVDA.
+
 This option is disabled by default.
 However, if you are running an installed copy and you are the only user of the system, you are advised to enable this option.
 This ensures smooth operation in case NVDA is not active when connecting to a remote system and is then started afterwards.
@@ -98,7 +98,6 @@ There are some important points of attention when using RDAccess with the Citrix
 ### Client side requirements
 
 1. The Windows Store variant of the app is *not* supported.
-
 2. After installing Citrix Workspace, you have to start a remote session once to allow RDAccess registering itself. The reason behind this is that the application copies the system configuration to the user configuration when it establishes a session for the first time. After that, RDAccess can register itself under the current user context.
 
 ### Server side requirement
