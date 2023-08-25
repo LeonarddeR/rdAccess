@@ -122,6 +122,8 @@ This add-on relies on [RD Pipe][4], a library written in Rust backing the remote
 RD Pipe is redistributed as part of this add-on under the terms of [version 3 of the GNU Affero General Public License][5] as
 published by the Free Software Foundation.
 
+[[!tag dev beta]]
+
 [1]: https://github.com/leonardder/
 
 [2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess-beta
