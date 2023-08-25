@@ -1,7 +1,7 @@
 # RDAccess: Remote Desktop Accessibility
 
 * Authors: [Leonard de Ruijter][1]
-* Download [latest beta version][2]
+* Download [latest stable version][2]
 * NVDA compatibility: 2023.2 and later
 
 The RDAccess add-on (Remote Desktop Accessibility) adds support to access remote desktop sessions to NVDA using Microsoft Remote Desktop, Citrix or VMware Horizon.
@@ -126,7 +126,7 @@ published by the Free Software Foundation.
 
 [1]: https://github.com/leonardder/
 
-[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess-beta
+[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess
 
 [3]: https://github.com/leonardder/rdAccess/issues
 
