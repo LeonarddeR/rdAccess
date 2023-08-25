@@ -21,6 +21,12 @@ This enables a user experience where managing a remote system feels just as perf
 * Ability to control specific synthesizer and braille display settings without leaving the remote session
 * Ability to use speech and braille from the user session when accessing secure desktops
 
+## Changelog
+
+### Version 1.0
+
+Initial stable release.
+
 ## Getting started
 
 1. Install RDAccess in both a client and server copy of NVDA.
