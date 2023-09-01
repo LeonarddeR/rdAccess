@@ -1,7 +1,7 @@
 # Zugänglichkeit für Remote Desktop #
 
 * Autor: [Leonard de Ruijter][1]
-* [Neueste Beta-Version herunterladen][2]
+* [Letzte stabile Version herunterladen][2]
 * NVDA-Kompatibilität: 2023.2 und neuer
 
 Die NVDA-Erweiterung RDAccess (Remote Desktop Accessibility) bietet
@@ -34,6 +34,12 @@ wie die Bedienung des lokalen Systems.
 * Möglichkeit der Nutzung von Sprachausgabe und Braille-Schrift aus der
   Benutzersitzung heraus beim Zugriff auf geschützte Desktops
 
+## Änderungsprotokoll
+
+### Version 1.0
+
+Erste stabile Version.
+
 ## Erste Schritte
 
 1. Installieren Sie RDAccess in einer NVDA-Version sowohl in einer Client-
@@ -48,7 +54,7 @@ wie die Bedienung des lokalen Systems.
 
 ## Konfiguration
 
-Nach der Installation kann die NVDA-Erweiterung über die Einstellungen in NVDA konfiguriert werden.
+Nach der Installation kann RDAccess über den Einstellungen in NVDA konfiguriert (NVDA-Menü > Optionen > Einstellungen...) und aufgerufen werden.
 Wählen Sie dann die Kategorie "Remote-Desktop" aus.
 
 Dieses Dialogfeld enthält die folgenden Einstellungen:
@@ -61,16 +67,14 @@ NVDA-Erweiterung. Sie können auswählen zwischen:
 * Eingehende Verbindungen (Remote-Desktop-Server): Wählen Sie diese Option
   aus, wenn die aktuelle Instanz von NVDA auf einem Remote-Desktop-Server
   ausgeführt wird
-
 * Ausgehende Verbindungen (Remote-Desktop-Client): Wählen Sie diese Option
   aus, wenn die aktuelle Instanz von NVDA auf einem Remote-Desktop-Client
   ausgeführt wird, der eine Verbindung zu einem oder mehreren Servern
   herstellt
-
-* Sicherer Desktop-Durchgang: Wählen Sie diese Option aus, wenn Sie beim
-  Zugriff auf den Remote-Desktop die Braillezeile und Sprachausgabe der
-  Benutzerinstanz von NVDA verwenden möchten. Beachten Sie, dass Sie die
-  NVDA-Erweiterung auf dem geschützten Desktop von NVDA verfügbar machen
+* Durchreichen des geschützten Desktops: Wählen Sie diese Option aus, wenn
+  Sie Braillezeile und Sprachausgabe von der Benutzerinstanz von NVDA beim
+  Zugriff auf den geschützten Desktop verwenden möchten. Beachten Sie, dass
+  Sie RDAccess auf dem geschützten Desktop der NVDA-Version verfügbar machen
   müssen, damit dies funktioniert. Wählen Sie dazu in den allgemeinen
   Einstellungen von NVDA die Option "Aktuell gespeicherte Einstellungen bei
   der Anmeldung und auf sicheren Bildschirmen verwenden (Administratorrechte
@@ -99,12 +103,15 @@ Audio-Ausgabe hat.
 
 Wenn diese Client-Option aktiviert ist, können Sie die Treiber-Einstellungen
 (z. B. Stimme und Tonhöhe der Sprachausgabe) über das Remote-System
-steuern.  Änderungen, die auf dem Remote-System vorgenommen werden, werden
-automatisch auf dem eigenen System wiedergegeben.  Wenn Sie bei der
-Steuerung eines Remote-Systems Schwierigkeiten beim Zugriff auf dem eigenen
-System das NVDA-Menü haben, können Sie diese Option aktivieren.  Andernfalls
-empfiehlt es sich, diese Option zu deaktivieren, da sie eine gewisse
-Leistungsverschlechterung mit sich bringt.
+steuern. Dies ist besonders nützlich, wenn Sie bei der Steuerung eines
+Remote-Systems Schwierigkeiten haben, auf das NVDA-Menü vom eigenen Computer
+zuzugreifen.  Änderungen, die auf dem Remote-System vorgenommen werden,
+werden automatisch lokal übernommen.
+
+Obwohl die Aktivierung dieser Option eine gewisse Leistungsverschlechterung
+mit sich bringt, sollten Sie sie dennoch aktivieren.  Wenn diese Option
+deaktiviert ist, funktionieren die Änderungen für die Tonhöhe der
+Sprachausgabe bei Großbuchstaben nicht.
 
 ### Client-Unterstützung beim Beenden von NVDA beibehalten
 
@@ -116,15 +123,16 @@ Um den Client von RDAccess zu nutzen, müssen einige Änderungen in der
 Windows-Registrierung vorgenommen werden. Die NVDA-Erweiterung sorgt dafür,
 dass diese Änderungen unter dem Profil des aktuellen Benutzers vorgenommen
 werden.  Für diese Änderungen sind keine administrativen Berechtigungen
-erforderlich.  Daher kann NVDA die erforderlichen Änderungen beim Laden
+erforderlich. Daher kann NVDA die erforderlichen Änderungen beim Laden
 automatisch vornehmen und beim Beenden von NVDA rückgängig machen.  Dadurch
 wird sichergestellt, dass die NVDA-Erweiterung vollständig mit portablen
-Versionen von NVDA kompatibel ist.  Um dieses Szenario zu ermöglichen, ist
-diese Option standardmäßig deaktiviert.  Wenn Sie jedoch eine installierte
-Version verwenden und der einzige Benutzer des Systems sind, sollten Sie
-diese Option aktivieren, um einen reibungslosen Betrieb zu gewährleisten,
-falls NVDA bei der Verbindung mit einem Remote-System gestartet wurde oder
-nicht aktiv ist.
+NVDA-Versionen kompatibel ist.
+
+Diese Option ist standardmäßig deaktiviert. Wenn Sie jedoch eine
+installierte Version ausführen und der alleinige Benutzer an diesem Computer
+sind, wird empfohlen, diese Option zu aktivieren. Dies gewährleistet einen
+reibungslosen Betrieb, falls NVDA bei der Verbindung mit einem Remote-System
+nicht aktiv ist und erst danach gestartet wird.
 
 ### Unterstützung für Microsoft Remote Desktop aktivieren
 
@@ -153,13 +161,12 @@ Diese Option ist nur in den folgenden Fällen verfügbar:
 
 ## Citrix-spezifische Anweisungen
 
-Bei der Verwendung von RDAccess mit der App Citrix Workspace gibt es einige
-wichtige Punkte zu beachten:
+Bei der Verwendung von RDAccess mit der Citrix Workspace-App gibt es einige
+wichtige Punkte zu beachten.
 
 ### Client-seitige Anforderungen
 
 1. Die Variante aus dem Microsoft Store der App wird *nicht* unterstützt.
-
 2. Nach der Installation von Citrix Workspace müssen Sie einmalig eine
    Remote-Sitzung starten, damit sich RDAccess selbst registrieren kann. Der
    Grund dafür ist, dass die Anwendung die Systemkonfiguration in die
@@ -191,15 +198,15 @@ sich [die Themen-Seite auf GitHub][3] an.
 
 Diese NVDA-Erweiterung basiert auf [RD Pipe][4], eine in Rust geschriebene
 Bibliothek, die den Remote-Desktop-Client unterstützt. RD Pipe wird als Teil
-dieser NVDA-Erweiterung unter den Bedingungen von [Version 3 der GNU Affero
-General Public License][5], wie von der Free Software Foundation
-veröffentlicht, weiterverteilt.
+dieser NVDA-Erweiterung unter den Bedingungen der [Version 3 der GNU Affero
+General Public License][5], wie sie von der Free Software Foundation
+veröffentlicht wurde, weiterverteilt.
 
-[[!tag dev beta]]
+[[!tag stable dev beta]]
 
 [1]: https://github.com/leonardder/
 
-[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess-beta
+[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess
 
 [3]: https://github.com/leonardder/rdAccess/issues
 

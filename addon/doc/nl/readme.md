@@ -1,7 +1,7 @@
 # Toegankelijkheid van extern bureaublad #
 
 * Auteurs: [Leonard de Ruijter][1]
-* Download [nieuwste betaversie][2]
+* Download [latest stable version][2]
 * NVDA-compatibiliteit: 2023.2 en later
 
 De RDAccess-add-on (Toegankelijkheid van extern bureaublad) voegt
@@ -34,6 +34,12 @@ lokale systeem.
 * Mogelijkheid om de spraaksynthesizer en brailleleesregel van de ingelogde
   gebruiker te gebruiken op beveiligde bureaubladen
 
+## Changelog
+
+### Version 1.0
+
+Initial stable release.
+
 ## Aan de slag
 
 1. Installeer RDAccess in zowel een client- als een serverkopie van NVDA.
@@ -47,30 +53,27 @@ lokale systeem.
 
 ## Configuratie
 
-Na installatie kan de rdAccess-add-on worden geconfigureerd met behulp van het instellingendialoogvenster van NVDA, dat toegankelijk is via het NVDA-menu door Opties > Instellingen... te kiezen.
-Kies daarna de categorie Extern bureaublad.
+After installation, the RDAccess add-on can be configured using NVDA's settings dialog, which can be accessed from the NVDA Menu by choosing Preferences > Settings...
+After that, choose the Remote Desktop category.
 
 Dit dialoogvenster bevat de volgende instellingen:
 
 ### Enable remote desktop accessibility for
 
-Deze lijst met selectievakjes bepaalt de werkingsmodus van de add-on. Je
-kunt kiezen tussen:
+This list of check boxes controls the operating mode of the add-on. You can
+choose between:
 
 * Inkomende verbindingen (Remote Desktop Server): Kies deze optie als het
   huidige exemplaar van NVDA draait op een remote desktop server
-
 * Uitgaande verbindingen (Remote Desktop Client): Kies deze optie als het
   huidige exemplaar van NVDA draait op een remote desktop-client die
   verbinding maakt met een of meer servers
-
-* Beveiligd bureaublad doorgeven: Kies deze optie als je braille en spraak
-  van de gebruikersinstantie van NVDA wilt gebruiken bij toegang tot het
-  beveiligd bureaublad. Merk op dat om dit te laten werken, je de
-  RDAccess-add-on beschikbaar moet maken op de kopie van NVDA voor beveiligd
-  bureaublad. Kies hiervoor in de algemene instellingen van NVDA voor
-  "Huidige instellingen van NVDA gebruiken tijdens inloggen en op beveiligd
-  bureaublad (administrative rechten vereist)".
+* Secure Desktop pass through: : Choose this option if you want to use
+  braille and speech from the user instance of NVDA when accessing the
+  secure desktop. Note that for this to work, you need to make the RDAccess
+  add-on available on the secure desktop copy of NVDA. For this, choose "Use
+  currently saved settings during sign-in and on secure screens (requires
+  administrator privileges)" in NVDA's general settings.
 
 Om een ​​vlotte start met de add-on te garanderen, zijn alle opties
 standaard ingeschakeld. Je wordt echter aangemoedigd om de server- of
@@ -91,13 +94,15 @@ ingeschakeld te laten als de Remote Desktop-server geen audio-uitvoer heeft.
 
 ### Extern systeem toestaan om instellingen van driver te bedienen
 
-Met deze clientoptie kun je, indien ingeschakeld, driverinstellingen (zoals
-synthesizerstem en toonhoogte) regelen vanaf het externe
-systeem. Wijzigingen die op het externe systeem worden uitgevoerd, worden
-automatisch lokaal toegepast. Als je problemen hebt met toegang tot het
-lokale NVDA-menu bij het bedienen van een extern systeem, kun je deze optie
-inschakelen. Anders wordt je geadviseerd om het uit te schakelen, omdat dit
-enige prestatievermindering met zich meebrengt.
+This client option, when enabled, allows you to control driver settings
+(such as synthesizer voice and pitch) from the remote system.  This is
+especially useful when you have difficulties accessing the local NVDA menu
+when controlling a remote system.  Changes performed on the remote system
+will automatically be reflected locally.
+
+While enabling this option implies some performance degradation, you are yet
+advised to enable it.  When this option is disabled, speech synthesizer
+ppitch changes for capitals don't work.
 
 ### Client-ondersteuning behouden bij afsluiten NVDA
 
@@ -106,18 +111,17 @@ NVDA. Indien ingeschakeld, zorgt het ervoor dat het clientgedeelte van NVDA
 wordt geladen in je remote desktop-client, zelfs wanneer NVDA niet actief
 is.
 
-Om het clientgedeelte van RDAccess te gebruiken, moeten er verschillende
-wijzigingen worden aangebracht in het Windows-register. De add-on zorgt
-ervoor dat deze wijzigingen worden aangebracht in het profiel van de huidige
-gebruiker. Voor deze wijzigingen zijn geen beheerdersrechten vereist. Daarom
-kan NVDA automatisch de noodzakelijke wijzigingen toepassen wanneer deze
-worden geladen, en deze wijzigingen ongedaan maken bij het afsluiten van
-NVDA. Dit zorgt ervoor dat de add-on volledig compatibel is met draagbare
-versies van NVDA. Deze optie is standaard uitgeschakeld. Als je echter een
-geïnstalleerd exemplaar gebruikt en je bent de enige gebruiker van het
-systeem, wordt je geadviseerd om deze optie in te schakelen. Dit zorgt voor
-een soepele werking in het geval dat NVDA niet actief is bij het verbinden
-met een extern systeem en daarna wordt gestart.
+To use the client portion of RDAccess, several changes have to be maede in
+the Windows Registry.  The add-on ensures that these changes are made under
+the profile of the current user.  These changes don't require administrative
+privileges.  Therefore, NVDA can automatically apply the necessary changes
+when loaded, and undo these changes when exiting NVDA.  This ensures that
+the add-on is fully compatible with portable versions of NVDA.
+
+This option is disabled by default.  However, if you are running an
+installed copy and you are the only user of the system, you are advised to
+enable this option.  This ensures smooth operation in case NVDA is not
+active when connecting to a remote system and is then started afterwards.
 
 ### Ondersteuning voor Microsoft Remote Desktop inschakelen
 
@@ -151,7 +155,6 @@ de Citrix Workspace app.
 ### Vereisten aan de client-zijde
 
 1. De Windows Store-variant van de app wordt *niet* ondersteund.
-
 2. Na installatie van Citrix Workspace moet je eenmalig een externe sessie
    starten om RDAccess zichzelf te laten registreren. De reden hierachter is
    dat de applicatie de systeemconfiguratie naar de gebruikersconfiguratie
@@ -183,14 +186,13 @@ aan Nederlands mag dat ook.
 This add-on relies on [RD Pipe][4], a library written in Rust backing the
 remote desktop client support.  RD Pipe is redistributed as part of this
 add-on under the terms of [version 3 of the GNU Affero General Public
-License][5] as published by the Free Software Foundation.  published by the
-Free Software Foundation.
+License][5] as published by the Free Software Foundation.
 
-[[!tag dev beta]]
+[[!tag stable dev beta]]
 
 [1]: https://github.com/leonardder/
 
-[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess-beta
+[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess
 
 [3]: https://github.com/leonardder/rdAccess/issues
 

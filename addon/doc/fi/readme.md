@@ -1,7 +1,7 @@
 # Etätyöpöydän saavutettavuus #
 
 * Tekijä: [Leonard de Ruijter][1]
-* Lataa [viimeisin beetaversio][2]
+* Lataa [viimeisin vakaa versio][2]
 * Yhteensopivuus: NVDA 2023.2 ja uudemmat
 
 RDAccess-lisäosa (Remote Desktop Accessibility) lisää NVDA:han tuen
@@ -32,6 +32,12 @@ käyttämiseltä.
 * Mahdollisuus käyttää puhetta ja pistenäyttöä käyttäjäistunnosta suojatulla
   työpöydällä oltaessa
 
+## Muutosloki
+
+### Versio 1.0
+
+Ensimmäinen vakaa versio.
+
 ## Aloittaminen
 
 1. Asenna RDAccess NVDA:han sekä asiakas- että palvelinkoneella.
@@ -56,11 +62,9 @@ toimintatilan. Seuraavat vaihtoehdot ovat käytettävissä:
 
 * Saapuville yhteyksille (etätyöpöytäpalvelin): Valitse tämä vaihtoehto, jos
   nykyinen NVDA-kopio on käynnissä etätyöpöytäpalvelimella.
-
 * Lähteville yhteyksille (etätyöpöytäasiakas): Valitse tämä vaihtoehto, jos
   nykyinen NVDA-kopio on käynnissä etätyöpöytäasiakkaalla, joka muodostaa
   yhteyden yhteen tai useampaan palvelimeen.
-
 * Suojatun työpöydän läpivienti: Valitse tämä vaihtoehto, jos haluat käyttää
   NVDA:n käyttäjäkopion pistenäyttöä ja puhetta etätyöpöytää
   käyttäessäsi. Huom: Jotta tätä toimintoa voisi käyttää, RDAccess-lisäosa
@@ -96,6 +100,11 @@ vaikeuksia NVDA-valikon avaamisessa etäjärjestelmää hallitessasi.  Muutoin
 asetus kannattaa poistaa käytöstä, koska se saattaa aiheuttaa suorituskyvyn
 heikentymistä.
 
+Vaikka tämän asetuksen käyttöönotto saattaa aiheuttaa jonkin verran
+suorituskyvyn heikkenemistä, suosittelemme silti sen käyttämistä. Kun tämä
+asetus on poistettu käytöstä, puhesyntetisaattorin äänenkorkeuden muutokset
+isoille kirjaimille eivät toimi.
+
 ### Säilytä asiakastuki NVDA:ta suljettaessa
 
 Tämä asiakasasetus on käytettävissä vain NVDA:n asennetuissa versioissa.
@@ -110,8 +119,14 @@ automaattisesti ja perua ne suljettaessa. Tämä varmistaa, että lisäosa on
 täysin yhteensopiva NVDA:n massamuistiversioiden kanssa. Tämän
 mahdollistamiseksi asetus on oletusarvoisesti poissa käytöstä. Jos kuitenkin
 käytät NVDA:n asennettua versiota ja olet järjestelmän ainoa käyttäjä, ota
-tämä asetus käyttöön varmistaaksesi sujuvan toiminnan silloin, kun NVDA
-käynnistyy tai ei ole käynnissä muodostettaessa yhteyttä etäjärjestelmään.
+tämä asetus käyttöön varmistaaksesi sujuvan toiminnan NVDA:n käynnistyessä
+tai kun se ei ole käynnissä muodostettaessa yhteyttä etäjärjestelmään.
+
+Tämä asetus on oletusarvoisesti poissa käytöstä. Jos käytössäsi kuitenkin on
+asennettu versio ja olet järjestelmän ainoa käyttäjä, suosittelemme tämän
+asetuksen käyttöön ottamista. Tämä varmistaa sujuvan toiminnan, mikäli NVDA
+ei ole käynnissä muodostettaessa yhteyttä etäjärjestelmään vaan se
+käynnistetään vasta myöhemmin.
 
 ### Ota käyttöön Microsoft-etätyöpöydän tuki
 
@@ -143,7 +158,6 @@ huomioon joitakin tärkeitä seikkoja.
 ### Asiakaspuolen vaatimukset
 
 1. Sovelluksen Windows Store -versiota ei tueta.
-
 2. Kun olet asentanut Citrix Workspace -sovelluksen, sinun on käynnistettävä
    etäistunto kerran, jotta RDAccess voi rekisteröidä itsensä. Syynä tähän
    on se, että sovellus kopioi järjestelmän asetukset käyttäjän asetuksiin
@@ -176,11 +190,11 @@ kirjoitetusta kirjastosta, joka mahdollistaa etätyöpöytäasiakkaan tuen.  RD
 Pipeä jaetaan tämän lisäosan mukana Free Software Foundationin julkaiseman
 [GNU AGPL -lisenssin (versio 3)][5] ehtojen mukaisesti.
 
-[[!tag dev beta]]
+[[!tag stable dev beta]]
 
 [1]: https://github.com/leonardder/
 
-[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess-beta
+[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess
 
 [3]: https://github.com/leonardder/rdAccess/issues
 

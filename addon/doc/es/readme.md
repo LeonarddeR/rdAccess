@@ -1,7 +1,7 @@
 # Accesibilidad en Escritorio Remoto #
 
 * Autores: [Leonard de Ruijter][1]
-* Descargar [versión beta más reciente][2]
+* Descargar [versión estable más reciente][2]
 * Compatibilidad con NVDA: de 2023.2 en adelante
 
 El complemento RD Access (Accesibilidad en Escritorio Remoto, en inglés
@@ -33,6 +33,12 @@ al operar el sistema local.
 * Capacidad de usar voz y braille de la sesión del usuario al acceder a
   escritorios seguros
 
+## Registro de cambios
+
+### Versión 1.0
+
+Primera versión estable.
+
 ## Primeros pasos
 
 1. Instala RD Access tanto en una copia cliente como servidor de NVDA.
@@ -57,11 +63,9 @@ complemento. Se puede elegir entre:
 
 * Conexiones entrantes (servidor de escritorio remoto): elige esta opción si
   la copia actual de NVDA se ejecuta en un servidor de escritorio remoto
-
 * Conexiones salientes (cliente de escritorio remoto): elige esta opción si
   la copia actual de NVDA se ejecuta en un cliente de escritorio remoto que
   se conecta a uno o más servidores
-
 * Dejar pasar el escritorio seguro: elige esta opción si quieres usar
   braille y voz de la instancia de usuario de NVDA al acceder al escritorio
   remoto. Ten en cuenta que para que esto funcione, debes hacer que el
@@ -90,11 +94,14 @@ activada si el servidor de escritorio remoto no tiene salida de audio.
 ### Permitir que el sistema remoto modifique ajustes del controlador
 
 Cuando esta opción del cliente está activada, permite modificar ajustes del
-controlador (como voz del sintetizador y tono) desde el sistema remoto. Los
-cambios realizados en el sistema remoto se reflejarán automáticamente en el
-local. Si tienes dificultades accediendo al menú de NVDA local al controlar
-un sistema remoto, puedes habilitar esta opción. En cualquier otro caso, se
-aconseja desactivarla, ya que conlleva cierta degradación del rendimiento.
+controlador (como voz del sintetizador y tono) desde el sistema
+remoto. Resulta especialmente útil si tienes dificultades al acceder al menú
+del NVDA local al controlar un sistema remoto. Los cambios realizados en el
+sistema remoto se reflejarán automáticamente en el local.
+
+Aunque habilitar esta opción implica cierta degradación del rendimiento, se
+aconseja activarla. Si esta opción está deshabilitada, los cambios de tono
+del sintetizador de voz en las mayúsculas no funcionan.
 
 ### Mantener soporte de cliente al salir de NVDA
 
@@ -107,12 +114,12 @@ el registro de Windows. El complemento se asegura de hacer estos cambios en
 el perfil del usuario actual. Estos cambios no necesitan privilegios de
 administrador. Por lo tanto, NVDA puede aplicar automáticamente los cambios
 necesarios al cargarse, y deshacer estos cambios al salir. Esto asegura que
-el complemento es completamente compatible con versiones portables de
-NVDA. Para permitir este escenario, esta opción se desactiva por
-defecto. Sin embargo, si ejecutas una copia instalada de NVDA y eres el
-único usuario del sistema, se aconseja activar esta opción para garantizar
-una operación más suave en caso de que NVDA haya iniciado o no esté activo
-al conectar a un sistema remoto.
+el complemento es completamente compatible con versiones portables de NVDA.
+
+Esta opción se desactiva por defecto. Sin embargo, si ejecutas una copia
+instalada de NVDA y eres el único usuario del sistema, se aconseja activar
+esta opción para garantizar una operación más suave en caso de que NVDA no
+esté activo al conectar a un sistema remoto y se inicie posteriormente.
 
 ### Habilitar soporte para Escritorio Remoto de Microsoft
 
@@ -147,7 +154,6 @@ Access con la aplicación Citrix Workspace.
 
 1. La variante de esta aplicación para la tienda de Windows *no* está
    soportada.
-
 2. Tras instalar Citrix Workspace, tienes que iniciar una sesión remota una
    vez para permitir que RD Access se registre. La razón detrás de esto es
    que la aplicación copia la configuración del sistema a la configuración
@@ -182,11 +188,11 @@ redistribuye como parte de este complemento según los términos de la
 [versión 3 de la licencia pública GNU Affero][5] tal y como la publicó la
 Free Software Foundation.
 
-[[!tag dev beta]]
+[[!tag stable dev beta]]
 
 [1]: https://github.com/leonardder/
 
-[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess-beta
+[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess
 
 [3]: https://github.com/leonardder/rdAccess/issues
 
