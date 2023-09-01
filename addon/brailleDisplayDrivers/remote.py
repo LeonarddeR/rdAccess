@@ -26,12 +26,10 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 	isThreadSafe = True
 	supportsAutomaticDetection = True
 	driverType = protocol.DriverType.BRAILLE
-	_registeredForAutoDetect: bool= False
 
 	@classmethod
 	def registerAutomaticDetection(cls, driverRegistrar):
 		driverRegistrar.addDeviceScanner(detection.bgScanRD, moveToStart=True)
-		cls._registeredForAutoDetect = True
 
 	def _getModifierGestures(self, model: typing.Optional[str] = None):
 		"""Hacky override that throws an instance at the underlying class method.

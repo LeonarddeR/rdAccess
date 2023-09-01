@@ -23,6 +23,7 @@ import atexit
 from utils.security import isRunningOnSecureDesktop
 from IAccessibleHandler import SecureDesktopNVDAObject
 from .secureDesktopHandling import SecureDesktopHandler
+import versionInfo
 
 if typing.TYPE_CHECKING:
 	from ...lib import (
@@ -43,6 +44,8 @@ else:
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
 	secureDesktop = addon.loadModule("lib.secureDesktop")
+
+supportsBrailleAutoDetectRegistration = (versionInfo.version_year, versionInfo.version_major) >= (2023, 3)
 
 
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
@@ -105,10 +108,11 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			atexit.register(cls._unregisterRdPipeFromRegistry)
 
 	def initializeOperatingModeServer(self):
-		detection.register()
 		if configuration.getRecoverRemoteSpeech():
 			self._synthDetector = _SynthDetector()
-		self._triggerBackgroundDetectRescan(True)
+		if not supportsBrailleAutoDetectRegistration:
+			detection.register()
+		self._triggerBackgroundDetectRescan(rescanBraille=not supportsBrailleAutoDetectRegistration, force=True)
 		if not isRunningOnSecureDesktop():
 			post_sessionLockStateChanged.register(self._handleLockStateChanged)
 
@@ -191,9 +195,10 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def terminateOperatingModeServer(self):
 		if not isRunningOnSecureDesktop():
 			post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
+		if not supportsBrailleAutoDetectRegistration:
+			detection.unregister()
 		if self._synthDetector:
 			self._synthDetector.terminate()
-		detection.unregister()
 
 	def terminateOperatingModeRdClient(self):
 		if isRunningOnSecureDesktop():
@@ -308,13 +313,18 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def _handleLockStateChanged(self, isNowLocked):
 		if not isNowLocked:
-			self._triggerBackgroundDetectRescan(True)
+			self._triggerBackgroundDetectRescan(force=True)
 
-	def _triggerBackgroundDetectRescan(self, force: bool = False):
-		if self._synthDetector:
+	def _triggerBackgroundDetectRescan(
+			self,
+			rescanSpeech: bool = True,
+			rescanBraille: bool = True,
+			force: bool = False
+	):
+		if rescanSpeech and self._synthDetector:
 			self._synthDetector.rescan(force)
 		detector = braille.handler._detector
-		if detector is not None:
+		if rescanBraille and detector is not None:
 			detector.rescan(
 				usb=detector._detectUsb,
 				bluetooth=detector._detectBluetooth,
