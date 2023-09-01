@@ -46,9 +46,15 @@ def bgScanRD(
 
 
 def register():
+	from brailleDisplayDrivers.remote import RemoteBrailleDisplayDriver
+	if RemoteBrailleDisplayDriver._registeredForAutoDetect:
+		return
 	bdDetect.scanForDevices.register(bgScanRD)
 	bdDetect.scanForDevices.moveToEnd(bgScanRD, last=False)
 
 
 def unregister():
+	from brailleDisplayDrivers.remote import RemoteBrailleDisplayDriver
+	if RemoteBrailleDisplayDriver._registeredForAutoDetect:
+		return
 	bdDetect.scanForDevices.unregister(bgScanRD)
