@@ -1,8 +1,8 @@
 # Remote Desktop Accessibility #
 
-* Auteurs:  [Leonard de Ruijter][1]
-* Télécharger [dernière version béta][2]
-* Compatibilité NVDA : 2023.2 et plus
+* Auteurs : [Leonard de Ruijter][1]
+* Télécharger [dernière version stable][2]
+* Compatibilité NVDA : 2023.2 et supérieur
 
 L'extension RDAccess (Remote Desktop Accessibility) ajoute une prise en
 charge pour accéder aux sessions de bureau à distance à NVDA en utilisant
@@ -24,7 +24,7 @@ tout aussi performante que le fonctionnement du système local.
 * Prise en charge des copies portables de NVDA fonctionnant sur un serveur
   (configuration supplémentaire requise pour Fitrix)
 * Prise en charge complète pour les copies portables de NVDA fonctionnant
-  sur un client (aucun privilège administratif supplémentaire requis pour
+  sur un client (aucun privilège administrateur supplémentaire requis pour
   installer l'extension)
 * Plusieurs sessions de clients actives en même temps
 * Remote desktop instantanément disponible après le démarrage de NVDA
@@ -32,6 +32,12 @@ tout aussi performante que le fonctionnement du système local.
   braille spécifiques sans quitter la session distante
 * Possibilité d'utiliser la parole et le braille de la session utilisateur
   lors de l'accès à des bureaux sécurisés
+
+## Journal des changements
+
+### Version 1.0
+
+Première version stable
 
 ## Premiers pas
 
@@ -46,23 +52,21 @@ tout aussi performante que le fonctionnement du système local.
 
 ## Configuration
 
-Après l'installation, l'extension rdAccess peut être configurée à l'aide de la boîte de dialogue Paramètres de NVDA, accessible à partir du menu de NVDA en choisissant Préférences > Paramètres...
+Après l'installation, l'extension RDAccess peut être configurée à l'aide de la boîte de dialogue Paramètres de NVDA, accessible à partir du menu de NVDA en choisissant Préférences > Paramètres...
 Après cela, choisissez la catégorie Bureau distant.
 
 Cette boîte de dialogue contient les paramètres suivants :
 
 ### Activer remote desktop accessibility pour
 
-Cette liste des boutons de cases à cocher contrôle le mode de fonctionnement
-de l'extension. Vous pouvez choisir entre :
+Cette liste de cases à cocher contrôle le mode de fonctionnement de
+l'extension. Vous pouvez choisir entre :
 
 * Connexions entrantes (Remote Desktop Server) : Choisissez cette option si
   l'instance actuelle de NVDA s'exécute sur un serveur de bureau distant
-
 * Connexions sortantes (Remote Desktop Client) : Choisissez cette option si
   l'instance actuelle de NVDA s'exécute sur un client de bureau distant qui
   se connecte à un ou plusieurs serveurs
-
 * Passerelle Secure Desktop : Choisissez cette option si vous souhaitez
   utiliser le braille et la parole dans l'instance utilisateur de NVDA lors
   de l'accès au bureau distant. Notez que pour que cela fonctionne, vous
@@ -95,37 +99,43 @@ audio.
 
 Cette option client, lorsqu'elle est activée, vous permet de contrôler les
 paramètres du pilote (tels que la voix et la hauteur du synthétiseur) du
-système distant. Les modifications effectuées sur le système distant seront
-automatiquement reflétées localement. Si vous avez des difficultés à accéder
-au menu de NVDA local lors du contrôle d'un système distant, vous pouvez
-activer cette option. Sinon, il est conseillé de le désactiver, car cela
-implique une certaine dégradation des performances.
+système distant.  Ceci est particulièrement utile lorsque vous avez des
+difficultés à accéder au menu de NVDA local lors du contrôle d'un système
+distant.  Les modifications effectuées sur le système distant seront
+automatiquement reflétées localement.
+
+Bien que l'activation de cette option implique une dégradation des
+performances, il est encore conseillé de l'activer.  Lorsque cette option
+est désactivée, les modifications de  tonalité du synthétiseur vocal pour
+les majuscules ne fonctionnent pas.
 
 ### Conserver le support client lors de la sortie de NVDA
 
-Cette option client n'est disponible que sur des copies installées de
-NVDA. Lorsqu'il est activé, il garantit que la partie client de NVDA est
-chargée dans votre client de bureau distant, même lorsque NVDA n'est pas en
-cours d'exécution.
+Cette option client n'est disponible que sur des copies installées de NVDA.
+Lorsqu'il est activé, il garantit que la partie client de NVDA est chargée
+dans votre client de bureau distant, même lorsque NVDA n'est pas en cours
+d'exécution.
 
 Pour utiliser la partie client de RDAccess, plusieurs modifications doivent
-être faites dans le registre Windows. L'extension garantit que ces
-modifications sont apportées dans le profil de l'utilisateur actuel. Ces
-changements ne nécessitent pas de privilèges administrateur. Par conséquent,
-NVDA peut appliquer automatiquement les modifications nécessaires lors du
-chargement et annuler ces modifications lors de la sortie de NVDA. Cela
-garantit que l'extension est entièrement compatible avec les versions
-portables de NVDA. Pour permettre ce scénario, cette option est désactivée
-par défaut. Cependant, si vous exécutez une copie installée et que vous êtes
-le seul utilisateur du système, il est conseillé d'activer cette option pour
-assurer un fonctionnement fluide au cas où NVDA a démarré ou n'est pas actif
-lors de la connexion à un système distant.
+être faites dans le registre Windows.  L'extension garantit que ces
+modifications sont apportées dans le profil de l'utilisateur actuel.  Ces
+changements ne nécessitent pas de privilèges administrateur.  Par
+conséquent, NVDA peut appliquer automatiquement les modifications
+nécessaires lors du chargement et annuler ces modifications lors de la
+sortie de NVDA.  Cela garantit que l'extension est entièrement compatible
+avec les versions portables de NVDA.
+
+Cette option est désactivée par défaut.  Cependant, si vous exécutez une
+copie installée et que vous êtes le seul utilisateur du système, il est
+conseillé d'activer cette option.  Cela garantit un fonctionnement fluide au
+cas où NVDA n'est pas actif lors de la connexion à un système distant et est
+ensuite démarré par la suite.
 
 ### Activer le support de Microsoft Remote Desktop
 
 Cette option est activée par défaut et garantit que la partie client de
 RDAccess est chargée dans Microsoft Remote Desktop client (mstsc) lors du
-démarrage de NVDA. À moins que conserver le support client ne soit activée
+démarrage de NVDA.  À moins que conserver le support client ne soit activée
 en activant l'option précédente, ces modifications seront automatiquement
 annulées lors de la sortie de NVDA.
 
@@ -133,9 +143,9 @@ annulées lors de la sortie de NVDA.
 
 Cette option est activée par défaut et garantit que la partie client de
 RDAccess est chargée dans l'application Citrix Workspace lors du démarrage
-de NVDA. À moins que conserver le support client ne soit activée en activant
-l'option précédente, ces modifications seront automatiquement annulées lors
-de la sortie de NVDA.
+de NVDA.  À moins que conserver le support client ne soit activée en
+activant l'option précédente, ces modifications seront automatiquement
+annulées lors de la sortie de NVDA.
 
 Cette option n'est disponible que dans les cas suivants :
 
@@ -154,7 +164,6 @@ RDAccess avec l'application Citrix Workspace.
 ### Exigences côté client
 
 1. La variante Windows Store de l'application n'est *pas* prise en charge.
-
 2. Après avoir installé Citrix Workspace, vous devez démarrer une session
    distante une fois pour permettre à RDAccess l'enregistrement de
    lui-même. La raison derrière cela est que l'application copie la
@@ -188,11 +197,11 @@ soutenant le support du client remote desktop.  RD Pipe est redistribué dans
 le cadre de cette extension en vertu des termes de  la [version 3 de la GNU
 Affero General Public License][5] publiée par la Free Software Foundation.
 
-[[!tag dev beta]]
+[[!tag stable dev beta]]
 
 [1]: https://github.com/leonardder/
 
-[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess-beta
+[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess
 
 [3]: https://github.com/leonardder/rdAccess/issues
 

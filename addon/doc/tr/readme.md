@@ -1,7 +1,7 @@
 # Uzak Masaüstü Erişilebilirliği #
 
 * Yazarlar: [Leonard de Ruijter][1]
-* [En son beta sürümünü indirin][2]
+* [En son kararlı sürümü indirin][2]
 * NVDA uyumluluğu: 2023.2 ve sonrası
 
 RDAccess eklentisi (Uzak Masaüstü Erişilebilirliği), Microsoft Uzak
@@ -31,6 +31,12 @@ deneyimi sağlar.
 * Güvenli masaüstlerine erişirken kullanıcı oturumundan konuşma ve braille
   kullanabilme özelliği
 
+## Değişiklik günlüğü
+
+### Sürüm 1.0
+
+İlk kararlı sürüm.
+
 ## Başlarken
 
 1. RDAccess'i NVDA'nın hem istemci hem de sunucu kopyasına kurun.
@@ -43,30 +49,28 @@ deneyimi sağlar.
 
 ## Yapılandırma
 
-Kurulumdan sonra Uzak masaüstü erişilebilirliği eklentisi, NVDA Menüsünden Tercihler > Ayarlar... seçilerek erişilebilen NVDA'nın ayarlar iletişim kutusu kullanılarak yapılandırılabilir.
-Daha sonra, Uzak Masaüstü kategorisini seçin.
+Kurulumdan sonra, RDAccess eklentisi, NVDA Menüsünden Tercihler > Ayarlar... seçeneğini seçerek erişilebilen NVDA'nın ayarlar iletişim kutusu kullanılarak yapılandırılabilir.
+Bundan sonra Uzak Masaüstü kategorisini seçin.
 
 Bu iletişim kutusu aşağıdaki ayarları içerir:
 
 ### Şunlar için uzak masaüstü erişilebilirliğini etkinleştirin
 
-Bu onay kutusu düğmeleri listesi, eklentinin çalışma modunu kontrol
-eder. Aşağıdakiler arasından seçim yapabilirsiniz:
+Bu onay kutuları listesi, eklentinin çalışma modunu kontrol
+eder. Aşağıdakiler arasında seçim yapabilirsiniz:
 
 * Gelen bağlantılar (Uzak Masaüstü Sunucusu): Geçerli NVDA örneği bir uzak
   masaüstü sunucusunda çalışıyorsa bu seçeneği seçin
-
 * Giden bağlantılar (Uzak Masaüstü İstemcisi): Geçerli NVDA örneği, bir veya
   daha fazla sunucuya bağlanan bir uzak masaüstü istemcisinde çalışıyorsa bu
   seçeneği seçin
-
-* Güvenli Masaüstü geçişi: : Uzak masaüstüne erişirken NVDA kullanıcı
-  örneğinden braille ve konuşma kullanmak istiyorsanız bu seçeneği
-  seçin. Bunun çalışması için, NVDA'nın güvenli masaüstü kopyasında Uzak
-  Masaüstü Erişilebilirliği eklentisini kullanıma sunmanız gerektiğini
-  unutmayın. Bunun için, NVDA'nın genel ayarlarında "Oturum açma sırasında
-  ve güvenli ekranlarda (yönetici ayrıcalıkları gerektirir) mevcut kayıtlı
-  ayarları kullan" seçeneğini seçin.
+* Güvenli Masaüstü geçişi: Güvenli masaüstüne erişirken NVDA'nın kullanıcı
+  örneğinden Braille ve konuşma kullanmak istiyorsanız bu seçeneği
+  belirleyin. Bunun çalışması için RDAccess eklentisini NVDA'nın güvenli
+  masaüstü kopyasında kullanılabilir hale getirmeniz gerektiğini
+  unutmayın. Bunun için NVDA'nın ayarlar Genel içerisinde "Oturum açma
+  sırasında ve güvenli ekranlarda şu anda kayıtlı ayarları kullan (yönetici
+  ayrıcalıkları gerektirir)" seçeneğini belirleyin.
 
 Eklentiyle sorunsuz bir başlangıç ​​sağlamak için tüm seçenekler varsayılan
 olarak etkindir. Bununla birlikte, sunucu veya istemci modunu uygun şekilde
@@ -87,12 +91,16 @@ yoksa, bu seçeneği etkin bırakmanız kesinlikle önerilir.
 
 ### Uzak sistemin sürücü ayarlarını kontrol etmesine izin ver
 
-Bu istemci seçeneği etkinleştirildiğinde, uzak sistemden sürücü ayarlarını
-(sentezleyici sesi ve perdesi gibi) kontrol etmenizi sağlar. Uzak sistemde
-yapılan değişiklikler yerel olarak otomatik olarak yansıtılacaktır. Uzak bir
-sistemi kontrol ederken yerel NVDA menüsüne erişimde sorun yaşıyorsanız, bu
-seçeneği etkinleştirebilirsiniz. Aksi takdirde, bazı performans düşüşleri
-anlamına geleceği için devre dışı bırakmanız önerilir.
+Bu istemci seçeneği, etkinleştirildiğinde, uzak sistemden sürücü ayarlarını
+(Sentezleyici sesi ve perdesi gibi) kontrol etmenize olanak tanır. Bu,
+özellikle uzaktaki bir sistemi kontrol ederken yerel NVDA menüsüne erişimde
+zorluk yaşıyorsanız kullanışlıdır. Uzak sistem üzerinde yapılan
+değişiklikler otomatik olarak yerel olarak yansıtılacaktır.
+
+Bu seçeneğin etkinleştirilmesi bir miktar performans düşüşü anlamına gelse
+de, bunu etkinleştirmeniz tavsiye edilir. Bu seçenek devre dışı
+bırakıldığında, büyük harfler için konuşma sentezleyici ses perdesi
+değişiklikleri çalışmaz.
 
 ### NVDA kapatıldığında istemci desteğini sürdür
 
@@ -100,17 +108,18 @@ Bu istemci seçeneği yalnızca yüklü NVDA kopyalarında
 mevcuttur. Etkinleştirildiğinde, NVDA çalışmıyorken bile NVDA'nın istemci
 kısmının uzak masaüstü istemcinize yüklenmesini sağlar.
 
-Uzak Masaüstü Erişilebilirliği'nin istemci bölümünü kullanmak için, Windows
-Kayıt Defterinde çeşitli değişikliklerin yapılması gerekir. Eklenti, bu
-değişikliklerin geçerli kullanıcının profili altında yapılmasını sağlar. Bu
-değişiklikler yönetici ayrıcalıkları gerektirmez. Bu nedenle NVDA,
-yüklendiğinde gerekli değişiklikleri otomatik olarak uygulayabilir ve
-NVDA'dan çıkarken bu değişiklikleri geri alabilir. Bu, eklentinin NVDA'nın
-taşınabilir sürümleriyle tamamen uyumlu olmasını sağlar. Bu senaryoya izin
-vermek için bu seçenek varsayılan olarak devre dışıdır. Ancak, kurulu bir
-kopya çalıştırıyorsanız ve sistemin tek kullanıcısı sizseniz, uzak bir
-sisteme bağlanırken NVDA'nın başlatılması veya etkin olmaması durumunda
-sorunsuz çalışmayı sağlamak için bu seçeneği etkinleştirmeniz önerilir.
+RDAccess'in istemci kısmını kullanmak için Windows Kayıt Defteri'nde birkaç
+değişiklik yapılması gerekir. Eklenti, bu değişikliklerin mevcut
+kullanıcının profili altında yapılmasını sağlar. Bu değişiklikler yönetici
+ayrıcalıkları gerektirmez. Bu nedenle NVDA, yüklendiğinde gerekli
+değişiklikleri otomatik olarak uygulayabilir ve NVDA'dan çıkarken bu
+değişiklikleri geri alabilir. Bu, eklentinin NVDA'nın taşınabilir
+sürümleriyle tamamen uyumlu olmasını sağlar.
+
+Bu seçenek varsayılan olarak devre dışıdır. Ancak yüklü bir kopya
+çalıştırıyorsanız ve sistemin tek kullanıcısı sizseniz bu seçeneği
+etkinleştirmeniz önerilir. Bu, uzak bir sisteme bağlanırken NVDA'nın aktif
+olmaması ve daha sonra başlatılması durumunda sorunsuz çalışmayı sağlar.
 
 ### Microsoft Uzak Masaüstü desteğini etkinleştir
 
@@ -145,7 +154,6 @@ kullanırken dikkat edilmesi gereken bazı önemli noktalar vardır.
 ### İstemci tarafı gereksinimleri
 
 1. Uygulamanın Windows Mağazası varyantı *desteklenmez*.
-
 2. Citrix çalışma alanı'nı kurduktan sonra, Uzak Masaüstü
    Erişilebilirliği'nin kendisini kaydetmesine izin vermek için bir kez uzak
    oturum başlatmanız gerekir. Bunun nedeni, uygulamanın ilk defa oturum
@@ -175,16 +183,15 @@ sorunlar sayfasına][3] göz atın
 ## Dış bileşenler
 
 Bu eklenti, uzak masaüstü istemci desteğini destekleyen Rust'ta yazılmış bir
-kitaplık olan [RD Pipe][4]'e dayanır. RD Pipe, Free Software Foundation
-tarafından yayınlanan [GNU Affero Genel Kamu Lisansının 3. sürümü] [5]
-koşulları altında bu eklentinin bir parçası olarak yeniden dağıtılır. Özgür
-Yazılım Vakfı tarafından yayınlandı.
+kitaplık olan [RD Pipe][4]'e dayanır. RD Pipe, Özgür Yazılım Vakfı
+tarafından yayınlanan [GNU Affero Genel Kamu Lisansı sürüm 3][5] koşulları
+kapsamında bu eklentinin bir parçası olarak yeniden dağıtılmaktadır.
 
-[[!tag dev beta]]
+[[!tag stable dev beta]]
 
 [1]: https://github.com/leonardder/
 
-[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess-beta
+[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess
 
 [3]: https://github.com/leonardder/rdAccess/issues
 
