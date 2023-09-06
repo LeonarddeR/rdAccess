@@ -22,6 +22,9 @@ This enables a user experience where managing a remote system feels just as perf
 * Ability to use speech and braille from the user session when accessing secure desktops
 
 ## Changelog
+### Version 1.1
+
+- Added support for NVDA 2023.3 style device registration for automatic detection of braille displays [#11](https://github.com/leonardder/rdAccess/pull/11)
 
 ### Version 1.0
 
