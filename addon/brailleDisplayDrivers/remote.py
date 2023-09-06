@@ -10,10 +10,12 @@ import inputCore
 from logHandler import log
 
 if typing.TYPE_CHECKING:
+	from ..lib import detection
 	from ..lib import driver
 	from ..lib import protocol
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
+	detection = addon.loadModule("lib.detection")
 	driver = addon.loadModule("lib.driver")
 	protocol = addon.loadModule("lib.protocol")
 
@@ -22,7 +24,12 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 	# Translators: Name for a remote braille display.
 	description = _("Remote Braille")
 	isThreadSafe = True
+	supportsAutomaticDetection = True
 	driverType = protocol.DriverType.BRAILLE
+
+	@classmethod
+	def registerAutomaticDetection(cls, driverRegistrar):
+		driverRegistrar.addDeviceScanner(detection.bgScanRD, moveToStart=True)
 
 	def _getModifierGestures(self, model: typing.Optional[str] = None):
 		"""Hacky override that throws an instance at the underlying class method.
