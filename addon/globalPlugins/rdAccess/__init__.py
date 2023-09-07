@@ -21,7 +21,6 @@ import gui
 import api
 import atexit
 from utils.security import isRunningOnSecureDesktop
-from IAccessibleHandler import SecureDesktopNVDAObject
 from .secureDesktopHandling import SecureDesktopHandler
 import versionInfo
 
@@ -349,7 +348,11 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 					except Exception:
 						log.error("Error calling event_gainFocus on handler", exc_info=True)
 						continue
-			if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
+			if (
+				configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
+				and not secureDesktop.hasSecureDesktopExtensionPoint
+			):
+				from IAccessibleHandler import SecureDesktopNVDAObject
 				if isinstance(obj, SecureDesktopNVDAObject):
 					secureDesktop.post_secureDesktopStateChange.notify(isSecureDesktop=True)
 				elif self._sdHandler:
