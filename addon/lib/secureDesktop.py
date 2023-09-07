@@ -3,6 +3,11 @@
 # License: GNU General Public License version 2.0
 
 from extensionPoints import Action
+import versionInfo
 
+hasSecureDesktopExtensionPoint = versionInfo.version_year >= 2024
 
-post_secureDesktopStateChange = Action()
+if hasSecureDesktopExtensionPoint:
+	from winAPI.secureDesktop import post_secureDesktopStateChange
+else:
+	post_secureDesktopStateChange = Action()
