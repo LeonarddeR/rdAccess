@@ -43,9 +43,7 @@ class SecureDesktopHandler(AutoPropertyObject):
         self._brailleHandler.terminate()
         synthDriverHandler.getSynth().loadSettings()
 
-    def _initializeHandler(
-        self, handlerType: typing.Type[HandlerTypeT]
-    ) -> HandlerTypeT:
+    def _initializeHandler(self, handlerType: typing.Type[HandlerTypeT]) -> HandlerTypeT:
         sdId = f"NVDA_SD-{handlerType.driverType.name}"
         sdPort = os.path.join(namedPipe.PIPE_DIRECTORY, sdId)
         handler = handlerType(self._ioThreadRef(), sdPort, False)

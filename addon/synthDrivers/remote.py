@@ -54,9 +54,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
         dct = OrderedDict()
         dct[AUTOMATIC_PORT[0]] = StringParameterInfo(*AUTOMATIC_PORT)
         dct.update(
-            (n, StringParameterInfo(n, d))
-            for n, d in synthDriverHandler.getSynthList()
-            if n != cls.name
+            (n, StringParameterInfo(n, d)) for n, d in synthDriverHandler.getSynthList() if n != cls.name
         )
         return dct
 
@@ -83,9 +81,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
         kwargs["fileName"] = os.path.relpath(kwargs["fileName"], globalVars.appDir)
         log.debug(f"Sending PLAY_WAVE_FILE command: {kwargs}")
         try:
-            self.writeMessage(
-                protocol.SpeechCommand.PLAY_WAVE_FILE, self._pickle(kwargs)
-            )
+            self.writeMessage(protocol.SpeechCommand.PLAY_WAVE_FILE, self._pickle(kwargs))
         except WindowsError:
             log.warning("Error calling handle_decidePlayWaveFile", exc_info=True)
             return True
@@ -96,9 +92,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 
     def speak(self, speechSequence):
         try:
-            self.writeMessage(
-                protocol.SpeechCommand.SPEAK, self._pickle(speechSequence)
-            )
+            self.writeMessage(protocol.SpeechCommand.SPEAK, self._pickle(speechSequence))
         except WindowsError:
             log.error("Error speaking", exc_info=True)
             self._handleRemoteDisconnect()
@@ -115,9 +109,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
         except WindowsError:
             log.warning("Error pausing speech", exc_info=True)
 
-    @protocol.attributeReceiver(
-        protocol.SpeechAttribute.SUPPORTED_COMMANDS, defaultValue=frozenset()
-    )
+    @protocol.attributeReceiver(protocol.SpeechAttribute.SUPPORTED_COMMANDS, defaultValue=frozenset())
     def _incoming_supportedCommands(self, payLoad: bytes) -> frozenset:
         assert len(payLoad) > 0
         return self._unpickle(payLoad)
@@ -125,17 +117,13 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
     def _get_supportedCommands(self):
         attribute = protocol.SpeechAttribute.SUPPORTED_COMMANDS
         try:
-            value = self._attributeValueProcessor.getValue(
-                attribute, fallBackToDefault=False
-            )
+            value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
         except KeyError:
             value = self._attributeValueProcessor._getDefaultValue(attribute)
             self.requestRemoteAttribute(attribute)
         return value
 
-    @protocol.attributeReceiver(
-        protocol.SpeechAttribute.LANGUAGE, defaultValue=getLanguage()
-    )
+    @protocol.attributeReceiver(protocol.SpeechAttribute.LANGUAGE, defaultValue=getLanguage())
     def _incoming_language(self, payload: bytes) -> Optional[str]:
         assert len(payload) > 0
         return self._unpickle(payload)
@@ -143,9 +131,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
     def _get_language(self):
         attribute = protocol.SpeechAttribute.LANGUAGE
         try:
-            value = self._attributeValueProcessor.getValue(
-                attribute, fallBackToDefault=False
-            )
+            value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
         except KeyError:
             value = self._attributeValueProcessor._getDefaultValue(attribute)
             self.requestRemoteAttribute(attribute)

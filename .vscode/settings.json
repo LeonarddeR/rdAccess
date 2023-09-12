@@ -3,7 +3,7 @@
     "python.autoComplete.extraPaths": [
         "../nvda/source",
         "../nvda/miscDeps/python"
-        ],
+    ],
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
     "editor.insertSpaces": false,
@@ -15,5 +15,8 @@
         "../nvda/miscDeps/python"
     ],
     "python.defaultInterpreterPath": "${workspaceFolder}/../nvda/.venv/scripts/python.exe",
-    "ruff.enableExperimentalFormatter": true
+    "ruff.enableExperimentalFormatter": true,
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    }
 }

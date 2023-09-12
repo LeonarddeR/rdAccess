@@ -1,4 +1,5 @@
 # RDAccess: Remote Desktop Accessibility for NVDA
+# RDAccess: Remote Desktop Accessibility for NVDA
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
@@ -34,9 +35,7 @@ def onInstall():
             if result == wx.YES:
                 addon.requestRemove()
             else:
-                raise addonHandler.AddonError(
-                    "Installed nvdaRd found that needs to be removed first"
-                )
+                raise addonHandler.AddonError("Installed nvdaRd found that needs to be removed first")
     configuration.initializeConfig()
 
 

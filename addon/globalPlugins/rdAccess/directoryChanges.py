@@ -59,9 +59,7 @@ class DirectoryWatcher(IoThread):
         dirHandle = CreateFile(
             directory,
             winKernel.GENERIC_READ,
-            winKernel.FILE_SHARE_READ
-            | winKernel.FILE_SHARE_WRITE
-            | winKernel.FILE_SHARE_DELETE,
+            winKernel.FILE_SHARE_READ | winKernel.FILE_SHARE_WRITE | winKernel.FILE_SHARE_DELETE,
             None,
             winKernel.OPEN_EXISTING,
             FILE_FLAG_OVERLAPPED | FILE_FLAG_BACKUP_SEMANTICS,

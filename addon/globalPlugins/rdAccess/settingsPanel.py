@@ -40,9 +40,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
             choices=operatingModeChoices,
         )
         self.operatingModeList.CheckedItems = [
-            n
-            for n, e in enumerate(configuration.OperatingMode)
-            if configuration.getOperatingMode() & e
+            n for n, e in enumerate(configuration.OperatingMode) if configuration.getOperatingMode() & e
         ]
         self.operatingModeList.Select(0)
         self.operatingModeList.Bind(wx.EVT_CHECKLISTBOX, self.onoperatingModeChange)
@@ -57,9 +55,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 
         # Translators: The label for a setting in RDAccess settings to enable
         # automatic recovery of remote speech when the connection was lost.
-        recoverRemoteSpeechText = _(
-            "&Automatically recover remote speech after connection loss"
-        )
+        recoverRemoteSpeechText = _("&Automatically recover remote speech after connection loss")
         self.recoverRemoteSpeechCheckbox = serverGroup.addItem(
             wx.CheckBox(serverGroupBox, label=recoverRemoteSpeechText)
         )
@@ -75,9 +71,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 
         # Translators: The label for a setting in RDAccess settings to enable
         # support for exchanging driver settings between the local and the remote system.
-        driverSettingsManagementText = _(
-            "&Allow remote system to control driver settings"
-        )
+        driverSettingsManagementText = _("&Allow remote system to control driver settings")
         self.driverSettingsManagementCheckbox = clientGroup.addItem(
             wx.CheckBox(clientGroupBox, label=driverSettingsManagementText)
         )
@@ -102,9 +96,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
         # Translators: The label for a setting in RDAccess settings to enable
         # registration of RD Pipe to the Windows registry for Citrix support.
         citrixSupportText = _("Enable &Citrix Workspace support")
-        self.citrixSupportCheckbox = clientGroup.addItem(
-            wx.CheckBox(clientGroupBox, label=citrixSupportText)
-        )
+        self.citrixSupportCheckbox = clientGroup.addItem(wx.CheckBox(clientGroupBox, label=citrixSupportText))
         self.citrixSupportCheckbox.Value = configuration.getCitrixSupport()
 
         self.onoperatingModeChange()
@@ -116,15 +108,11 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
             self.operatingModes.index(configuration.OperatingMode.CLIENT)
         )
         self.driverSettingsManagementCheckbox.Enable(isClient)
-        self.persistentRegistrationCheckbox.Enable(
-            isClient and config.isInstalledCopy()
-        )
+        self.persistentRegistrationCheckbox.Enable(isClient and config.isInstalledCopy())
         self.remoteDesktopSupportCheckbox.Enable(isClient)
         self.citrixSupportCheckbox.Enable(isClient and rdPipe.isCitrixSupported())
         self.recoverRemoteSpeechCheckbox.Enable(
-            self.operatingModeList.IsChecked(
-                self.operatingModes.index(configuration.OperatingMode.SERVER)
-            )
+            self.operatingModeList.IsChecked(self.operatingModes.index(configuration.OperatingMode.SERVER))
         )
 
     def isValid(self):
@@ -144,9 +132,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
         return super().isValid()
 
     def onSave(self):
-        config.conf[configuration.CONFIG_SECTION_NAME][
-            configuration.OPERATING_MODE_SETTING_NAME
-        ] = int(
+        config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME] = int(
             functools.reduce(
                 operator.or_,
                 (self.operatingModes[i] for i in self.operatingModeList.CheckedItems),
@@ -161,14 +147,14 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
         config.conf[configuration.CONFIG_SECTION_NAME][
             configuration.DRIVER_settings_MANAGEMENT_SETTING_NAME
         ] = self.driverSettingsManagementCheckbox.IsChecked()
-        config.conf[configuration.CONFIG_SECTION_NAME][
-            configuration.PERSISTENT_REGISTRATION_SETTING_NAME
-        ] = self.persistentRegistrationCheckbox.IsChecked() and isClient
+        config.conf[configuration.CONFIG_SECTION_NAME][configuration.PERSISTENT_REGISTRATION_SETTING_NAME] = (
+            self.persistentRegistrationCheckbox.IsChecked() and isClient
+        )
         config.conf[configuration.CONFIG_SECTION_NAME][
             configuration.REMOTE_DESKTOP_SETTING_NAME
         ] = self.remoteDesktopSupportCheckbox.IsChecked()
-        config.conf[configuration.CONFIG_SECTION_NAME][
-            configuration.CITRIX_SETTING_NAME
-        ] = self.citrixSupportCheckbox.IsChecked() and rdPipe.isCitrixSupported()
+        config.conf[configuration.CONFIG_SECTION_NAME][configuration.CITRIX_SETTING_NAME] = (
+            self.citrixSupportCheckbox.IsChecked() and rdPipe.isCitrixSupported()
+        )
 
         self.post_onSave.notify()

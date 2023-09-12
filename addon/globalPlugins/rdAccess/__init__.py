@@ -54,9 +54,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
     _synthDetector: typing.Optional[_SynthDetector] = None
     _ioThread: typing.Optional[ioThreadEx.IoThreadEx] = None
 
-    def chooseNVDAObjectOverlayClasses(
-        self, obj: NVDAObject, clsList: List[Type[NVDAObject]]
-    ):
+    def chooseNVDAObjectOverlayClasses(self, obj: NVDAObject, clsList: List[Type[NVDAObject]]):
         findExtraOverlayClasses(obj, clsList)
 
     @classmethod
@@ -97,9 +95,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
     @classmethod
     def _registerRdPipeInRegistry(cls):
-        persistent = (
-            config.isInstalledCopy() and configuration.getPersistentRegistration()
-        )
+        persistent = config.isInstalledCopy() and configuration.getPersistentRegistration()
         rdp = configuration.getRemoteDesktopSupport()
         citrix = configuration.getCitrixSupport()
         if cls._updateRegistryForRdPipe(True, rdp, citrix) and not persistent:
@@ -165,34 +161,24 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
         gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(
             settingsPanel.RemoteDesktopSettingsPanel
         )
-        settingsPanel.RemoteDesktopSettingsPanel.post_onSave.register(
-            self._handlePostConfigProfileSwitch
-        )
+        settingsPanel.RemoteDesktopSettingsPanel.post_onSave.register(self._handlePostConfigProfileSwitch)
 
     def _initializeExistingPipes(self):
         for match in namedPipe.getRdPipeNamedPipes():
-            self._handleNewPipe(
-                directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED, match
-            )
+            self._handleNewPipe(directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED, match)
 
-    def _handleNewPipe(
-        self, action: directoryChanges.FileNotifyInformationAction, fileName: str
-    ):
+    def _handleNewPipe(self, action: directoryChanges.FileNotifyInformationAction, fileName: str):
         if not fnmatch(fileName, namedPipe.RD_PIPE_GLOB_PATTERN):
             return
         if action == directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED:
             if fnmatch(
                 fileName,
-                namedPipe.RD_PIPE_GLOB_PATTERN.replace(
-                    "*", f"{protocol.DriverType.BRAILLE.name}*"
-                ),
+                namedPipe.RD_PIPE_GLOB_PATTERN.replace("*", f"{protocol.DriverType.BRAILLE.name}*"),
             ):
                 HandlerClass = handlers.RemoteBrailleHandler
             elif fnmatch(
                 fileName,
-                namedPipe.RD_PIPE_GLOB_PATTERN.replace(
-                    "*", f"{protocol.DriverType.SPEECH.name}*"
-                ),
+                namedPipe.RD_PIPE_GLOB_PATTERN.replace("*", f"{protocol.DriverType.SPEECH.name}*"),
             ):
                 HandlerClass = handlers.RemoteSpeechHandler
             else:
@@ -206,9 +192,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
             log.debug(f"Pipe with name {fileName!r} removed")
             handler = self._handlers.pop(fileName, None)
             if handler:
-                log.debug(
-                    f"Terminating handler {handler!r} for Pipe with name {fileName!r}"
-                )
+                log.debug(f"Terminating handler {handler!r} for Pipe with name {fileName!r}")
                 handler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
                 handler.terminate()
 
@@ -242,9 +226,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
     def terminateOperatingModeSecureDesktop(self):
         if isRunningOnSecureDesktop():
             return
-        secureDesktop.post_secureDesktopStateChange.unregister(
-            self._handleSecureDesktop
-        )
+        secureDesktop.post_secureDesktopStateChange.unregister(self._handleSecureDesktop)
         self._handleSecureDesktop(False)
 
     @classmethod
@@ -263,9 +245,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
                 gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(
                     settingsPanel.RemoteDesktopSettingsPanel
                 )
-                config.post_configProfileSwitch.unregister(
-                    self._handlePostConfigProfileSwitch
-                )
+                config.post_configProfileSwitch.unregister(self._handlePostConfigProfileSwitch)
             configuredOperatingMode = configuration.getOperatingMode()
             if configuredOperatingMode & configuration.OperatingMode.SERVER or (
                 configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
@@ -293,18 +273,10 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
         newServer = newOperatingMode & configuration.OperatingMode.SERVER
         oldSecureDesktop = oldOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
         newSecureDesktop = newOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
-        oldSecureDesktopOrServer = (
-            oldSecureDesktop and isRunningOnSecureDesktop()
-        ) or oldServer
-        newSecureDesktopOrServer = (
-            newSecureDesktop and isRunningOnSecureDesktop()
-        ) or newServer
-        oldSecureDesktopOrClient = (
-            oldSecureDesktop and not isRunningOnSecureDesktop()
-        ) or oldClient
-        newSecureDesktopOrClient = (
-            newSecureDesktop and not isRunningOnSecureDesktop()
-        ) or newClient
+        oldSecureDesktopOrServer = (oldSecureDesktop and isRunningOnSecureDesktop()) or oldServer
+        newSecureDesktopOrServer = (newSecureDesktop and isRunningOnSecureDesktop()) or newServer
+        oldSecureDesktopOrClient = (oldSecureDesktop and not isRunningOnSecureDesktop()) or oldClient
+        newSecureDesktopOrClient = (newSecureDesktop and not isRunningOnSecureDesktop()) or newClient
         if oldSecureDesktopOrServer and not newSecureDesktopOrServer:
             self.terminateOperatingModeServer()
         elif not oldSecureDesktopOrServer and newSecureDesktopOrServer:
@@ -328,12 +300,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
         elif not oldClient and newClient:
             self.initializeOperatingModeRdClient()
         elif newClient:
-            oldDriverSettingsManagement = configuration.getDriverSettingsManagement(
-                True
-            )
-            newDriverSettingsManagement = configuration.getDriverSettingsManagement(
-                False
-            )
+            oldDriverSettingsManagement = configuration.getDriverSettingsManagement(True)
+            newDriverSettingsManagement = configuration.getDriverSettingsManagement(False)
             if oldDriverSettingsManagement is not newDriverSettingsManagement:
                 for handler in self._handlers.values():
                     handler._handleDriverChanged(handler._driver)
@@ -368,9 +336,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
                 limitToDevices=detector._limitToDevices,
             )
 
-    def _handleRemoteDisconnect(
-        self, handler: handlers.RemoteHandler, error: int
-    ) -> bool:
+    def _handleRemoteDisconnect(self, handler: handlers.RemoteHandler, error: int) -> bool:
         if isinstance(WinError(error), BrokenPipeError):
             handler.terminate()
             if handler._dev.pipeName in self._handlers:
@@ -386,9 +352,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
                     try:
                         handler.event_gainFocus(obj)
                     except Exception:
-                        log.error(
-                            "Error calling event_gainFocus on handler", exc_info=True
-                        )
+                        log.error("Error calling event_gainFocus on handler", exc_info=True)
                         continue
             if (
                 configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
@@ -397,13 +361,9 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
                 from IAccessibleHandler import SecureDesktopNVDAObject
 
                 if isinstance(obj, SecureDesktopNVDAObject):
-                    secureDesktop.post_secureDesktopStateChange.notify(
-                        isSecureDesktop=True
-                    )
+                    secureDesktop.post_secureDesktopStateChange.notify(isSecureDesktop=True)
                 elif self._sdHandler:
-                    secureDesktop.post_secureDesktopStateChange.notify(
-                        isSecureDesktop=False
-                    )
+                    secureDesktop.post_secureDesktopStateChange.notify(isSecureDesktop=False)
         if configuredOperatingMode & configuration.OperatingMode.SERVER:
             self._triggerBackgroundDetectRescan()
         nextHandler()

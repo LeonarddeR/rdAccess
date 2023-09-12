@@ -117,9 +117,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
         return self._unpickle(payLoad)
 
     @_incoming_setting.updateCallback
-    def _setIncomingSettingOnDriver(
-        self, attribute: protocol.AttributeT, value: typing.Any
-    ):
+    def _setIncomingSettingOnDriver(self, attribute: protocol.AttributeT, value: typing.Any):
         if not configuration.getDriverSettingsManagement():
             return
         name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX) :].decode("ASCII")
@@ -157,9 +155,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
         self.requestRemoteAttribute(attribute)
         return False
 
-    @protocol.attributeReceiver(
-        protocol.GenericAttribute.TIME_SINCE_INPUT, defaultValue=False
-    )
+    @protocol.attributeReceiver(protocol.GenericAttribute.TIME_SINCE_INPUT, defaultValue=False)
     def _incoming_timeSinceInput(self, payload: bytes) -> int:
         assert len(payload) == 4
         return int.from_bytes(payload, byteorder=sys.byteorder, signed=False)
@@ -167,9 +163,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
     @_incoming_timeSinceInput.updateCallback
     def _post_timeSinceInput(self, attribute: protocol.AttributeT, value: int):
         assert attribute == protocol.GenericAttribute.TIME_SINCE_INPUT
-        self._remoteSessionhasFocus = (
-            value <= MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS
-        )
+        self._remoteSessionhasFocus = value <= MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS
         if self._remoteSessionhasFocus:
             self._handleRemoteSessionGainFocus()
 

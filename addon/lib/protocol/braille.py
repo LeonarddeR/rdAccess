@@ -2,10 +2,11 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
+from enum import Enum, IntEnum
+from typing import Optional
+
 import braille
 import brailleInput
-from enum import IntEnum, Enum
-from typing import Optional
 
 
 class BrailleCommand(IntEnum):

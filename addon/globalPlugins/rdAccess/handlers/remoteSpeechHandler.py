@@ -25,9 +25,7 @@ class RemoteSpeechHandler(RemoteHandler):
     driverType = protocol.DriverType.SPEECH
     _driver: synthDriverHandler.SynthDriver
 
-    def __init__(
-        self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool = True
-    ):
+    def __init__(self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool = True):
         self._indexesSpeaking = []
         super().__init__(ioThread, pipeName, isNamedPipeClient=isNamedPipeClient)
         synthDriverHandler.synthIndexReached.register(self._onSynthIndexReached)
@@ -110,9 +108,7 @@ class RemoteSpeechHandler(RemoteHandler):
                 log.warning("Error calling _onSynthIndexReached", exc_info=True)
             self._indexesSpeaking.remove(index)
 
-    def _onSynthDoneSpeaking(
-        self, synth: typing.Optional[synthDriverHandler.SynthDriver] = None
-    ):
+    def _onSynthDoneSpeaking(self, synth: typing.Optional[synthDriverHandler.SynthDriver] = None):
         assert synth == self._driver
         if len(self._indexesSpeaking) > 0:
             self._indexesSpeaking.clear()
@@ -128,6 +124,4 @@ class RemoteSpeechHandler(RemoteHandler):
             protocol.SpeechAttribute.SUPPORTED_COMMANDS,
             commands=synth.supportedCommands,
         )
-        self._attributeSenderStore(
-            protocol.SpeechAttribute.LANGUAGE, language=synth.language
-        )
+        self._attributeSenderStore(protocol.SpeechAttribute.LANGUAGE, language=synth.language)

@@ -33,8 +33,8 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 
     def _getModifierGestures(self, model: typing.Optional[str] = None):
         """Hacky override that throws an instance at the underlying class method.
-		If we don't do this, the method can't acces the gesture map at the instance level.
-		"""
+        If we don't do this, the method can't acces the gesture map at the instance level.
+        """
         return super()._getModifierGestures.__func__(self, model)
 
     def _handleRemoteDisconnect(self):
@@ -52,9 +52,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
     def _get_numCells(self) -> int:
         attribute = protocol.BrailleAttribute.NUM_CELLS
         try:
-            value = self._attributeValueProcessor.getValue(
-                attribute, fallBackToDefault=False
-            )
+            value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
         except KeyError:
             value = self._attributeValueProcessor._getDefaultValue(attribute)
             self.requestRemoteAttribute(attribute)
@@ -72,9 +70,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
     def _get_gestureMap(self) -> inputCore.GlobalGestureMap:
         attribute = protocol.BrailleAttribute.GESTURE_MAP
         try:
-            value = self._attributeValueProcessor.getValue(
-                attribute, fallBackToDefault=False
-            )
+            value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
         except KeyError:
             value = self._attributeValueProcessor._getDefaultValue(attribute)
             self.requestRemoteAttribute(attribute)

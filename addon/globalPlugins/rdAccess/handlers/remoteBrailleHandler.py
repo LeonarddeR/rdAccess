@@ -28,23 +28,17 @@ class RemoteBrailleHandler(RemoteHandler):
     _queuedWrite: typing.Optional[typing.List[int]] = None
     _queuedWriteLock: threading.Lock
 
-    def __init__(
-        self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool = True
-    ):
+    def __init__(self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool = True):
         self._queuedWriteLock = threading.Lock()
         super().__init__(ioThread, pipeName, isNamedPipeClient=isNamedPipeClient)
         braille.decide_enabled.register(self._handleBrailleHandlerEnabled)
         braille.displayChanged.register(self._handleDriverChanged)
-        postBrailleViewerToolToggledAction.register(
-            self._handlePostBrailleViewerToolToggled
-        )
+        postBrailleViewerToolToggledAction.register(self._handlePostBrailleViewerToolToggled)
         inputCore.decide_executeGesture.register(self._handleExecuteGesture)
 
     def terminate(self):
         inputCore.decide_executeGesture.unregister(self._handleExecuteGesture)
-        postBrailleViewerToolToggledAction.unregister(
-            self._handlePostBrailleViewerToolToggled
-        )
+        postBrailleViewerToolToggledAction.unregister(self._handlePostBrailleViewerToolToggled)
         braille.displayChanged.unregister(self._handleDriverChanged)
         braille.decide_enabled.unregister(self._handleBrailleHandlerEnabled)
         super().terminate()
@@ -60,14 +54,10 @@ class RemoteBrailleHandler(RemoteHandler):
         return intToByte(numCells)
 
     @protocol.attributeSender(protocol.BrailleAttribute.GESTURE_MAP)
-    def _outgoing_gestureMap(
-        self, gestureMap: typing.Optional[inputCore.GlobalGestureMap] = None
-    ) -> bytes:
+    def _outgoing_gestureMap(self, gestureMap: typing.Optional[inputCore.GlobalGestureMap] = None) -> bytes:
         if gestureMap is None:
             gestureMap = self._driver.gestureMap
-        if gestureMap and not (
-            versionInfo.version_year == 2023 and versionInfo.version_major == 1
-        ):
+        if gestureMap and not (versionInfo.version_year == 2023 and versionInfo.version_major == 1):
             export = gestureMap.export()
             gestureMap = inputCore.GlobalGestureMap(export)
             gestureMap.update(inputCore.manager.userGestureMap.export())
@@ -112,9 +102,7 @@ class RemoteBrailleHandler(RemoteHandler):
                 kwargs["space"] = gesture.space
             newGesture = protocol.braille.BrailleInputGesture(**kwargs)
             try:
-                self.writeMessage(
-                    protocol.BrailleCommand.EXECUTE_GESTURE, self._pickle(newGesture)
-                )
+                self.writeMessage(protocol.BrailleCommand.EXECUTE_GESTURE, self._pickle(newGesture))
                 return False
             except WindowsError:
                 log.warning("Error calling _handleExecuteGesture", exc_info=True)
@@ -126,9 +114,7 @@ class RemoteBrailleHandler(RemoteHandler):
     def _handleDriverChanged(self, display: braille.BrailleDisplayDriver):
         super()._handleDriverChanged(display)
         self._attributeSenderStore(protocol.BrailleAttribute.NUM_CELLS)
-        self._attributeSenderStore(
-            protocol.BrailleAttribute.GESTURE_MAP, gestureMap=display.gestureMap
-        )
+        self._attributeSenderStore(protocol.BrailleAttribute.GESTURE_MAP, gestureMap=display.gestureMap)
 
     def _handlePostBrailleViewerToolToggled(self):
         self._attributeSenderStore(protocol.BrailleAttribute.NUM_CELLS)

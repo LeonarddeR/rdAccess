@@ -24,9 +24,7 @@ else:
 class _SynthDetector(AutoPropertyObject):
     def __init__(self):
         remoteSynthDriver.synthRemoteDisconnected.register(self._handleRemoteDisconnect)
-        self._executor = ThreadPoolExecutor(
-            1, thread_name_prefix=self.__class__.__name__
-        )
+        self._executor = ThreadPoolExecutor(1, thread_name_prefix=self.__class__.__name__)
         self._queuedFuture: typing.Optional[Future] = None
         self._stopEvent = threading.Event()
 
@@ -49,10 +47,7 @@ class _SynthDetector(AutoPropertyObject):
     isRemoteSynthConfigured: bool
 
     def _get_isRemoteSynthConfigured(self):
-        return (
-            config.conf[remoteSynthDriver._configSection]["synth"]
-            == remoteSynthDriver.name
-        )
+        return config.conf[remoteSynthDriver._configSection]["synth"] == remoteSynthDriver.name
 
     def _handleRemoteDisconnect(self, synth: remoteSynthDriver):
         log.error(f"Handling remote disconnect for {synth!r}")
@@ -110,8 +105,6 @@ class _SynthDetector(AutoPropertyObject):
         self._queueBgScan(force)
 
     def terminate(self):
-        remoteSynthDriver.synthRemoteDisconnected.unregister(
-            self._handleRemoteDisconnect
-        )
+        remoteSynthDriver.synthRemoteDisconnected.unregister(self._handleRemoteDisconnect)
         self._stopBgScan()
         self._executor.shutdown(wait=False)
