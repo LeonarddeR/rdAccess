@@ -1,0 +1,21 @@
+[tool.ruff]
+builtins = [
+    "_",
+    "pgettext",
+]
+exclude = [
+    ".git",
+    "__pycache__",
+]
+ignore = []
+line-length = 110
+select = [
+    "C9",
+    "E",
+    "F",
+    "W",
+]
+
+[tool.ruff.mccabe]
+max-complexity = 15
+
