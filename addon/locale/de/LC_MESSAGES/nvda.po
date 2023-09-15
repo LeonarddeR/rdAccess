@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: nvdaRd 0.1.0\n"
 "Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
 "POT-Creation-Date: 2023-03-31 14:06+0000\n"
-"PO-Revision-Date: 2023-07-29 20:34+0200\n"
+"PO-Revision-Date: 2023-09-09 00:24+0200\n"
 "Last-Translator: René Linke <rene.linke@hamburg.de>\n"
 "Language-Team: \n"
 "Language: de\n"
@@ -25,14 +25,12 @@ msgstr "Unterstützung der Braillezeile via Remote"
 #. Add-on summary, usually the user visible name of the addon.
 #. Translators: Summary for this add-on
 #. to be shown on installation and add-on information found in Add-ons Manager.
-#, fuzzy
 msgid "Remote Desktop Accessibility"
-msgstr "Remote Desktop"
+msgstr "Zugänglichkeit von Remote-Desktop"
 
 #. Translators: The label for a list of check boxes in RDAccess settings to set operating mode.
-#, fuzzy
 msgid "&Enable remote desktop accessibility for"
-msgstr "Remote Desktop"
+msgstr "&Aktivieren Sie die Zugänglichkeit von Remote-Desktop für"
 
 #. Translators: This is the label for a group of options in the
 #. Remote Desktop settings panel.
@@ -71,13 +69,12 @@ msgstr "Unterstützung für Microsoft &Remote Desktop aktivieren"
 msgid "Enable &Citrix Workspace support"
 msgstr "Aktivieren der Unterstützung für &Citrix Workspace"
 
-#, fuzzy
 msgid ""
 "You need to enable remote destkop accessibility support for at least "
 "incoming or outgoing connections."
 msgstr ""
-"Sie müssen NVDA-Remote-Desktop zumindest für eingehende oder ausgehende "
-"Verbindungen aktivieren."
+"Sie müssen die Unterstützung der Zugänglichkeit von Remote-Desktop zumindest "
+"für eingehende und ausgehende Verbindungen aktivieren."
 
 #. Translators: The title of the message box
 msgid "Error"
@@ -104,10 +101,12 @@ msgid ""
 "This add-on was previously called NVDA Remote Desktop. You have an installed "
 "version of that add-on. Would you like to update to RDAccess?"
 msgstr ""
+"Die installierte Version dieser NVDA-Erweiterung hieß früher NVDA Remote "
+"Desktop. Möchten Sie auf RDAccess aktualisieren?"
 
 #. Translators: question title
 msgid "Previous version detected"
-msgstr ""
+msgstr "Ältere Version entdeckt"
 
 msgid ""
 "Allows using speech and braille with Microsoft Remote Desktop, Citrix "
