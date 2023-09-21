@@ -3,14 +3,15 @@
 # License: GNU General Public License version 2.0
 
 import os.path
-from enum import Enum
-import addonHandler
 import platform
-import COMRegistrationFixes
 import subprocess
-from typing import List
-from logHandler import log
 import winreg
+from enum import Enum
+from typing import List
+
+import addonHandler
+import COMRegistrationFixes
+from logHandler import log
 
 COM_CLS_CHANNEL_NAMES_VALUE_BRAILLE = "NVDA-BRAILLE"
 COM_CLS_CHANNEL_NAMES_VALUE_SPEECH = "NVDA-SPEECH"
@@ -51,9 +52,7 @@ class Architecture(str, Enum):
 DEFAULT_ARCHITECTURE = Architecture(platform.machine())
 
 
-def execRegsrv(
-    params: List[str], architecture: Architecture = DEFAULT_ARCHITECTURE
-) -> bool:
+def execRegsrv(params: List[str], architecture: Architecture = DEFAULT_ARCHITECTURE) -> bool:
     if architecture is Architecture.X86:
         # Points to the 32-bit version, on Windows 32-bit or 64-bit.
         regsvr32 = os.path.join(COMRegistrationFixes.SYSTEM32, "regsvr32.exe")
@@ -80,9 +79,7 @@ class CommandFlags(str, Enum):
 
 def getDllPath(architecture: Architecture = DEFAULT_ARCHITECTURE) -> str:
     addon = addonHandler.getCodeAddon()
-    expectedPath = os.path.join(
-        addon.path, "dll", f"rd_pipe_{architecture.lower()}.dll"
-    )
+    expectedPath = os.path.join(addon.path, "dll", f"rd_pipe_{architecture.lower()}.dll")
     if not os.path.isfile(expectedPath):
         raise FileNotFoundError(expectedPath)
     return expectedPath
@@ -104,9 +101,7 @@ def dllInstall(
     if comServer:
         command += CommandFlags.COM_SERVER
         if install:
-            command += (
-                f" {COM_CLS_CHANNEL_NAMES_VALUE_BRAILLE} {COM_CLS_CHANNEL_NAMES_VALUE_SPEECH}"
-            )
+            command += f" {COM_CLS_CHANNEL_NAMES_VALUE_BRAILLE} {COM_CLS_CHANNEL_NAMES_VALUE_SPEECH}"
     cmdLine = ["/s", f'/i:"{command}"', "/n"]
     if not install:
         cmdLine.append("/u")

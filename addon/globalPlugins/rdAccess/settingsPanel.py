@@ -2,19 +2,19 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-import wx
-import addonHandler
-from gui import guiHelper, nvdaControls, messageBox
-from gui.settingsDialogs import SettingsPanel
-import config
-from extensionPoints import Action
-import typing
 import functools
 import operator
+import typing
+
+import addonHandler
+import config
+import wx
+from extensionPoints import Action
+from gui import guiHelper, messageBox, nvdaControls
+from gui.settingsDialogs import SettingsPanel
 
 if typing.TYPE_CHECKING:
-    from ...lib import configuration
-    from ...lib import rdPipe
+    from ...lib import configuration, rdPipe
 else:
     addon: addonHandler.Addon = addonHandler.getCodeAddon()
     configuration = addon.loadModule("lib.configuration")

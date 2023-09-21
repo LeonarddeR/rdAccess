@@ -3,16 +3,17 @@
 # License: GNU General Public License version 2.0
 
 import threading
-from concurrent.futures import ThreadPoolExecutor, Future
 import typing
+from concurrent.futures import Future, ThreadPoolExecutor
+
 import addonHandler
+import config
+import queueHandler
 import synthDriverHandler
 from baseObject import AutoPropertyObject
-from synthDrivers.remote import remoteSynthDriver
-import queueHandler
-import config
-from logHandler import log
 from braille import AUTOMATIC_PORT
+from logHandler import log
+from synthDrivers.remote import remoteSynthDriver
 
 if typing.TYPE_CHECKING:
     from ...lib import detection

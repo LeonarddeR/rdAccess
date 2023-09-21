@@ -2,11 +2,12 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-from utils.displayString import DisplayStringIntFlag
 from enum import unique
+from typing import Any, Dict
+
 import addonHandler
 import config
-from typing import Any, Dict
+from utils.displayString import DisplayStringIntFlag
 
 addonHandler.initTranslation()
 _cachedConfig: Dict[str, Any] = {}

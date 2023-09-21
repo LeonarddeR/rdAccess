@@ -2,15 +2,17 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-from ._remoteHandler import RemoteHandler
-import typing
-import synthDriverHandler
-from speech.commands import IndexCommand
 import sys
-import tones
+import typing
+
 import nvwave
+import synthDriverHandler
+import tones
 from hwIo.ioThread import IoThread
 from logHandler import log
+from speech.commands import IndexCommand
+
+from ._remoteHandler import RemoteHandler
 
 if typing.TYPE_CHECKING:
     from ....lib import protocol

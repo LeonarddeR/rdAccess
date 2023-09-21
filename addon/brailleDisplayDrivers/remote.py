@@ -2,17 +2,16 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-import braille
 import typing
-import addonHandler
 from typing import List
+
+import addonHandler
+import braille
 import inputCore
 from logHandler import log
 
 if typing.TYPE_CHECKING:
-    from ..lib import detection
-    from ..lib import driver
-    from ..lib import protocol
+    from ..lib import detection, driver, protocol
 else:
     addon: addonHandler.Addon = addonHandler.getCodeAddon()
     detection = addon.loadModule("lib.detection")
@@ -26,6 +25,9 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
     isThreadSafe = True
     supportsAutomaticDetection = True
     driverType = protocol.DriverType.BRAILLE
+    _requiredAttributesOnInit = driver.RemoteDriver._requiredAttributesOnInit.union(
+        {protocol.BrailleAttribute.NUM_CELLS}
+    )
 
     @classmethod
     def registerAutomaticDetection(cls, driverRegistrar):

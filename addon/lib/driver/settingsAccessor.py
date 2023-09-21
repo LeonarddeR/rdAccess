@@ -2,12 +2,14 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-from baseObject import AutoPropertyObject
-from .. import protocol
 import weakref
-from typing import Any, Dict, Iterable, List, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List
+
 from autoSettingsUtils import driverSetting
+from baseObject import AutoPropertyObject
 from logHandler import log
+
+from .. import protocol
 
 if TYPE_CHECKING:
     from . import RemoteDriver

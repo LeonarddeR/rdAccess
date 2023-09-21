@@ -2,8 +2,8 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-from ctypes import byref, Structure, sizeof, windll, WinError
-from ctypes.wintypes import UINT, DWORD
+from ctypes import Structure, WinError, byref, sizeof, windll
+from ctypes.wintypes import DWORD, UINT
 
 
 class LastINPUTINFO(Structure):

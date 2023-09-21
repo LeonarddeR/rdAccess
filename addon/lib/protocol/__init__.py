@@ -2,35 +2,36 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-import sys
-from hwIo.base import IoBase
-from baseObject import AutoPropertyObject
 import inspect
-from enum import IntEnum, Enum
+import pickle
+import sys
+import time
+import types
+from abc import abstractmethod
+from concurrent.futures import ThreadPoolExecutor
+from enum import Enum, IntEnum
+from fnmatch import fnmatch
+from functools import partial, update_wrapper, wraps
 from typing import (
     Any,
     Callable,
-    cast,
     DefaultDict,
     Dict,
     Generic,
     Optional,
     TypeVar,
     Union,
+    cast,
 )
-import time
-from logHandler import log
-import pickle
-from .speech import SpeechAttribute, SpeechCommand
-from .braille import BrailleAttribute, BrailleCommand
-from fnmatch import fnmatch
-from functools import partial, wraps, update_wrapper
-from extensionPoints import HandlerRegistrar
-import types
-from abc import abstractmethod
-from NVDAState import getStartTime
+
 import queueHandler
-from concurrent.futures import ThreadPoolExecutor
+from baseObject import AutoPropertyObject
+from extensionPoints import HandlerRegistrar
+from hwIo.base import IoBase
+from logHandler import log
+
+from .braille import BrailleAttribute, BrailleCommand
+from .speech import SpeechAttribute, SpeechCommand
 
 ATTRIBUTE_SEPARATOR = b"`"
 SETTING_ATTRIBUTE_PREFIX = b"setting_"
@@ -50,9 +51,7 @@ class GenericAttribute(bytes, Enum):
     SUPPORTED_SETTINGS = b"supportedSettings"
 
 
-RemoteProtocolHandlerT = TypeVar(
-    "RemoteProtocolHandlerT", bound="RemoteProtocolHandler"
-)
+RemoteProtocolHandlerT = TypeVar("RemoteProtocolHandlerT", bound="RemoteProtocolHandler")
 HandlerFuncT = TypeVar("HandlerFuncT", bound=Callable)
 AttributeValueT = TypeVar("AttributeValueT")
 CommandT = Union[GenericCommand, SpeechCommand, BrailleCommand]
@@ -64,9 +63,7 @@ attributeSenderT = Callable[..., None]
 AttributeReceiverT = Callable[[bytes], AttributeValueT]
 AttributeReceiverUnboundT = Callable[[RemoteProtocolHandlerT, bytes], AttributeValueT]
 WildCardAttributeReceiverT = Callable[[AttributeT, bytes], AttributeValueT]
-WildCardAttributeReceiverUnboundT = Callable[
-    [RemoteProtocolHandlerT, AttributeT, bytes], AttributeValueT
-]
+WildCardAttributeReceiverUnboundT = Callable[[RemoteProtocolHandlerT, AttributeT, bytes], AttributeValueT]
 AttributeHandlerT = TypeVar(
     "AttributeHandlerT",
     attributeFetcherT,
@@ -74,9 +71,7 @@ AttributeHandlerT = TypeVar(
     WildCardAttributeReceiverUnboundT,
 )
 DefaultValueGetterT = Callable[[RemoteProtocolHandlerT, AttributeT], AttributeValueT]
-AttributeValueUpdateCallbackT = Callable[
-    [RemoteProtocolHandlerT, AttributeT, AttributeValueT], None
-]
+AttributeValueUpdateCallbackT = Callable[[RemoteProtocolHandlerT, AttributeT, AttributeValueT], None]
 
 
 class HandlerDecoratorBase(Generic[HandlerFuncT]):
@@ -84,9 +79,7 @@ class HandlerDecoratorBase(Generic[HandlerFuncT]):
 
     def __init__(self, func: HandlerFuncT):
         self._func = func
-        update_wrapper(
-            self, func, assigned=("__module__", "__name__", "__qualname__", "__doc__")
-        )
+        update_wrapper(self, func, assigned=("__module__", "__name__", "__qualname__", "__doc__"))
 
     def __set_name__(self, owner, name):
         log.debug(f"Decorated {name!r} on {owner!r} with {self!r}")
@@ -154,9 +147,7 @@ def attributeSender(attribute: AttributeT):
 
 
 class AttributeReceiver(
-    AttributeHandler[
-        Union[AttributeReceiverUnboundT, WildCardAttributeReceiverUnboundT]
-    ]
+    AttributeHandler[Union[AttributeReceiverUnboundT, WildCardAttributeReceiverUnboundT]]
 ):
     _defaultValueGetter: Optional[DefaultValueGetterT]
     _updateCallback: Optional[AttributeValueUpdateCallbackT]
@@ -188,9 +179,7 @@ def attributeReceiver(
     updateCallback: Optional[AttributeValueUpdateCallbackT] = None,
 ):
     if defaultValue is not None and defaultValueGetter is not None:
-        raise ValueError(
-            "Either defaultValue or defaultValueGetter is required, but not both"
-        )
+        raise ValueError("Either defaultValue or defaultValueGetter is required, but not both")
     if defaultValueGetter is None:
 
         def _defaultValueGetter(self: "RemoteProtocolHandler", attribute: AttributeT):
@@ -220,9 +209,7 @@ class CommandHandlerStore(HandlerRegistrar):
 
 class AttributeHandlerStore(HandlerRegistrar, Generic[AttributeHandlerT]):
     def _getRawHandler(self, attribute: AttributeT) -> AttributeHandlerT:
-        handler = next(
-            (v for v in self.handlers if fnmatch(attribute, v._attribute)), None
-        )
+        handler = next((v for v in self.handlers if fnmatch(attribute, v._attribute)), None)
         if handler is None:
             raise NotImplementedError(f"No attribute sender for attribute {attribute}")
         return handler
@@ -252,7 +239,7 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
     def __init__(self):
         super().__init__()
         self._values = {}
-        self._valueTimes = DefaultDict(getStartTime)
+        self._valueTimes = DefaultDict(float)
         self._pendingAttributeRequests = DefaultDict(bool)
 
     def clearCache(self):
@@ -260,11 +247,11 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
         self._valueTimes.clear()
         self._pendingAttributeRequests.clear()
 
-    def setAttributeRequestPending(self, attribute, state: bool = True):
+    def setAttributeRequestPending(self, attribute: AttributeT, state: bool = True):
         log.debug(f"Request pending for attribute {attribute!r} set to {state!r}")
         self._pendingAttributeRequests[attribute] = state
 
-    def isAttributeRequestPending(self, attribute):
+    def isAttributeRequestPending(self, attribute: AttributeT) -> bool:
         return self._pendingAttributeRequests[attribute] is True
 
     def hasNewValueSince(self, attribute: AttributeT, t: float) -> bool:
@@ -283,16 +270,12 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
         handler = self._getRawHandler(attribute)
         if handler._updateCallback is not None:
             callback = handler._updateCallback.__get__(handler.__self__)
-            log.debug(
-                f"Calling update callback {callback!r} for attribute {attribute!r}"
-            )
+            log.debug(f"Calling update callback {callback!r} for attribute {attribute!r}")
             handler.__self__._bgExecutor.submit(callback, attribute, value)
 
     def getValue(self, attribute: AttributeT, fallBackToDefault: bool = False):
         if fallBackToDefault and attribute not in self._values:
-            log.debug(
-                f"No value for attribute {attribute!r} on {self!r}, falling back to default"
-            )
+            log.debug(f"No value for attribute {attribute!r} on {self!r}, falling back to default")
             self._values[attribute] = self._getDefaultValue(attribute)
         return self._values[attribute]
 
@@ -301,16 +284,14 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 
     def setValue(self, attribute: AttributeT, value):
         self._values[attribute] = value
-        self._valueTimes[attribute] = time.time()
+        self._valueTimes[attribute] = time.perf_counter()
         self._invokeUpdateCallback(attribute, value)
 
     def __call__(self, attribute: AttributeT, rawValue: bytes):
         log.debug(f"Getting handler on {self!r} to process attribute {attribute!r}")
         handler = self._getHandler(attribute)
         value = handler(rawValue)
-        log.debug(
-            f"Handler on {self!r} returned value {value!r} for attribute {attribute!r}"
-        )
+        log.debug(f"Handler on {self!r} returned value {value!r} for attribute {attribute!r}")
         self.setAttributeRequestPending(attribute, False)
         self.setValue(attribute, value)
 
@@ -331,9 +312,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
         self._commandHandlerStore = CommandHandlerStore()
         self._attributeSenderStore = AttributeSenderStore()
         self._attributeValueProcessor = AttributeValueProcessor()
-        handlers = inspect.getmembers(
-            cls, predicate=lambda o: isinstance(o, HandlerDecoratorBase)
-        )
+        handlers = inspect.getmembers(cls, predicate=lambda o: isinstance(o, HandlerDecoratorBase))
         for k, v in handlers:
             if isinstance(v, CommandHandler):
                 self._commandHandlerStore.register(getattr(self, k))
@@ -349,9 +328,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 
     def __init__(self):
         super().__init__()
-        self._bgExecutor = ThreadPoolExecutor(
-            4, thread_name_prefix=self.__class__.__name__
-        )
+        self._bgExecutor = ThreadPoolExecutor(4, thread_name_prefix=self.__class__.__name__)
         self._receiveBuffer = b""
 
     def terminate(self):
@@ -401,9 +378,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
         attribute, value = payload[1:].split(b"`", 1)
         log.debug(f"Handling attribute {attribute!r} on {self!r}, value {value!r}")
         if not value:
-            log.debug(
-                f"No value sent for attribute {attribute!r} on {self!r}, direction outgoing"
-            )
+            log.debug(f"No value sent for attribute {attribute!r} on {self!r}, direction outgoing")
             self._attributeSenderStore(attribute)
         else:
             log.debug(
@@ -436,9 +411,7 @@ class RemoteProtocolHandler((AutoPropertyObject)):
 
     def requestRemoteAttribute(self, attribute: AttributeT):
         if self._attributeValueProcessor.isAttributeRequestPending(attribute):
-            log.debugWarning(
-                f"Not requesting remote attribute {attribute!r},, request already pending"
-            )
+            log.debugWarning(f"Not requesting remote attribute {attribute!r},, request already pending")
             return
         log.debug(f"Requesting remote attribute {attribute!r}")
         self._attributeValueProcessor.setAttributeRequestPending(attribute)
@@ -453,16 +426,14 @@ class RemoteProtocolHandler((AutoPropertyObject)):
         log.debug(f"Waiting for {predicate!r} during {timeout} seconds")
         while timeout > 0.0:
             if predicate():
-                log.debug(
-                    f"Waiting for {predicate!r} succeeded, {timeout} seconds remaining"
-                )
+                log.debug(f"Waiting for {predicate!r} succeeded, {timeout} seconds remaining")
                 return True
-            curTime = time.time()
+            curTime = time.perf_counter()
             res: bool = self._dev.waitForRead(timeout=timeout)
             if res is False:
-                log.debug(f"Waiting for {predicate!r} failed")
+                log.debug(f"Waiting for read for {predicate!r} failed. Predicate may still be True")
                 break
-            timeout -= time.time() - curTime
+            timeout -= time.perf_counter() - curTime
         return predicate()
 
     def getRemoteAttribute(
@@ -470,15 +441,11 @@ class RemoteProtocolHandler((AutoPropertyObject)):
         attribute: AttributeT,
         timeout: Optional[float] = None,
     ):
-        initialTime = time.time()
+        initialTime = time.perf_counter()
         self.requestRemoteAttribute(attribute=attribute)
         if self._waitForAttributeUpdate(attribute, initialTime, timeout):
-            newValue = self._attributeValueProcessor.getValue(
-                attribute, fallBackToDefault=False
-            )
-            log.debug(
-                f"Received new value {newValue!r} for remote attribute {attribute!r}"
-            )
+            newValue = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
+            log.debug(f"Received new value {newValue!r} for remote attribute {attribute!r}")
             return newValue
         raise TimeoutError(f"Wait for remote attribute {attribute} timed out")
 
@@ -491,12 +458,15 @@ class RemoteProtocolHandler((AutoPropertyObject)):
         if initialTime is None:
             initialTime = 0.0
         log.debug(f"Waiting for attribute {attribute!r}")
-        return self._safeWait(
-            lambda: self._attributeValueProcessor.hasNewValueSince(
-                attribute, initialTime
-            ),
+        result = self._safeWait(
+            lambda: self._attributeValueProcessor.hasNewValueSince(attribute, initialTime),
             timeout=timeout,
         )
+        if result:
+            log.debug(f"Waiting for attribute {attribute} succeeded")
+        else:
+            log.debug(f"Waiting for attribute {attribute} failed")
+        return result
 
     def _pickle(self, obj: Any):
         return pickle.dumps(obj, protocol=4)

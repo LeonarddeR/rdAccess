@@ -2,8 +2,9 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
+from enum import Enum, IntEnum
+
 import speech
-from enum import IntEnum, Enum
 
 SPEECH_INDEX_OFFSET = speech.manager.SpeechManager.MAX_INDEX + 1
 

@@ -20,9 +20,7 @@ class BrailleAttribute(bytes, Enum):
     OBJECT_GESTURE_MAP = b"_gestureMap"
 
 
-class BrailleInputGesture(
-    braille.BrailleDisplayGesture, brailleInput.BrailleInputGesture
-):
+class BrailleInputGesture(braille.BrailleDisplayGesture, brailleInput.BrailleInputGesture):
     def __init__(
         self,
         source: str,
