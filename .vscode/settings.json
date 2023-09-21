@@ -18,5 +18,6 @@
     "ruff.enableExperimentalFormatter": true,
     "[python]": {
         "editor.defaultFormatter": "charliermarsh.ruff"
-    }
+    },
+    "ruff.importStrategy": "useBundled"
 }
