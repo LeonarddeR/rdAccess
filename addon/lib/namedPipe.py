@@ -2,34 +2,36 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-from .ioThreadEx import IoThreadEx
-from hwIo.ioThread import IoThread
-from typing import Callable, Iterator, Optional, Union
+import os
 from ctypes import (
+    POINTER,
+    GetLastError,
+    WinError,
     byref,
     c_ulong,
-    GetLastError,
-    POINTER,
     sizeof,
     windll,
-    WinError,
 )
-from ctypes.wintypes import BOOL, HANDLE, DWORD, LPCWSTR
+from ctypes.wintypes import BOOL, DWORD, HANDLE, LPCWSTR
+from enum import IntFlag
+from glob import iglob
+from typing import Callable, Iterator, Optional, Union
+
+import winKernel
+from appModuleHandler import processEntry32W
+from hwIo.base import IoBase
+from hwIo.ioThread import IoThread
+from logHandler import log
 from serial.win32 import (
-    CreateFile,
     ERROR_IO_PENDING,
     FILE_FLAG_OVERLAPPED,
     INVALID_HANDLE_VALUE,
     LPOVERLAPPED,
     OVERLAPPED,
+    CreateFile,
 )
-import winKernel
-from enum import IntFlag
-import os
-from glob import iglob
-from appModuleHandler import processEntry32W
-from hwIo.base import IoBase
-from logHandler import log
+
+from .ioThreadEx import IoThreadEx
 
 ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_CONNECTED = 0x217
@@ -60,15 +62,11 @@ def getParentProcessId(processId: int) -> Optional[int]:
     try:
         FProcessEntry32 = processEntry32W()
         FProcessEntry32.dwSize = sizeof(processEntry32W)
-        ContinueLoop = windll.kernel32.Process32FirstW(
-            FSnapshotHandle, byref(FProcessEntry32)
-        )
+        ContinueLoop = windll.kernel32.Process32FirstW(FSnapshotHandle, byref(FProcessEntry32))
         while ContinueLoop:
             if FProcessEntry32.th32ProcessID == processId:
                 return FProcessEntry32.th32ParentProcessID
-            ContinueLoop = windll.kernel32.Process32NextW(
-                FSnapshotHandle, byref(FProcessEntry32)
-            )
+            ContinueLoop = windll.kernel32.Process32NextW(FSnapshotHandle, byref(FProcessEntry32))
         else:
             return None
     finally:
@@ -153,9 +151,7 @@ class NamedPipeServer(NamedPipeBase):
         ioThreadEx: Optional[IoThreadEx] = None,
         pipeMode: PipeMode = PipeMode.READMODE_BYTE,
         pipeOpenMode: PipeOpenMode = (
-            PipeOpenMode.ACCESS_DUPLEX
-            | PipeOpenMode.OVERLAPPED
-            | PipeOpenMode.FIRST_PIPE_INSTANCE
+            PipeOpenMode.ACCESS_DUPLEX | PipeOpenMode.OVERLAPPED | PipeOpenMode.FIRST_PIPE_INSTANCE
         ),
         maxInstances: int = 1,
     ):
@@ -194,16 +190,12 @@ class NamedPipeServer(NamedPipeBase):
             windll.kernel32.SetEvent(self._recvEvt)
         else:
             if not connectRes and error != ERROR_IO_PENDING:
-                log.error(
-                    f"Error while calling ConnectNamedPipe for {self.pipeName}: {WinError(error)}"
-                )
+                log.error(f"Error while calling ConnectNamedPipe for {self.pipeName}: {WinError(error)}")
                 self._ioDone(error, 0, byref(ol))
                 return
             log.debug(f"Named pipe {self.pipeName} pending client connection")
         try:
-            self._ioThreadRef().waitForSingleObjectWithCallback(
-                self._recvEvt, self._handleConnectCallback
-            )
+            self._ioThreadRef().waitForSingleObjectWithCallback(self._recvEvt, self._handleConnectCallback)
         except WindowsError as e:
             error = e.winerror
             log.error(
@@ -219,19 +211,13 @@ class NamedPipeServer(NamedPipeBase):
             self._file, byref(self._connectOl), byref(numberOfBytes), False
         ):
             error = GetLastError()
-            log.debug(
-                f"Error while getting overlapped result for {self.pipeName}: {WinError(error)}"
-            )
+            log.debug(f"Error while getting overlapped result for {self.pipeName}: {WinError(error)}")
             self._ioDone(error, 0, byref(self._connectOl))
             return
         self._connected = True
-        log.debug(
-            "Succesfully connected {self.pipeName}, handling post connection logic"
-        )
+        log.debug("Succesfully connected {self.pipeName}, handling post connection logic")
         clientProcessId = c_ulong()
-        if not windll.kernel32.GetNamedPipeClientProcessId(
-            HANDLE(self._file), byref(clientProcessId)
-        ):
+        if not windll.kernel32.GetNamedPipeClientProcessId(HANDLE(self._file), byref(clientProcessId)):
             raise WinError()
         self.pipeProcessId = clientProcessId.value
         self.pipeParentProcessId = getParentProcessId(self.pipeProcessId)
@@ -280,8 +266,7 @@ class NamedPipeServer(NamedPipeBase):
 
     @_ioDone.setter
     def _ioDone(self, value):
-        """Hack, we don't want _ioDone to set itself to None.
-		"""
+        """Hack, we don't want _ioDone to set itself to None."""
         pass
 
 
@@ -308,14 +293,10 @@ class NamedPipeClient(NamedPipeBase):
         try:
             if pipeMode:
                 dwPipeMode = DWORD(pipeMode)
-                if not windll.kernel32.SetNamedPipeHandleState(
-                    fileHandle, byref(dwPipeMode), 0, 0
-                ):
+                if not windll.kernel32.SetNamedPipeHandleState(fileHandle, byref(dwPipeMode), 0, 0):
                     raise WinError()
             serverProcessId = c_ulong()
-            if not windll.kernel32.GetNamedPipeServerProcessId(
-                HANDLE(fileHandle), byref(serverProcessId)
-            ):
+            if not windll.kernel32.GetNamedPipeServerProcessId(HANDLE(fileHandle), byref(serverProcessId)):
                 raise WinError()
             self.pipeProcessId = serverProcessId.value
             self.pipeParentProcessId = getParentProcessId(self.pipeProcessId)

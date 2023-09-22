@@ -2,20 +2,19 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-import typing
-import addonHandler
-from driverHandler import Driver
-import api
-from logHandler import log
 import sys
-from extensionPoints import AccumulatingDecider
-from hwIo.ioThread import IoThread
+import typing
 from abc import abstractmethod
 
+import addonHandler
+import api
+from driverHandler import Driver
+from extensionPoints import AccumulatingDecider
+from hwIo.ioThread import IoThread
+from logHandler import log
+
 if typing.TYPE_CHECKING:
-    from ....lib import configuration
-    from ....lib import namedPipe
-    from ....lib import protocol
+    from ....lib import configuration, namedPipe, protocol
 else:
     addon: addonHandler.Addon = addonHandler.getCodeAddon()
     configuration = addon.loadModule("lib.configuration")

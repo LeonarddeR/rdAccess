@@ -2,22 +2,23 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-import sys
 import os.path
-from hwIo.ioThread import IoThread
-from extensionPoints import Action
+import sys
+from ctypes import WinError, byref, create_string_buffer, sizeof, windll
+from enum import IntEnum, IntFlag
+from struct import calcsize, unpack
+
+import queueHandler
 import winKernel
+from extensionPoints import Action
+from hwIo.ioThread import IoThread
 from serial.win32 import (
     FILE_FLAG_OVERLAPPED,
-    CreateFile,
     INVALID_HANDLE_VALUE,
-    OVERLAPPED,
     LPOVERLAPPED,
+    OVERLAPPED,
+    CreateFile,
 )
-from enum import IntFlag, IntEnum
-from ctypes import windll, WinError, sizeof, byref, create_string_buffer
-from struct import unpack, calcsize
-import queueHandler
 
 FILE_FLAG_BACKUP_SEMANTICS = 0x02000000
 

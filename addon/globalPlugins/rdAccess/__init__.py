@@ -2,27 +2,27 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-import globalPluginHandler
-import addonHandler
-from . import directoryChanges, settingsPanel
-import typing
-from fnmatch import fnmatch
-from . import handlers
-from typing import Dict, List, Type
-from logHandler import log
-from .synthDetect import _SynthDetector
-from utils.security import post_sessionLockStateChanged
-import braille
-from ctypes import WinError
-from NVDAObjects import NVDAObject
-from .objects import findExtraOverlayClasses
-import config
-import gui
-import api
 import atexit
-from utils.security import isRunningOnSecureDesktop
-from .secureDesktopHandling import SecureDesktopHandler
+import typing
+from ctypes import WinError
+from fnmatch import fnmatch
+from typing import Dict, List, Type
+
+import addonHandler
+import api
+import braille
+import config
+import globalPluginHandler
+import gui
 import versionInfo
+from logHandler import log
+from NVDAObjects import NVDAObject
+from utils.security import isRunningOnSecureDesktop, post_sessionLockStateChanged
+
+from . import directoryChanges, handlers, settingsPanel
+from .objects import findExtraOverlayClasses
+from .secureDesktopHandling import SecureDesktopHandler
+from .synthDetect import _SynthDetector
 
 if typing.TYPE_CHECKING:
     from ...lib import (

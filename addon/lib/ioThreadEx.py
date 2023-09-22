@@ -2,16 +2,17 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
+import threading
 from ctypes import POINTER, WINFUNCTYPE, WinError, addressof, byref, windll
 from ctypes.wintypes import BOOL, BOOLEAN, DWORD, HANDLE, LPVOID
 from inspect import ismethod
-import threading
 from typing import Callable, Dict, Tuple, Union
-from serial.win32 import INVALID_HANDLE_VALUE
+
 import hwIo.ioThread
 import winKernel
+from extensionPoints.util import AnnotatableWeakref, BoundMethodWeakref
 from logHandler import log
-from extensionPoints.util import BoundMethodWeakref, AnnotatableWeakref
+from serial.win32 import INVALID_HANDLE_VALUE
 
 WT_EXECUTEINWAITTHREAD = 0x4
 WT_EXECUTELONGFUNCTION = 0x10
@@ -46,9 +47,7 @@ class IoThreadEx(hwIo.ioThread.IoThread):
     _waitOrTimerCallbackStore: WaitOrTimerCallbackStoreT = {}
 
     @WaitOrTimerCallback
-    def _internalWaitOrTimerCallback(
-        param: WaitOrTimerCallbackIdT, timerOrWaitFired: bool
-    ):
+    def _internalWaitOrTimerCallback(param: WaitOrTimerCallbackIdT, timerOrWaitFired: bool):
         (
             threadIdent,
             waitObject,
@@ -100,9 +99,7 @@ class IoThreadEx(hwIo.ioThread.IoThread):
             raise RuntimeError("Thread is not running")
 
         waitObject = HANDLE()
-        reference = (
-            BoundMethodWeakref(func) if ismethod(func) else AnnotatableWeakref(func)
-        )
+        reference = BoundMethodWeakref(func) if ismethod(func) else AnnotatableWeakref(func)
         reference.funcName = repr(func)
         waitObjectAddr = addressof(waitObject)
         self._waitOrTimerCallbackStore[waitObjectAddr] = (

@@ -2,8 +2,8 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-from extensionPoints import Action
 import versionInfo
+from extensionPoints import Action
 
 hasSecureDesktopExtensionPoint = versionInfo.version_year >= 2024
 

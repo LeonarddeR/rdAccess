@@ -2,16 +2,18 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-from ._remoteHandler import RemoteHandler
+import threading
+import typing
+
 import braille
 import brailleInput
-from hwIo import intToByte, IoThread
-import typing
 import inputCore
-import threading
-from brailleViewer import postBrailleViewerToolToggledAction
 import versionInfo
+from brailleViewer import postBrailleViewerToolToggledAction
+from hwIo import IoThread, intToByte
 from logHandler import log
+
+from ._remoteHandler import RemoteHandler
 
 if typing.TYPE_CHECKING:
     from ....lib import protocol
@@ -112,8 +114,8 @@ class RemoteBrailleHandler(RemoteHandler):
         return not self.hasFocus
 
     def _handleDriverChanged(self, display: braille.BrailleDisplayDriver):
-        super()._handleDriverChanged(display)
         self._attributeSenderStore(protocol.BrailleAttribute.NUM_CELLS)
+        super()._handleDriverChanged(display)
         self._attributeSenderStore(protocol.BrailleAttribute.GESTURE_MAP, gestureMap=display.gestureMap)
 
     def _handlePostBrailleViewerToolToggled(self):
