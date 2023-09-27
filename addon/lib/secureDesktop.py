@@ -8,6 +8,6 @@ from extensionPoints import Action
 hasSecureDesktopExtensionPoint = versionInfo.version_year >= 2024
 
 if hasSecureDesktopExtensionPoint:
-    from winAPI.secureDesktop import post_secureDesktopStateChange
+	from winAPI.secureDesktop import post_secureDesktopStateChange
 else:
-    post_secureDesktopStateChange = Action()
+	post_secureDesktopStateChange = Action()

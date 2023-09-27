@@ -7,29 +7,29 @@ from ctypes.wintypes import DWORD, UINT
 
 
 class LastINPUTINFO(Structure):
-    _fields_ = [
-        ("cbSize", UINT),
-        ("dwTime", DWORD),
-    ]
+	_fields_ = [
+		("cbSize", UINT),
+		("dwTime", DWORD),
+	]
 
-    def __init__(self):
-        super().__init__
-        self.cbSize = sizeof(LastINPUTINFO)
+	def __init__(self):
+		super().__init__
+		self.cbSize = sizeof(LastINPUTINFO)
 
 
 def getLastInputInfo() -> int:
-    lastINPUTINFO = LastINPUTINFO()
-    if not windll.user32.GetLastInputInfo(byref(lastINPUTINFO)):
-        raise WinError()
-    return lastINPUTINFO.dwTime
+	lastINPUTINFO = LastINPUTINFO()
+	if not windll.user32.GetLastInputInfo(byref(lastINPUTINFO)):
+		raise WinError()
+	return lastINPUTINFO.dwTime
 
 
 windll.kernel32.GetTickCount.restype = DWORD
 
 
 def getTickCount() -> int:
-    return windll.kernel32.GetTickCount()
+	return windll.kernel32.GetTickCount()
 
 
 def getTimeSinceInput() -> int:
-    return getTickCount() - getLastInputInfo()
+	return getTickCount() - getLastInputInfo()

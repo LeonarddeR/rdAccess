@@ -7,7 +7,9 @@ exclude = [
     ".git",
     "__pycache__",
 ]
-ignore = []
+ignore = [
+	"W191"
+]
 line-length = 110
 select = [
     "C9",
