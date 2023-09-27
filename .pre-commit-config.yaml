@@ -7,7 +7,8 @@ repos:
       - id: check-yaml
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.0.289
+    rev: v0.0.291
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
