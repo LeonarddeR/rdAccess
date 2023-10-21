@@ -1,25 +1,39 @@
 builtins = [
-    "_",
-    "pgettext",
+	"_",  # translation lookup
+	"ngettext",  # translation lookup
+	"pgettext",  # translation lookup
+	"npgettext",  # translation lookup
 ]
-exclude = [
-    ".git",
-    "__pycache__",
+logger-objects = ["logHandler.log"]
+exclude = [  # don't bother looking in the following subdirectories / files.
+	".git",
+	"__pycache__",
 ]
 ignore = [
-	"W191"
+	"W191",  # indentation contains tabs
 ]
 line-length = 110
 select = [
-    "C9",
-    "E",
-    "F",
-    "W",
+	"A",  # flake8-builtins
+	"ARG",  # flake8-unused-arguments 
+	"B",  # flake8-bugbear
+	"C90", # mccabe
+	"E",  # pycodestyle Error
+	"F",  # Pyflakes
+	"FIX",  # flake8-fixme
+	"I",  # isort
+	"INT",  # flake8-gettext 
+	"UP",  # pyupgrade
+	"W",  # pycodestyle Warning
 ]
+show-source = true
+src = ["addon"]
+target-version = "py37"
 
 [mccabe]
 max-complexity = 15
 
 [format]
+line-ending = "lf"
 quote-style = "double"
 indent-style = "tab"
