@@ -13,6 +13,7 @@ ignore = [
 	"W191",  # indentation contains tabs
 ]
 line-length = 110
+preview = true
 select = [
 	"A",  # flake8-builtins
 	"ARG",  # flake8-unused-arguments 
