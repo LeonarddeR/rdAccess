@@ -35,6 +35,6 @@ target-version = "py37"
 max-complexity = 15
 
 [format]
-line-ending = "lf"
+line-ending = "auto"
 quote-style = "double"
 indent-style = "tab"
