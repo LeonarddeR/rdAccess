@@ -4,7 +4,7 @@
 * Download [latest stable version][2]
 * NVDA compatibility: 2023.2 and later
 
-The RDAccess add-on (Remote Desktop Accessibility) adds support to access remote desktop sessions on NVDA using Microsoft Remote Desktop, Citrix, or VMware Horizon.
+The RDAccess add-on (Remote Desktop Accessibility) adds support for Microsoft Remote Desktop, Citrix, or VMware Horizon remote sessions to NVDA.
 When installed on both the client and the server in NVDA, speech and braille generated on the server will be spoken and displayed in braille on the client machine.
 This enables a user experience where managing a remote system feels as seamless as operating the local system.
 
