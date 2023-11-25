@@ -83,7 +83,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		if connected:
 			self._handleDriverChanged(self._driver)
 
-	def event_gainFocus(self, obj):
+	def event_gainFocus(self, _obj):
 		if self._isSecureDesktopHandler:
 			return
 		# Invalidate the property cache to ensure that hasFocus will be fetched again.
@@ -111,7 +111,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		return self._pickle(getattr(self._driver, name))
 
 	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
-	def _incoming_setting(self, attribute: protocol.AttributeT, payLoad: bytes):
+	def _incoming_setting(self, _attribute: protocol.AttributeT, payLoad: bytes):
 		assert len(payLoad) > 0
 		return self._unpickle(payLoad)
 

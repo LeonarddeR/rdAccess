@@ -106,7 +106,7 @@ class RemoteBrailleHandler(RemoteHandler):
 			try:
 				self.writeMessage(protocol.BrailleCommand.EXECUTE_GESTURE, self._pickle(newGesture))
 				return False
-			except WindowsError:
+			except OSError:
 				log.warning("Error calling _handleExecuteGesture", exc_info=True)
 		return True
 

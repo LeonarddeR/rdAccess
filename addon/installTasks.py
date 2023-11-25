@@ -5,13 +5,13 @@
 
 import typing
 from time import sleep
+
 import addonHandler
 import gui
 import wx
 
 if typing.TYPE_CHECKING:
-	from .lib import configuration
-	from .lib import rdPipe
+	from .lib import configuration, rdPipe
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	configuration = addon.loadModule("lib.configuration")

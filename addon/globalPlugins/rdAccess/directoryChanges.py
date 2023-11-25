@@ -98,7 +98,7 @@ class DirectoryWatcher(IoThread):
 			if hasattr(self, "_dirHandle"):
 				winKernel.closeHandle(self._dirHandle)
 
-	def _asyncWatch(self, param: int = 0):
+	def _asyncWatch(self, _param: int = 0):
 		res = windll.kernel32.ReadDirectoryChangesW(
 			self._dirHandle,
 			byref(self._buffer),
@@ -112,7 +112,7 @@ class DirectoryWatcher(IoThread):
 		if not res:
 			raise WinError()
 
-	def _ioDone(self, error, numberOfBytes: int, overlapped: LPOVERLAPPED):
+	def _ioDone(self, error, numberOfBytes: int, _overlapped: LPOVERLAPPED):
 		if not self._watching:
 			# We stopped watching
 			return
@@ -133,9 +133,9 @@ class DirectoryWatcher(IoThread):
 				byteorder=sys.byteorder,
 				signed=False,
 			)
-			format = f"@3I{fileNameLength}s"
+			formatStr = f"@3I{fileNameLength}s"
 			nextOffset, action, fileNameLength, fileNameBytes = unpack(
-				format, data[nextOffset : nextOffset + calcsize(format)]
+				formatStr, data[nextOffset : nextOffset + calcsize(formatStr)]
 			)
 			fileName = fileNameBytes.decode("utf-16")
 			self.directoryChanged.notify(

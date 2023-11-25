@@ -66,7 +66,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		return self._unpickle(payload)
 
 	@_incoming_gestureMapUpdate.defaultValueGetter
-	def _default_gestureMap(self, attribute: protocol.AttributeT):
+	def _default_gestureMap(self, _attribute: protocol.AttributeT):
 		return inputCore.GlobalGestureMap()
 
 	def _get_gestureMap(self) -> inputCore.GlobalGestureMap:

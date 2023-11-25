@@ -182,7 +182,7 @@ def attributeReceiver(
 		raise ValueError("Either defaultValue or defaultValueGetter is required, but not both")
 	if defaultValueGetter is None:
 
-		def _defaultValueGetter(self: "RemoteProtocolHandler", attribute: AttributeT):
+		def _defaultValueGetter(_self: "RemoteProtocolHandler", _attribute: AttributeT):
 			return defaultValue
 
 		defaultValueGetter = _defaultValueGetter
@@ -296,7 +296,7 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 		self.setValue(attribute, value)
 
 
-class RemoteProtocolHandler((AutoPropertyObject)):
+class RemoteProtocolHandler(AutoPropertyObject):
 	_dev: IoBase
 	driverType: DriverType
 	_receiveBuffer: bytes

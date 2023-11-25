@@ -2,27 +2,27 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-import typing
-import addonHandler
-import synthDriverHandler
-from hwIo import boolToByte
+import os.path
 import sys
-import tones
-import nvwave
+import typing
+from collections import OrderedDict
 from typing import Optional
-from extensionPoints import Action
-from logHandler import log
-from languageHandler import getLanguage
+
+import addonHandler
+import globalVars
+import nvwave
+import synthDriverHandler
+import tones
 from autoSettingsUtils.driverSetting import DriverSetting
 from autoSettingsUtils.utils import StringParameterInfo
 from braille import AUTOMATIC_PORT
-from collections import OrderedDict
-import globalVars
-import os.path
+from extensionPoints import Action
+from hwIo import boolToByte
+from languageHandler import getLanguage
+from logHandler import log
 
 if typing.TYPE_CHECKING:
-	from ..lib import driver
-	from ..lib import protocol
+	from ..lib import driver, protocol
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	driver = addon.loadModule("lib.driver")
@@ -72,7 +72,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		log.debug(f"Sending BEEP command: {kwargs}")
 		try:
 			self.writeMessage(protocol.SpeechCommand.BEEP, self._pickle(kwargs))
-		except WindowsError:
+		except OSError:
 			log.warning("Error calling handle_decideBeep", exc_info=True)
 			return True
 		return False
@@ -82,7 +82,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		log.debug(f"Sending PLAY_WAVE_FILE command: {kwargs}")
 		try:
 			self.writeMessage(protocol.SpeechCommand.PLAY_WAVE_FILE, self._pickle(kwargs))
-		except WindowsError:
+		except OSError:
 			log.warning("Error calling handle_decidePlayWaveFile", exc_info=True)
 			return True
 		return False
@@ -93,20 +93,20 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 	def speak(self, speechSequence):
 		try:
 			self.writeMessage(protocol.SpeechCommand.SPEAK, self._pickle(speechSequence))
-		except WindowsError:
+		except OSError:
 			log.error("Error speaking", exc_info=True)
 			self._handleRemoteDisconnect()
 
 	def cancel(self):
 		try:
 			self.writeMessage(protocol.SpeechCommand.CANCEL)
-		except WindowsError:
+		except OSError:
 			log.warning("Error cancelling speech", exc_info=True)
 
 	def pause(self, switch):
 		try:
 			self.writeMessage(protocol.SpeechCommand.PAUSE, boolToByte(switch))
-		except WindowsError:
+		except OSError:
 			log.warning("Error pausing speech", exc_info=True)
 
 	@protocol.attributeReceiver(protocol.SpeechAttribute.SUPPORTED_COMMANDS, defaultValue=frozenset())

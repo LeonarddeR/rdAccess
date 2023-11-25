@@ -124,6 +124,7 @@ class NamedPipeBase(IoBase):
 		pipeMode: PipeMode = PipeMode.READMODE_BYTE,
 	):
 		self.pipeName = pipeName
+		self.pipeMode = pipeMode
 		super().__init__(
 			fileHandle,
 			onReceive,
@@ -196,14 +197,14 @@ class NamedPipeServer(NamedPipeBase):
 			log.debug(f"Named pipe {self.pipeName} pending client connection")
 		try:
 			self._ioThreadRef().waitForSingleObjectWithCallback(self._recvEvt, self._handleConnectCallback)
-		except WindowsError as e:
+		except OSError as e:
 			error = e.winerror
 			log.error(
 				f"Error while calling RegisterWaitForSingleObject for {self.pipeName}: {WinError(error)}"
 			)
 			self._ioDone(error, 0, byref(ol))
 
-	def _handleConnectCallback(self, parameter: int, timerOrWaitFired: bool):
+	def _handleConnectCallback(self, _parameter: int, _timerOrWaitFired: bool):
 		log.debug(f"Event set for {self.pipeName}")
 		numberOfBytes = DWORD()
 		log.debug(f"Getting overlapped result for {self.pipeName} after wait for event")
@@ -236,7 +237,7 @@ class NamedPipeServer(NamedPipeBase):
 			return True
 		return False
 
-	def _asyncRead(self, param: Optional[int] = None):
+	def _asyncRead(self, _param: Optional[int] = None):
 		if not self._connected:
 			# _handleConnect will call _asyncRead when it is finished.
 			self._handleConnect()

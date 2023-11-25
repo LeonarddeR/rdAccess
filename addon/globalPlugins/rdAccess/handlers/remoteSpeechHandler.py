@@ -66,7 +66,7 @@ class RemoteSpeechHandler(RemoteHandler):
 		self._queueFunctionOnMainThread(self._driver.speak, sequence)
 
 	@protocol.commandHandler(protocol.SpeechCommand.CANCEL)
-	def _command_cancel(self, payload: bytes = b""):
+	def _command_cancel(self, _payload: bytes = b""):
 		self._indexesSpeaking.clear()
 		self._queueFunctionOnMainThread(self._driver.cancel)
 
@@ -106,7 +106,7 @@ class RemoteSpeechHandler(RemoteHandler):
 			)
 			try:
 				self.writeMessage(protocol.SpeechCommand.INDEX_REACHED, indexBytes)
-			except WindowsError:
+			except OSError:
 				log.warning("Error calling _onSynthIndexReached", exc_info=True)
 			self._indexesSpeaking.remove(index)
 
@@ -116,7 +116,7 @@ class RemoteSpeechHandler(RemoteHandler):
 			self._indexesSpeaking.clear()
 			try:
 				self.writeMessage(protocol.SpeechCommand.INDEX_REACHED, b"\x00\x00")
-			except WindowsError:
+			except OSError:
 				log.warning("Error calling _onSynthDoneSpeaking", exc_info=True)
 
 	def _handleDriverChanged(self, synth: synthDriverHandler.SynthDriver):

@@ -43,7 +43,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		return any(cls._getAutoPorts())
 
 	@classmethod
-	def _getAutoPorts(cls, usb=True, bluetooth=True) -> Iterable[bdDetect.DeviceMatch]:
+	def _getAutoPorts(cls, _usb=True, _bluetooth=True) -> Iterable[bdDetect.DeviceMatch]:
 		for driver, match in bgScanRD(cls.driverType, [cls.name]):
 			assert driver == cls.name
 			yield match
@@ -54,8 +54,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			yield port
 		elif isinstance(port, str):
 			assert port == "auto"
-			for match in cls._getAutoPorts():
-				yield match
+			yield from cls._getAutoPorts()
 
 	_localSettings: List[DriverSetting] = []
 
@@ -72,7 +71,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		initialTime = time.perf_counter()
 		super().__init__()
 		self._connected = False
-		for portType, portId, port, portInfo in self._getTryPorts(port):
+		for portType, _portId, port, _portInfo in self._getTryPorts(port):  # noqa: B020
 			for attr in self._requiredAttributesOnInit:
 				self._attributeValueProcessor.setAttributeRequestPending(attr)
 			try:
@@ -90,7 +89,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 						onReceive=self._onReceive,
 						onReadError=self._onReadError,
 					)
-			except EnvironmentError:
+			except OSError:
 				log.debugWarning("", exc_info=True)
 				continue
 			if portType == KEY_VIRTUAL_CHANNEL:
@@ -175,7 +174,9 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	@_incomingSupportedSettings.updateCallback
 	def _updateCallback_supportedSettings(
-		self, attribute: protocol.AttributeT, settings: Iterable[DriverSetting]
+		self,
+		_attribute: protocol.AttributeT,
+		settings: Iterable[DriverSetting],
 	):
 		log.debug(f"Initializing settings accessor for {len(settings)} settings")
 		self._settingsAccessor = SettingsAccessorBase.createFromSettings(self, settings) if settings else None
@@ -195,18 +196,18 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		return settings
 
 	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
-	def _incoming_setting(self, attribute: protocol.AttributeT, payLoad: bytes):
+	def _incoming_setting(self, _attribute: protocol.AttributeT, payLoad: bytes):
 		assert len(payLoad) > 0
 		return self._unpickle(payLoad)
 
 	@protocol.attributeReceiver(b"available*s")
-	def _incoming_availableSettingValues(self, attribute: protocol.AttributeT, payLoad: bytes):
+	def _incoming_availableSettingValues(self, _attribute: protocol.AttributeT, payLoad: bytes):
 		return self._unpickle(payLoad)
 
 	@protocol.attributeSender(protocol.GenericAttribute.TIME_SINCE_INPUT)
 	def _outgoing_timeSinceInput(self) -> bytes:
 		return inputTime.getTimeSinceInput().to_bytes(4, sys.byteorder, signed=False)
 
-	def _handlePossibleSessionDisconnect(self, isNowLocked):
+	def _handlePossibleSessionDisconnect(self):
 		if not self.check():
 			self._handleRemoteDisconnect()

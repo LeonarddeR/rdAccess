@@ -13,6 +13,7 @@ import synthDriverHandler
 from baseObject import AutoPropertyObject
 from braille import AUTOMATIC_PORT
 from logHandler import log
+
 from synthDrivers.remote import remoteSynthDriver
 
 if typing.TYPE_CHECKING:

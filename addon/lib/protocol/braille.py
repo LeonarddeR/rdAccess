@@ -24,7 +24,7 @@ class BrailleInputGesture(braille.BrailleDisplayGesture, brailleInput.BrailleInp
 	def __init__(
 		self,
 		source: str,
-		id: str,
+		identifier: str,
 		routingIndex: Optional[int] = None,
 		model: Optional[str] = None,
 		dots: int = 0,
@@ -33,7 +33,7 @@ class BrailleInputGesture(braille.BrailleDisplayGesture, brailleInput.BrailleInp
 	):
 		super().__init__()
 		self.source = source
-		self.id = id
+		self.id = identifier
 		self.routingIndex = routingIndex
 		self.model = model
 		self.dots = dots
