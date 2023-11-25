@@ -6,11 +6,13 @@ import sys
 import typing
 
 import nvwave
+import speech
 import synthDriverHandler
 import tones
 from hwIo.ioThread import IoThread
 from logHandler import log
 from speech.commands import IndexCommand
+from speech.types import SpeechSequence
 
 from ._remoteHandler import RemoteHandler
 
@@ -58,23 +60,37 @@ class RemoteSpeechHandler(RemoteHandler):
 	@protocol.commandHandler(protocol.SpeechCommand.SPEAK)
 	def _command_speak(self, payload: bytes):
 		sequence = self._unpickle(payload)
+		self._queueFunctionOnMainThread(self._speak, sequence)
+
+	def _speak(self, sequence: SpeechSequence):
 		for item in sequence:
 			if isinstance(item, IndexCommand):
 				item.index += protocol.speech.SPEECH_INDEX_OFFSET
 				self._indexesSpeaking.append(item.index)
-		# Queue speech to the current synth directly because we don't want unnecessary processing to happen.
-		self._queueFunctionOnMainThread(self._driver.speak, sequence)
+		# Send speech to the current synth directly because we don't want unnecessary processing to happen.
+		# We need to change speech state accordingly.
+		speech.speech._speechState.isPaused = False
+		speech.speech._speechState.beenCanceled = False
+		self._driver.speak(sequence)
 
 	@protocol.commandHandler(protocol.SpeechCommand.CANCEL)
 	def _command_cancel(self, _payload: bytes = b""):
 		self._indexesSpeaking.clear()
-		self._queueFunctionOnMainThread(self._driver.cancel)
+		self._queueFunctionOnMainThread(self._cancel)
+
+	def _cancel(self):
+		self._driver.cancel()
+		speech.speech._speechState.beenCanceled = True
+		speech.speech._speechState.isPaused = False
 
 	@protocol.commandHandler(protocol.SpeechCommand.PAUSE)
 	def _command_pause(self, payload: bytes):
 		assert len(payload) == 1
 		switch = bool.from_bytes(payload, sys.byteorder)
-		self._queueFunctionOnMainThread(self._driver.pause, switch)
+		self._queueFunctionOnMainThread(self._pause, switch)
+
+	def _pause(self, switch: bool):
+		speech.pauseSpeech(switch)
 
 	@protocol.commandHandler(protocol.SpeechCommand.BEEP)
 	def _command_beep(self, payload: bytes):
