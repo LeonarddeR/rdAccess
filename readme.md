@@ -23,6 +23,13 @@ This enables a user experience where managing a remote system feels as seamless 
 
 ## Changelog
 
+### Version 1.2
+
+- Use [Ruff](https://github.com/astral-sh/ruff) as a formatter and linter. [#13](https://github.com/leonardder/rdAccess/pull/13)
+- Fixed an issue where NVDA on the client generates an error when pausing speech on the server.
+- Fixed support for `winAPI.secureDesktop.post_secureDesktopStateChange`.
+- Improved driver initialization on the server.
+
 ### Version 1.1
 
 - Added support for NVDA 2023.3 style device registration for automatic detection of braille displays. [#11](https://github.com/leonardder/rdAccess/pull/11)
