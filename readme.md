@@ -23,6 +23,10 @@ This enables a user experience where managing a remote system feels as seamless 
 
 ## Changelog
 
+### Version 1.3
+
+- Fixed broken braille display gestures.
+
 ### Version 1.2
 
 - Use [Ruff](https://github.com/astral-sh/ruff) as a formatter and linter. [#13](https://github.com/leonardder/rdAccess/pull/13)
