@@ -2,16 +2,17 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
+import threading
 from ctypes import POINTER, WINFUNCTYPE, WinError, addressof, byref, windll
 from ctypes.wintypes import BOOL, BOOLEAN, DWORD, HANDLE, LPVOID
 from inspect import ismethod
-import threading
 from typing import Callable, Dict, Tuple, Union
-from serial.win32 import INVALID_HANDLE_VALUE
+
 import hwIo.ioThread
 import winKernel
+from extensionPoints.util import AnnotatableWeakref, BoundMethodWeakref
 from logHandler import log
-from extensionPoints.util import BoundMethodWeakref, AnnotatableWeakref
+from serial.win32 import INVALID_HANDLE_VALUE
 
 WT_EXECUTEINWAITTHREAD = 0x4
 WT_EXECUTELONGFUNCTION = 0x10
@@ -24,9 +25,12 @@ WaitOrTimerCallbackStoreT = Dict[
 	Tuple[
 		int,
 		HANDLE,
-		Union[BoundMethodWeakref[WaitOrTimerCallbackT], AnnotatableWeakref[WaitOrTimerCallbackT]],
-		WaitOrTimerCallbackIdT
-	]
+		Union[
+			BoundMethodWeakref[WaitOrTimerCallbackT],
+			AnnotatableWeakref[WaitOrTimerCallbackT],
+		],
+		WaitOrTimerCallbackIdT,
+	],
 ]
 windll.kernel32.RegisterWaitForSingleObject.restype = BOOL
 windll.kernel32.RegisterWaitForSingleObject.argtypes = (
@@ -35,7 +39,7 @@ windll.kernel32.RegisterWaitForSingleObject.argtypes = (
 	WaitOrTimerCallback,
 	LPVOID,
 	DWORD,
-	DWORD
+	DWORD,
 )
 
 
@@ -44,22 +48,27 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 
 	@WaitOrTimerCallback
 	def _internalWaitOrTimerCallback(param: WaitOrTimerCallbackIdT, timerOrWaitFired: bool):
-		(threadIdent, waitObject, reference, actualParam) = IoThreadEx._waitOrTimerCallbackStore.pop(
-			param,
-			(0, 0, None, 0)
-		)
+		(
+			threadIdent,
+			waitObject,
+			reference,
+			actualParam,
+		) = IoThreadEx._waitOrTimerCallbackStore.pop(param, (0, 0, None, 0))
 		threadInst: IoThreadEx = threading._active.get(threadIdent)
 		if not isinstance(threadInst, IoThreadEx):
-			log.error(f"Internal WaitOrTimerCallback called from unknown thread")
+			log.error("Internal WaitOrTimerCallback called from unknown thread")
 			return
 
 		if reference is None:
-			log.error(f"Internal WaitOrTimerCallback called with param {param}, but no such wait object in store")
+			log.error(
+				f"Internal WaitOrTimerCallback called with param {param}, but no such wait object in store"
+			)
 			return
 		function = reference()
 		if not function:
 			log.debugWarning(
-				f"Not executing queued WaitOrTimerCallback {param}:{reference.funcName} with param {actualParam} "
+				f"Not executing queued WaitOrTimerCallback {param}:{reference.funcName} "
+				f"with param {actualParam} "
 				"because reference died"
 			)
 			return
@@ -69,7 +78,7 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 		except Exception:
 			log.error(
 				f"Error in WaitOrTimerCallback function {function!r} with id {param} queued to IoThread",
-				exc_info=True
+				exc_info=True,
 			)
 		finally:
 			threadInst.queueAsApc(threadInst._postWaitOrTimerCallback, waitObject)
@@ -79,12 +88,12 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 		windll.kernel32.UnregisterWaitEx(waitObject, INVALID_HANDLE_VALUE)
 
 	def waitForSingleObjectWithCallback(
-			self,
-			objectHandle: Union[HANDLE, int],
-			func: WaitOrTimerCallback,
-			param=0,
-			flags=WT_EXECUTELONGFUNCTION | WT_EXECUTEONLYONCE,
-			waitTime=winKernel.INFINITE
+		self,
+		objectHandle: Union[HANDLE, int],
+		func: WaitOrTimerCallback,
+		param=0,
+		flags=WT_EXECUTELONGFUNCTION | WT_EXECUTEONLYONCE,
+		waitTime=winKernel.INFINITE,
 	):
 		if not self.is_alive():
 			raise RuntimeError("Thread is not running")
@@ -93,7 +102,12 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 		reference = BoundMethodWeakref(func) if ismethod(func) else AnnotatableWeakref(func)
 		reference.funcName = repr(func)
 		waitObjectAddr = addressof(waitObject)
-		self._waitOrTimerCallbackStore[waitObjectAddr] = (self.ident, waitObject, reference, param)
+		self._waitOrTimerCallbackStore[waitObjectAddr] = (
+			self.ident,
+			waitObject,
+			reference,
+			param,
+		)
 		try:
 			waitRes = windll.kernel32.RegisterWaitForSingleObject(
 				byref(waitObject),
@@ -101,7 +115,7 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 				self._internalWaitOrTimerCallback,
 				waitObjectAddr,
 				waitTime,
-				flags
+				flags,
 			)
 			if not waitRes:
 				raise WinError()

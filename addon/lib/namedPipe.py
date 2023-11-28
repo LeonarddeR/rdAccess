@@ -2,34 +2,36 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-from .ioThreadEx import IoThreadEx
-from hwIo.ioThread import IoThread
-from typing import Callable, Iterator, Optional, Union
+import os
 from ctypes import (
+	POINTER,
+	GetLastError,
+	WinError,
 	byref,
 	c_ulong,
-	GetLastError,
-	POINTER,
 	sizeof,
 	windll,
-	WinError,
 )
-from ctypes.wintypes import BOOL, HANDLE, DWORD, LPCWSTR
+from ctypes.wintypes import BOOL, DWORD, HANDLE, LPCWSTR
+from enum import IntFlag
+from glob import iglob
+from typing import Callable, Iterator, Optional, Union
+
+import winKernel
+from appModuleHandler import processEntry32W
+from hwIo.base import IoBase
+from hwIo.ioThread import IoThread
+from logHandler import log
 from serial.win32 import (
-	CreateFile,
 	ERROR_IO_PENDING,
 	FILE_FLAG_OVERLAPPED,
 	INVALID_HANDLE_VALUE,
 	LPOVERLAPPED,
 	OVERLAPPED,
+	CreateFile,
 )
-import winKernel
-from enum import IntFlag
-import os
-from glob import iglob
-from appModuleHandler import processEntry32W
-from hwIo.base import IoBase
-from logHandler import log
+
+from .ioThreadEx import IoThreadEx
 
 ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_CONNECTED = 0x217
@@ -47,7 +49,7 @@ windll.kernel32.CreateNamedPipeW.argtypes = (
 	DWORD,
 	DWORD,
 	DWORD,
-	POINTER(winKernel.SECURITY_ATTRIBUTES)
+	POINTER(winKernel.SECURITY_ATTRIBUTES),
 )
 windll.kernel32.ConnectNamedPipe.restype = BOOL
 windll.kernel32.ConnectNamedPipe.argtypes = (HANDLE, LPOVERLAPPED)
@@ -112,22 +114,23 @@ class NamedPipeBase(IoBase):
 	pipeName: str
 
 	def __init__(
-			self,
-			pipeName: str,
-			fileHandle: Union[HANDLE, int],
-			onReceive: Callable[[bytes], None],
-			onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
-			onReadError: Optional[Callable[[int], bool]] = None,
-			ioThread: Optional[IoThread] = None,
-			pipeMode: PipeMode = PipeMode.READMODE_BYTE,
+		self,
+		pipeName: str,
+		fileHandle: Union[HANDLE, int],
+		onReceive: Callable[[bytes], None],
+		onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
+		onReadError: Optional[Callable[[int], bool]] = None,
+		ioThread: Optional[IoThread] = None,
+		pipeMode: PipeMode = PipeMode.READMODE_BYTE,
 	):
 		self.pipeName = pipeName
+		self.pipeMode = pipeMode
 		super().__init__(
 			fileHandle,
 			onReceive,
 			onReceiveSize=onReceiveSize,
 			onReadError=onReadError,
-			ioThread=ioThread
+			ioThread=ioThread,
 		)
 
 	def _get_isAlive(self) -> bool:
@@ -141,19 +144,17 @@ class NamedPipeServer(NamedPipeBase):
 	_connectOl: Optional[OVERLAPPED] = None
 
 	def __init__(
-			self,
-			pipeName: str,
-			onReceive: Callable[[bytes], None],
-			onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
-			onConnected: Optional[Callable[[bool], None]] = None,
-			ioThreadEx: Optional[IoThreadEx] = None,
-			pipeMode: PipeMode = PipeMode.READMODE_BYTE,
-			pipeOpenMode: PipeOpenMode = (
-				PipeOpenMode.ACCESS_DUPLEX
-				| PipeOpenMode.OVERLAPPED
-				| PipeOpenMode.FIRST_PIPE_INSTANCE
-			),
-			maxInstances: int = 1
+		self,
+		pipeName: str,
+		onReceive: Callable[[bytes], None],
+		onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
+		onConnected: Optional[Callable[[bool], None]] = None,
+		ioThreadEx: Optional[IoThreadEx] = None,
+		pipeMode: PipeMode = PipeMode.READMODE_BYTE,
+		pipeOpenMode: PipeOpenMode = (
+			PipeOpenMode.ACCESS_DUPLEX | PipeOpenMode.OVERLAPPED | PipeOpenMode.FIRST_PIPE_INSTANCE
+		),
+		maxInstances: int = 1,
 	):
 		log.debug(f"Initializing named pipe: Name={pipeName}")
 		fileHandle = windll.kernel32.CreateNamedPipeW(
@@ -164,7 +165,7 @@ class NamedPipeServer(NamedPipeBase):
 			onReceiveSize,
 			onReceiveSize,
 			0,
-			None
+			None,
 		)
 		if fileHandle == INVALID_HANDLE_VALUE:
 			raise WinError()
@@ -196,16 +197,20 @@ class NamedPipeServer(NamedPipeBase):
 			log.debug(f"Named pipe {self.pipeName} pending client connection")
 		try:
 			self._ioThreadRef().waitForSingleObjectWithCallback(self._recvEvt, self._handleConnectCallback)
-		except WindowsError as e:
+		except OSError as e:
 			error = e.winerror
-			log.error(f"Error while calling RegisterWaitForSingleObject for {self.pipeName}: {WinError(error)}")
+			log.error(
+				f"Error while calling RegisterWaitForSingleObject for {self.pipeName}: {WinError(error)}"
+			)
 			self._ioDone(error, 0, byref(ol))
 
-	def _handleConnectCallback(self, parameter: int, timerOrWaitFired: bool):
+	def _handleConnectCallback(self, _parameter: int, _timerOrWaitFired: bool):
 		log.debug(f"Event set for {self.pipeName}")
 		numberOfBytes = DWORD()
 		log.debug(f"Getting overlapped result for {self.pipeName} after wait for event")
-		if not windll.kernel32.GetOverlappedResult(self._file, byref(self._connectOl), byref(numberOfBytes), False):
+		if not windll.kernel32.GetOverlappedResult(
+			self._file, byref(self._connectOl), byref(numberOfBytes), False
+		):
 			error = GetLastError()
 			log.debug(f"Error while getting overlapped result for {self.pipeName}: {WinError(error)}")
 			self._ioDone(error, 0, byref(self._connectOl))
@@ -232,7 +237,7 @@ class NamedPipeServer(NamedPipeBase):
 			return True
 		return False
 
-	def _asyncRead(self, param: Optional[int] = None):
+	def _asyncRead(self, _param: Optional[int] = None):
 		if not self._connected:
 			# _handleConnect will call _asyncRead when it is finished.
 			self._handleConnect()
@@ -262,20 +267,18 @@ class NamedPipeServer(NamedPipeBase):
 
 	@_ioDone.setter
 	def _ioDone(self, value):
-		"""Hack, we don't want _ioDone to set itself to None.
-		"""
+		"""Hack, we don't want _ioDone to set itself to None."""
 		pass
 
 
 class NamedPipeClient(NamedPipeBase):
-
 	def __init__(
-			self,
-			pipeName: str,
-			onReceive: Callable[[bytes], None],
-			onReadError: Optional[Callable[[int], bool]] = None,
-			ioThread: Optional[IoThread] = None,
-			pipeMode: PipeMode = PipeMode.READMODE_BYTE
+		self,
+		pipeName: str,
+		onReceive: Callable[[bytes], None],
+		onReadError: Optional[Callable[[int], bool]] = None,
+		ioThread: Optional[IoThread] = None,
+		pipeMode: PipeMode = PipeMode.READMODE_BYTE,
 	):
 		fileHandle = CreateFile(
 			pipeName,
@@ -284,7 +287,7 @@ class NamedPipeClient(NamedPipeBase):
 			None,
 			winKernel.OPEN_EXISTING,
 			FILE_FLAG_OVERLAPPED,
-			None
+			None,
 		)
 		if fileHandle == INVALID_HANDLE_VALUE:
 			raise WinError()

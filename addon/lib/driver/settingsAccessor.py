@@ -2,12 +2,14 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-from baseObject import AutoPropertyObject
-from .. import protocol
 import weakref
-from typing import Any, Dict, Iterable, List, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List
+
 from autoSettingsUtils import driverSetting
+from baseObject import AutoPropertyObject
 from logHandler import log
+
+from .. import protocol
 
 if TYPE_CHECKING:
 	from . import RemoteDriver
@@ -29,10 +31,18 @@ class SettingsAccessorBase(AutoPropertyObject):
 			settingNames.append(s.id)
 			dct[f"_get_{s.id}"] = cls._makeGetSetting(s.id)
 			dct[f"_set_{s.id}"] = cls._makeSetSetting(s.id)
-			if not isinstance(s, (driverSetting.BooleanDriverSetting, driverSetting.NumericDriverSetting)):
-				dct[f"_get_{cls._getAvailableSettingsPropertyName(s.id)}"] = cls._makeGetAvailableSettings(s.id)
+			if not isinstance(
+				s,
+				(
+					driverSetting.BooleanDriverSetting,
+					driverSetting.NumericDriverSetting,
+				),
+			):
+				dct[f"_get_{cls._getAvailableSettingsPropertyName(s.id)}"] = cls._makeGetAvailableSettings(
+					s.id
+				)
 		log.debug("Constructed dictionary to generate new dynamic SettingsAccessor")
-		return type("SettingsAccessor", (SettingsAccessorBase, ), dct)(driver, settingNames)
+		return type("SettingsAccessor", (SettingsAccessorBase,), dct)(driver, settingNames)
 
 	def _get_driver(self):
 		return self._driverRef()
@@ -64,6 +74,7 @@ class SettingsAccessorBase(AutoPropertyObject):
 			value = self.driver._attributeValueProcessor.getValue(attribute, fallBackToDefault=True)
 			self.driver._queueFunctionOnMainThread(self.driver.requestRemoteAttribute, attribute)
 			return value
+
 		return _getSetting
 
 	@classmethod
@@ -74,6 +85,7 @@ class SettingsAccessorBase(AutoPropertyObject):
 			self.driver.setRemoteAttribute(attribute, self.driver._pickle(value))
 			if self.driver._attributeValueProcessor.isAttributeSupported(attribute):
 				self.driver._attributeValueProcessor.setValue(attribute, value)
+
 		return _setSetting
 
 	@classmethod
@@ -84,6 +96,7 @@ class SettingsAccessorBase(AutoPropertyObject):
 				return self.driver._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
 			except KeyError:
 				return self.driver.getRemoteAttribute(attribute)
+
 		return _getAvailableSettings
 
 	def __del__(self):

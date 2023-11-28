@@ -2,34 +2,34 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-from winAPI import _wtsApi32 as wtsApi32
-from hwIo.base import _isDebug, IoBase
-from hwIo.ioThread import IoThread
-from typing import Callable, Optional
 from ctypes import (
+	POINTER,
+	GetLastError,
+	Structure,
+	WinError,
 	byref,
 	c_int,
-	cdll,
-	c_void_p,
-	create_string_buffer,
-	windll,
-	WinError,
-	POINTER,
-	sizeof,
-	Structure,
 	c_uint32,
-	GetLastError
+	c_void_p,
+	cdll,
+	create_string_buffer,
+	sizeof,
+	windll,
 )
 from ctypes.wintypes import (
 	BOOL,
-	HANDLE,
 	DWORD,
-	LPWSTR
+	HANDLE,
+	LPWSTR,
 )
-from serial.win32 import INVALID_HANDLE_VALUE, ERROR_IO_PENDING
-from logHandler import log
-import winKernel
+from typing import Callable, Optional
 
+import winKernel
+from hwIo.base import IoBase, _isDebug
+from hwIo.ioThread import IoThread
+from logHandler import log
+from serial.win32 import ERROR_IO_PENDING, INVALID_HANDLE_VALUE
+from winAPI import _wtsApi32 as wtsApi32
 
 WTS_CHANNEL_OPTION_DYNAMIC = 0x00000001
 WTS_CHANNEL_OPTION_DYNAMIC_PRI_HIGH = 0x00000004
@@ -74,7 +74,7 @@ else:
 		DWORD,  # [ in] DWORD SessionId
 		c_int,  # [ in]  WTS_INFO_CLASS WTSInfoClass,
 		POINTER(LPWSTR),  # [out] LPWSTR * ppBuffer,
-		POINTER(DWORD)  # [out] DWORD * pBytesReturned
+		POINTER(DWORD),  # [out] DWORD * pBytesReturned
 	)
 	wtsApi32.WTSQuerySessionInformation.restype = BOOL  # On Failure, the return value is zero.
 	GetSystemMetrics = vdp_rdpvcbridge.VDP_GetSystemMetrics
@@ -88,17 +88,17 @@ class WTSVirtualChannel(IoBase):
 	_rawOutput: bool
 
 	def __init__(
-			self,
-			channelName: str,
-			onReceive: Callable[[bytes], None],
-			onReadError: Optional[Callable[[int], bool]] = None,
-			ioThread: Optional[IoThread] = None,
-			rawOutput=False
+		self,
+		channelName: str,
+		onReceive: Callable[[bytes], None],
+		onReadError: Optional[Callable[[int], bool]] = None,
+		ioThread: Optional[IoThread] = None,
+		rawOutput=False,
 	):
 		wtsHandle = WTSVirtualChannelOpenEx(
 			wtsApi32.WTS_CURRENT_SESSION,
 			create_string_buffer(channelName.encode("ascii")),
-			WTS_CHANNEL_OPTION_DYNAMIC | WTS_CHANNEL_OPTION_DYNAMIC_PRI_HIGH
+			WTS_CHANNEL_OPTION_DYNAMIC | WTS_CHANNEL_OPTION_DYNAMIC_PRI_HIGH,
 		)
 		if wtsHandle == 0:
 			raise WinError()
@@ -106,10 +106,7 @@ class WTSVirtualChannel(IoBase):
 			fileHandlePtr = POINTER(HANDLE)()
 			length = DWORD()
 			if not WTSVirtualChannelQuery(
-				wtsHandle,
-				WTSVirtualFileHandle,
-				byref(fileHandlePtr),
-				byref(length)
+				wtsHandle, WTSVirtualFileHandle, byref(fileHandlePtr), byref(length)
 			):
 				raise WinError()
 			try:
@@ -121,7 +118,7 @@ class WTSVirtualChannel(IoBase):
 					curProc,
 					0,
 					False,
-					winKernel.DUPLICATE_SAME_ACCESS
+					winKernel.DUPLICATE_SAME_ACCESS,
 				)
 			finally:
 				wtsApi32.WTSFreeMemory(fileHandlePtr)
@@ -134,7 +131,7 @@ class WTSVirtualChannel(IoBase):
 			onReceive,
 			onReceiveSize=CHANNEL_PDU_LENGTH,
 			onReadError=onReadError,
-			ioThread=ioThread
+			ioThread=ioThread,
 		)
 
 	def close(self):
@@ -149,10 +146,10 @@ class WTSVirtualChannel(IoBase):
 		buffer = bytearray()
 		dataToProcess = data
 		while True:
-			header = ChannelPduHeader.from_buffer_copy(dataToProcess[:sizeof(ChannelPduHeader)])
+			header = ChannelPduHeader.from_buffer_copy(dataToProcess[: sizeof(ChannelPduHeader)])
 			if not buffer:
 				assert header.flags & CHANNEL_FLAG_FIRST
-			buffer.extend(dataToProcess[sizeof(ChannelPduHeader):])
+			buffer.extend(dataToProcess[sizeof(ChannelPduHeader) :])
 			if header.flags & CHANNEL_FLAG_LAST:
 				assert len(buffer) == header.length
 				return super()._notifyReceive(bytes(buffer))
@@ -165,11 +162,11 @@ class WTSVirtualChannel(IoBase):
 			self._readBuf,
 			self._readSize,
 			byref(byteData),
-			byref(self._readOl)
+			byref(self._readOl),
 		):
 			if GetLastError() != ERROR_IO_PENDING:
 				if _isDebug():
 					log.debug(f"Read failed: {WinError()}")
 				raise WinError()
 			windll.kernel32.GetOverlappedResult(self._file, byref(self._readOl), byref(byteData), True)
-		return self._readBuf.raw[:byteData.value]
+		return self._readBuf.raw[: byteData.value]

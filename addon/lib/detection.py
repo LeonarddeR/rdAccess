@@ -2,17 +2,16 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-import bdDetect
-from .wtsVirtualChannel import getRemoteSessionMetrics
-from .protocol import DriverType
-from . import configuration
-from typing import (
-	List,
-	Optional
-)
-from .namedPipe import PIPE_DIRECTORY, getSecureDesktopNamedPipes
 import os.path
+from typing import List, Optional
+
+import bdDetect
 from utils.security import isRunningOnSecureDesktop
+
+from . import configuration
+from .namedPipe import PIPE_DIRECTORY, getSecureDesktopNamedPipes
+from .protocol import DriverType
+from .wtsVirtualChannel import getRemoteSessionMetrics
 
 KEY_VIRTUAL_CHANNEL = "WTSVirtualChannel"
 KEY_NAMED_PIPE_SERVER = "NamedPipeServer"
@@ -20,10 +19,11 @@ KEY_NAMED_PIPE_CLIENT = "NamedPipeClient"
 
 
 def bgScanRD(
-		driverType: DriverType = DriverType.BRAILLE,
-		limitToDevices: Optional[List[str]] = None,
+	driverType: DriverType = DriverType.BRAILLE,
+	limitToDevices: Optional[List[str]] = None,
 ):
 	from .driver import RemoteDriver
+
 	operatingMode = configuration.getOperatingMode()
 	if limitToDevices and RemoteDriver.name not in limitToDevices:
 		return
@@ -34,7 +34,7 @@ def bgScanRD(
 		if sdPort in getSecureDesktopNamedPipes():
 			yield (
 				RemoteDriver.name,
-				bdDetect.DeviceMatch(type=KEY_NAMED_PIPE_CLIENT, id=sdId, port=sdPort, deviceInfo={})
+				bdDetect.DeviceMatch(type=KEY_NAMED_PIPE_CLIENT, id=sdId, port=sdPort, deviceInfo={}),
 			)
 	if (
 		operatingMode & configuration.OperatingMode.SERVER
@@ -42,7 +42,10 @@ def bgScanRD(
 		and getRemoteSessionMetrics() == 1
 	):
 		port = f"NVDA-{driverType.name}"
-		yield (RemoteDriver.name, bdDetect.DeviceMatch(type=KEY_VIRTUAL_CHANNEL, id=port, port=port, deviceInfo={}))
+		yield (
+			RemoteDriver.name,
+			bdDetect.DeviceMatch(type=KEY_VIRTUAL_CHANNEL, id=port, port=port, deviceInfo={}),
+		)
 
 
 def register():

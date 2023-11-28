@@ -2,17 +2,23 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-import sys
 import os.path
-from hwIo.ioThread import IoThread
-from extensionPoints import Action
-import winKernel
-from serial.win32 import FILE_FLAG_OVERLAPPED, CreateFile, INVALID_HANDLE_VALUE, OVERLAPPED, LPOVERLAPPED
-from enum import IntFlag, IntEnum
-from ctypes import windll, WinError, sizeof, byref, create_string_buffer
-from struct import unpack, calcsize
-import queueHandler
+import sys
+from ctypes import WinError, byref, create_string_buffer, sizeof, windll
+from enum import IntEnum, IntFlag
+from struct import calcsize, unpack
 
+import queueHandler
+import winKernel
+from extensionPoints import Action
+from hwIo.ioThread import IoThread
+from serial.win32 import (
+	FILE_FLAG_OVERLAPPED,
+	INVALID_HANDLE_VALUE,
+	LPOVERLAPPED,
+	OVERLAPPED,
+	CreateFile,
+)
 
 FILE_FLAG_BACKUP_SEMANTICS = 0x02000000
 
@@ -20,9 +26,9 @@ FILE_FLAG_BACKUP_SEMANTICS = 0x02000000
 class FileNotifyFilter(IntFlag):
 	FILE_NOTIFY_CHANGE_FILE_NAME = 0x1
 	FILE_NOTIFY_CHANGE_DIR_NAME = 0x2
-	FILE_NOTIFY_CHANGE_ATTRIBUTES = 0X4
+	FILE_NOTIFY_CHANGE_ATTRIBUTES = 0x4
 	FILE_NOTIFY_CHANGE_SIZE = 0x8
-	FILE_NOTIFY_CHANGE_LAST_WRITE = 0X10
+	FILE_NOTIFY_CHANGE_LAST_WRITE = 0x10
 	FILE_NOTIFY_CHANGE_LAST_ACCESS = 0x20
 	FILE_NOTIFY_CHANGE_CREATION = 0x40
 	FILE_NOTIFY_CHANGE_SECURITY = 0x100
@@ -40,10 +46,10 @@ class DirectoryWatcher(IoThread):
 	directoryChanged: Action
 
 	def __init__(
-			self,
-			directory: str,
-			notifyFilter: FileNotifyFilter = FileNotifyFilter.FILE_NOTIFY_CHANGE_FILE_NAME,
-			watchSubtree: bool = False
+		self,
+		directory: str,
+		notifyFilter: FileNotifyFilter = FileNotifyFilter.FILE_NOTIFY_CHANGE_FILE_NAME,
+		watchSubtree: bool = False,
 	):
 		super().__init__()
 		self._watching = False
@@ -58,7 +64,7 @@ class DirectoryWatcher(IoThread):
 			None,
 			winKernel.OPEN_EXISTING,
 			FILE_FLAG_OVERLAPPED | FILE_FLAG_BACKUP_SEMANTICS,
-			None
+			None,
 		)
 		if dirHandle == INVALID_HANDLE_VALUE:
 			raise WinError()
@@ -79,8 +85,7 @@ class DirectoryWatcher(IoThread):
 		self._watching = False
 		try:
 			if hasattr(self, "_dirHandle") and not windll.kernel32.CancelIoEx(
-				self._dirHandle,
-				byref(self._overlapped)
+				self._dirHandle, byref(self._overlapped)
 			):
 				raise WinError()
 		finally:
@@ -93,7 +98,7 @@ class DirectoryWatcher(IoThread):
 			if hasattr(self, "_dirHandle"):
 				winKernel.closeHandle(self._dirHandle)
 
-	def _asyncWatch(self, param: int = 0):
+	def _asyncWatch(self, _param: int = 0):
 		res = windll.kernel32.ReadDirectoryChangesW(
 			self._dirHandle,
 			byref(self._buffer),
@@ -102,12 +107,12 @@ class DirectoryWatcher(IoThread):
 			self._notifyFilter,
 			None,
 			byref(self._overlapped),
-			self.queueAsCompletionRoutine(self._ioDone, self._overlapped)
+			self.queueAsCompletionRoutine(self._ioDone, self._overlapped),
 		)
 		if not res:
 			raise WinError()
 
-	def _ioDone(self, error, numberOfBytes: int, overlapped: LPOVERLAPPED):
+	def _ioDone(self, error, numberOfBytes: int, _overlapped: LPOVERLAPPED):
 		if not self._watching:
 			# We stopped watching
 			return
@@ -124,19 +129,18 @@ class DirectoryWatcher(IoThread):
 		while True:
 			fileNameLength = int.from_bytes(
 				# fileNameLength is the third DWORD in the FILE_NOTIFY_INFORMATION struct
-				data[nextOffset + 8: nextOffset + 12],
+				data[nextOffset + 8 : nextOffset + 12],
 				byteorder=sys.byteorder,
-				signed=False
+				signed=False,
 			)
-			format = f"@3I{fileNameLength}s"
+			formatStr = f"@3I{fileNameLength}s"
 			nextOffset, action, fileNameLength, fileNameBytes = unpack(
-				format,
-				data[nextOffset: nextOffset + calcsize(format)]
+				formatStr, data[nextOffset : nextOffset + calcsize(formatStr)]
 			)
 			fileName = fileNameBytes.decode("utf-16")
 			self.directoryChanged.notify(
 				action=FileNotifyInformationAction(action),
-				fileName=os.path.join(self._directory, fileName)
+				fileName=os.path.join(self._directory, fileName),
 			)
 			if nextOffset == 0:
 				break

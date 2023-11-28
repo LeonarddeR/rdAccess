@@ -2,21 +2,24 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-from ._remoteHandler import RemoteHandler
+import threading
+import typing
+
 import braille
 import brailleInput
-from hwIo import intToByte, IoThread
-import typing
 import inputCore
-import threading
-from brailleViewer import postBrailleViewerToolToggledAction
 import versionInfo
+from brailleViewer import postBrailleViewerToolToggledAction
+from hwIo import IoThread, intToByte
 from logHandler import log
+
+from ._remoteHandler import RemoteHandler
 
 if typing.TYPE_CHECKING:
 	from ....lib import protocol
 else:
 	import addonHandler
+
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	protocol = addon.loadModule("lib.protocol")
 
@@ -94,16 +97,16 @@ class RemoteBrailleHandler(RemoteHandler):
 				source=gesture.source,
 				id=gesture.id,
 				routingIndex=gesture.routingIndex,
-				model=gesture.model
+				model=gesture.model,
 			)
 			if isinstance(gesture, brailleInput.BrailleInputGesture):
-				kwargs['dots'] = gesture.dots
-				kwargs['space'] = gesture.space
+				kwargs["dots"] = gesture.dots
+				kwargs["space"] = gesture.space
 			newGesture = protocol.braille.BrailleInputGesture(**kwargs)
 			try:
 				self.writeMessage(protocol.BrailleCommand.EXECUTE_GESTURE, self._pickle(newGesture))
 				return False
-			except WindowsError:
+			except OSError:
 				log.warning("Error calling _handleExecuteGesture", exc_info=True)
 		return True
 
@@ -111,8 +114,8 @@ class RemoteBrailleHandler(RemoteHandler):
 		return not self.hasFocus
 
 	def _handleDriverChanged(self, display: braille.BrailleDisplayDriver):
-		super()._handleDriverChanged(display)
 		self._attributeSenderStore(protocol.BrailleAttribute.NUM_CELLS)
+		super()._handleDriverChanged(display)
 		self._attributeSenderStore(protocol.BrailleAttribute.GESTURE_MAP, gestureMap=display.gestureMap)
 
 	def _handlePostBrailleViewerToolToggled(self):

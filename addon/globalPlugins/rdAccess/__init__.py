@@ -2,27 +2,27 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-import globalPluginHandler
-import addonHandler
-from . import directoryChanges, settingsPanel
-import typing
-from fnmatch import fnmatch
-from . import handlers
-from typing import Dict, List, Type
-from logHandler import log
-from .synthDetect import _SynthDetector
-from utils.security import post_sessionLockStateChanged
-import braille
-from ctypes import WinError
-from NVDAObjects import NVDAObject
-from .objects import findExtraOverlayClasses
-import config
-import gui
-import api
 import atexit
-from utils.security import isRunningOnSecureDesktop
-from IAccessibleHandler import SecureDesktopNVDAObject
+import typing
+from ctypes import WinError
+from fnmatch import fnmatch
+from typing import Dict, List, Type
+
+import addonHandler
+import api
+import braille
+import config
+import globalPluginHandler
+import gui
+import versionInfo
+from logHandler import log
+from NVDAObjects import NVDAObject
+from utils.security import isRunningOnSecureDesktop, post_sessionLockStateChanged
+
+from . import directoryChanges, handlers, settingsPanel
+from .objects import findExtraOverlayClasses
 from .secureDesktopHandling import SecureDesktopHandler
+from .synthDetect import _SynthDetector
 
 if typing.TYPE_CHECKING:
 	from ...lib import (
@@ -44,6 +44,11 @@ else:
 	rdPipe = addon.loadModule("lib.rdPipe")
 	secureDesktop = addon.loadModule("lib.secureDesktop")
 
+supportsBrailleAutoDetectRegistration = (
+	versionInfo.version_year,
+	versionInfo.version_major,
+) >= (2023, 3)
+
 
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	_synthDetector: typing.Optional[_SynthDetector] = None
@@ -53,12 +58,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		findExtraOverlayClasses(obj, clsList)
 
 	@classmethod
-	def _updateRegistryForRdPipe(
-			cls,
-			install: bool,
-			rdp: bool,
-			citrix: bool
-	) -> bool:
+	def _updateRegistryForRdPipe(cls, install: bool, rdp: bool, citrix: bool) -> bool:
 		if isRunningOnSecureDesktop():
 			return False
 		if citrix and not rdPipe.isCitrixSupported():
@@ -88,7 +88,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 					comServer=True,
 					rdp=False,
 					citrix=True,
-					architecture=rdPipe.Architecture.X86
+					architecture=rdPipe.Architecture.X86,
 				):
 					res = True
 		return res
@@ -98,17 +98,17 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		persistent = config.isInstalledCopy() and configuration.getPersistentRegistration()
 		rdp = configuration.getRemoteDesktopSupport()
 		citrix = configuration.getCitrixSupport()
-		if (
-			cls._updateRegistryForRdPipe(True, rdp, citrix)
-			and not persistent
-		):
+		if cls._updateRegistryForRdPipe(True, rdp, citrix) and not persistent:
 			atexit.register(cls._unregisterRdPipeFromRegistry)
 
 	def initializeOperatingModeServer(self):
-		detection.register()
 		if configuration.getRecoverRemoteSpeech():
 			self._synthDetector = _SynthDetector()
-		self._triggerBackgroundDetectRescan(True)
+		if not supportsBrailleAutoDetectRegistration:
+			detection.register()
+		self._triggerBackgroundDetectRescan(
+			rescanBraille=not supportsBrailleAutoDetectRegistration, force=True
+		)
 		if not isRunningOnSecureDesktop():
 			post_sessionLockStateChanged.register(self._handleLockStateChanged)
 
@@ -125,7 +125,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._handlers: Dict[str, handlers.RemoteHandler] = {}
 		self._pipeWatcher = directoryChanges.DirectoryWatcher(
 			namedPipe.PIPE_DIRECTORY,
-			directoryChanges.FileNotifyFilter.FILE_NOTIFY_CHANGE_FILE_NAME
+			directoryChanges.FileNotifyFilter.FILE_NOTIFY_CHANGE_FILE_NAME,
 		)
 		self._pipeWatcher.directoryChanged.register(self._handleNewPipe)
 		self._pipeWatcher.start()
@@ -150,15 +150,17 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self.initializeOperatingModeRdClient()
 		if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
 			self.initializeOperatingModeSecureDesktop()
-		if (
-			configuredOperatingMode & configuration.OperatingMode.SERVER
-			or (configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP and isRunningOnSecureDesktop())
+		if configuredOperatingMode & configuration.OperatingMode.SERVER or (
+			configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
+			and isRunningOnSecureDesktop()
 		):
 			self.initializeOperatingModeServer()
 		if isRunningOnSecureDesktop():
 			return
 		config.post_configProfileSwitch.register(self._handlePostConfigProfileSwitch)
-		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(settingsPanel.RemoteDesktopSettingsPanel)
+		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(
+			settingsPanel.RemoteDesktopSettingsPanel
+		)
 		settingsPanel.RemoteDesktopSettingsPanel.post_onSave.register(self._handlePostConfigProfileSwitch)
 
 	def _initializeExistingPipes(self):
@@ -169,9 +171,15 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if not fnmatch(fileName, namedPipe.RD_PIPE_GLOB_PATTERN):
 			return
 		if action == directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED:
-			if fnmatch(fileName, namedPipe.RD_PIPE_GLOB_PATTERN.replace("*", f"{protocol.DriverType.BRAILLE.name}*")):
+			if fnmatch(
+				fileName,
+				namedPipe.RD_PIPE_GLOB_PATTERN.replace("*", f"{protocol.DriverType.BRAILLE.name}*"),
+			):
 				HandlerClass = handlers.RemoteBrailleHandler
-			elif fnmatch(fileName, namedPipe.RD_PIPE_GLOB_PATTERN.replace("*", f"{protocol.DriverType.SPEECH.name}*")):
+			elif fnmatch(
+				fileName,
+				namedPipe.RD_PIPE_GLOB_PATTERN.replace("*", f"{protocol.DriverType.SPEECH.name}*"),
+			):
 				HandlerClass = handlers.RemoteSpeechHandler
 			else:
 				raise RuntimeError(f"Unknown named pipe: {fileName}")
@@ -191,9 +199,10 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def terminateOperatingModeServer(self):
 		if not isRunningOnSecureDesktop():
 			post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
+		if not supportsBrailleAutoDetectRegistration:
+			detection.unregister()
 		if self._synthDetector:
 			self._synthDetector.terminate()
-		detection.unregister()
 
 	def terminateOperatingModeRdClient(self):
 		if isRunningOnSecureDesktop():
@@ -230,13 +239,17 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def terminate(self):
 		try:
 			if not isRunningOnSecureDesktop():
-				settingsPanel.RemoteDesktopSettingsPanel.post_onSave.unregister(self._handlePostConfigProfileSwitch)
-				gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(settingsPanel.RemoteDesktopSettingsPanel)
+				settingsPanel.RemoteDesktopSettingsPanel.post_onSave.unregister(
+					self._handlePostConfigProfileSwitch
+				)
+				gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(
+					settingsPanel.RemoteDesktopSettingsPanel
+				)
 				config.post_configProfileSwitch.unregister(self._handlePostConfigProfileSwitch)
 			configuredOperatingMode = configuration.getOperatingMode()
-			if (
-				configuredOperatingMode & configuration.OperatingMode.SERVER
-				or (configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP and isRunningOnSecureDesktop())
+			if configuredOperatingMode & configuration.OperatingMode.SERVER or (
+				configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
+				and isRunningOnSecureDesktop()
 			):
 				self.terminateOperatingModeServer()
 			if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
@@ -308,17 +321,19 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def _handleLockStateChanged(self, isNowLocked):
 		if not isNowLocked:
-			self._triggerBackgroundDetectRescan(True)
+			self._triggerBackgroundDetectRescan(force=True)
 
-	def _triggerBackgroundDetectRescan(self, force: bool = False):
-		if self._synthDetector:
+	def _triggerBackgroundDetectRescan(
+		self, rescanSpeech: bool = True, rescanBraille: bool = True, force: bool = False
+	):
+		if rescanSpeech and self._synthDetector:
 			self._synthDetector.rescan(force)
 		detector = braille.handler._detector
-		if detector is not None:
+		if rescanBraille and detector is not None:
 			detector.rescan(
 				usb=detector._detectUsb,
 				bluetooth=detector._detectBluetooth,
-				limitToDevices=detector._limitToDevices
+				limitToDevices=detector._limitToDevices,
 			)
 
 	def _handleRemoteDisconnect(self, handler: handlers.RemoteHandler, error: int) -> bool:
@@ -339,7 +354,12 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 					except Exception:
 						log.error("Error calling event_gainFocus on handler", exc_info=True)
 						continue
-			if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
+			if (
+				configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
+				and not secureDesktop.hasSecureDesktopExtensionPoint
+			):
+				from IAccessibleHandler import SecureDesktopNVDAObject
+
 				if isinstance(obj, SecureDesktopNVDAObject):
 					secureDesktop.post_secureDesktopStateChange.notify(isSecureDesktop=True)
 				elif self._sdHandler:

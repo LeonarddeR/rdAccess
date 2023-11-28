@@ -2,20 +2,25 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-from ._remoteHandler import RemoteHandler
-import typing
-import synthDriverHandler
-from speech.commands import IndexCommand
 import sys
-import tones
+import typing
+
 import nvwave
+import speech
+import synthDriverHandler
+import tones
 from hwIo.ioThread import IoThread
 from logHandler import log
+from speech.commands import IndexCommand
+from speech.types import SpeechSequence
+
+from ._remoteHandler import RemoteHandler
 
 if typing.TYPE_CHECKING:
 	from ....lib import protocol
 else:
 	import addonHandler
+
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	protocol = addon.loadModule("lib.protocol")
 
@@ -55,23 +60,37 @@ class RemoteSpeechHandler(RemoteHandler):
 	@protocol.commandHandler(protocol.SpeechCommand.SPEAK)
 	def _command_speak(self, payload: bytes):
 		sequence = self._unpickle(payload)
+		self._queueFunctionOnMainThread(self._speak, sequence)
+
+	def _speak(self, sequence: SpeechSequence):
 		for item in sequence:
 			if isinstance(item, IndexCommand):
 				item.index += protocol.speech.SPEECH_INDEX_OFFSET
 				self._indexesSpeaking.append(item.index)
-		# Queue speech to the current synth directly because we don't want unnecessary processing to happen.
-		self._queueFunctionOnMainThread(self._driver.speak, sequence)
+		# Send speech to the current synth directly because we don't want unnecessary processing to happen.
+		# We need to change speech state accordingly.
+		speech.speech._speechState.isPaused = False
+		speech.speech._speechState.beenCanceled = False
+		self._driver.speak(sequence)
 
 	@protocol.commandHandler(protocol.SpeechCommand.CANCEL)
-	def _command_cancel(self, payload: bytes = b''):
+	def _command_cancel(self, _payload: bytes = b""):
 		self._indexesSpeaking.clear()
-		self._queueFunctionOnMainThread(self._driver.cancel)
+		self._queueFunctionOnMainThread(self._cancel)
+
+	def _cancel(self):
+		self._driver.cancel()
+		speech.speech._speechState.beenCanceled = True
+		speech.speech._speechState.isPaused = False
 
 	@protocol.commandHandler(protocol.SpeechCommand.PAUSE)
 	def _command_pause(self, payload: bytes):
 		assert len(payload) == 1
 		switch = bool.from_bytes(payload, sys.byteorder)
-		self._queueFunctionOnMainThread(self._driver.pause, switch)
+		self._queueFunctionOnMainThread(self._pause, switch)
+
+	def _pause(self, switch: bool):
+		speech.pauseSpeech(switch)
 
 	@protocol.commandHandler(protocol.SpeechCommand.BEEP)
 	def _command_beep(self, payload: bytes):
@@ -89,9 +108,9 @@ class RemoteSpeechHandler(RemoteHandler):
 		nvwave.playWaveFile(**kwargs)
 
 	def _onSynthIndexReached(
-			self,
-			synth: typing.Optional[synthDriverHandler.SynthDriver] = None,
-			index: typing.Optional[int] = None
+		self,
+		synth: typing.Optional[synthDriverHandler.SynthDriver] = None,
+		index: typing.Optional[int] = None,
 	):
 		assert synth == self._driver
 		if index in self._indexesSpeaking:
@@ -99,11 +118,11 @@ class RemoteSpeechHandler(RemoteHandler):
 			indexBytes = subtractedIndex.to_bytes(
 				length=2,  # Bytes needed to encode speech._manager.MAX_INDEX
 				byteorder=sys.byteorder,  # for a single byte big/little endian does not matter.
-				signed=False
+				signed=False,
 			)
 			try:
 				self.writeMessage(protocol.SpeechCommand.INDEX_REACHED, indexBytes)
-			except WindowsError:
+			except OSError:
 				log.warning("Error calling _onSynthIndexReached", exc_info=True)
 			self._indexesSpeaking.remove(index)
 
@@ -112,12 +131,15 @@ class RemoteSpeechHandler(RemoteHandler):
 		if len(self._indexesSpeaking) > 0:
 			self._indexesSpeaking.clear()
 			try:
-				self.writeMessage(protocol.SpeechCommand.INDEX_REACHED, b'\x00\x00')
-			except WindowsError:
+				self.writeMessage(protocol.SpeechCommand.INDEX_REACHED, b"\x00\x00")
+			except OSError:
 				log.warning("Error calling _onSynthDoneSpeaking", exc_info=True)
 
 	def _handleDriverChanged(self, synth: synthDriverHandler.SynthDriver):
 		self._indexesSpeaking.clear()
 		super()._handleDriverChanged(synth)
-		self._attributeSenderStore(protocol.SpeechAttribute.SUPPORTED_COMMANDS, commands=synth.supportedCommands)
+		self._attributeSenderStore(
+			protocol.SpeechAttribute.SUPPORTED_COMMANDS,
+			commands=synth.supportedCommands,
+		)
 		self._attributeSenderStore(protocol.SpeechAttribute.LANGUAGE, language=synth.language)

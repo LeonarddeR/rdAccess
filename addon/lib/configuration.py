@@ -2,11 +2,12 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-from utils.displayString import DisplayStringIntFlag
 from enum import unique
+from typing import Any, Dict
+
 import addonHandler
 import config
-from typing import Any, Dict
+from utils.displayString import DisplayStringIntFlag
 
 addonHandler.initTranslation()
 _cachedConfig: Dict[str, Any] = {}
@@ -35,7 +36,7 @@ CITRIX_SETTING_NAME = "enableCitrixSupport"
 RECOVER_REMOTE_SPEECH_SETTING_NAME = "recoverRemoteSpeech"
 DRIVER_settings_MANAGEMENT_SETTING_NAME = "driverSettingsManagement"
 CONFIG_SPEC = {
-	OPERATING_MODE_SETTING_NAME: 'integer(default=3, min=1, max=7)',
+	OPERATING_MODE_SETTING_NAME: "integer(default=3, min=1, max=7)",
 	PERSISTENT_REGISTRATION_SETTING_NAME: "boolean(default=false)",
 	REMOTE_DESKTOP_SETTING_NAME: "boolean(default=true)",
 	CITRIX_SETTING_NAME: "boolean(default=true)",
@@ -52,9 +53,7 @@ def _getSetting(setting: str, fromCache: bool) -> Any:
 
 
 def getOperatingMode(fromCache: bool = False) -> OperatingMode:
-	return OperatingMode(int(
-		_getSetting(OPERATING_MODE_SETTING_NAME, fromCache)
-	))
+	return OperatingMode(int(_getSetting(OPERATING_MODE_SETTING_NAME, fromCache)))
 
 
 def getPersistentRegistration(fromCache: bool = False) -> bool:

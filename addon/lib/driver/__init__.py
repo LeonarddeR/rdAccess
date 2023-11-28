@@ -2,28 +2,32 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
+import sys
+import time
 from abc import abstractmethod
-import driverHandler
-from ..detection import bgScanRD, KEY_NAMED_PIPE_CLIENT, KEY_VIRTUAL_CHANNEL
-from .. import protocol, inputTime, wtsVirtualChannel, namedPipe, secureDesktop
 from typing import (
 	Any,
 	Iterable,
 	Iterator,
 	List,
 	Optional,
+	Set,
 	Union,
 )
+
 import bdDetect
-from logHandler import log
+import driverHandler
 from autoSettingsUtils.driverSetting import DriverSetting
-from .settingsAccessor import SettingsAccessorBase
-import sys
 from baseObject import AutoPropertyObject
-from utils.security import post_sessionLockStateChanged, isRunningOnSecureDesktop
+from logHandler import log
+from utils.security import isRunningOnSecureDesktop, post_sessionLockStateChanged
+
+from .. import inputTime, namedPipe, protocol, secureDesktop, wtsVirtualChannel
+from ..detection import KEY_NAMED_PIPE_CLIENT, KEY_VIRTUAL_CHANNEL, bgScanRD
+from .settingsAccessor import SettingsAccessorBase
 
 ERROR_INVALID_HANDLE = 0x6
-ERROR_PIPE_NOT_CONNECTED = 0xe9
+ERROR_PIPE_NOT_CONNECTED = 0xE9
 MSG_XON = 0x11
 MSG_XOFF = 0x13
 
@@ -32,13 +36,14 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	name = "remote"
 	_settingsAccessor: Optional[SettingsAccessorBase] = None
 	_isVirtualChannel: bool
+	_requiredAttributesOnInit: Set[protocol.AttributeT] = {protocol.GenericAttribute.SUPPORTED_SETTINGS}
 
 	@classmethod
 	def check(cls):
 		return any(cls._getAutoPorts())
 
 	@classmethod
-	def _getAutoPorts(cls, usb=True, bluetooth=True) -> Iterable[bdDetect.DeviceMatch]:
+	def _getAutoPorts(cls, _usb=True, _bluetooth=True) -> Iterable[bdDetect.DeviceMatch]:
 		for driver, match in bgScanRD(cls.driverType, [cls.name]):
 			assert driver == cls.name
 			yield match
@@ -49,8 +54,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			yield port
 		elif isinstance(port, str):
 			assert port == "auto"
-			for match in cls._getAutoPorts():
-				yield match
+			yield from cls._getAutoPorts()
 
 	_localSettings: List[DriverSetting] = []
 
@@ -64,9 +68,12 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		self._saveSpecificSettings(self, self._localSettings)
 
 	def __init__(self, port="auto"):
+		initialTime = time.perf_counter()
 		super().__init__()
 		self._connected = False
-		for portType, portId, port, portInfo in self._getTryPorts(port):
+		for portType, _portId, port, _portInfo in self._getTryPorts(port):  # noqa: B020
+			for attr in self._requiredAttributesOnInit:
+				self._attributeValueProcessor.setAttributeRequestPending(attr)
 			try:
 				if portType == KEY_VIRTUAL_CHANNEL:
 					self._isVirtualChannel = True
@@ -82,20 +89,26 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 						onReceive=self._onReceive,
 						onReadError=self._onReadError,
 					)
-			except EnvironmentError:
+			except OSError:
 				log.debugWarning("", exc_info=True)
 				continue
-			self._attributeValueProcessor.isAttributeRequestPending(protocol.GenericAttribute.SUPPORTED_SETTINGS)
 			if portType == KEY_VIRTUAL_CHANNEL:
 				# Wait for RdPipe at the other end to send a XON
 				if not self._safeWait(lambda: self._connected, self.timeout * 3):
 					continue
 			else:
 				self._connected = True
-			if self._waitForAttributeUpdate(protocol.GenericAttribute.SUPPORTED_SETTINGS):
-				break
+			handledAttributes = set()
+			for attr in self._requiredAttributesOnInit:
+				if self._waitForAttributeUpdate(attr, initialTime):
+					handledAttributes.add(attr)
+				else:
+					log.debugWarning(f"Error getting {attr}")
+
 			else:
-				log.debugWarning("Error getting supported settings")
+				if handledAttributes == self._requiredAttributesOnInit:
+					log.debug("Required attributes received")
+					break
 
 			self._dev.close()
 		else:
@@ -113,9 +126,8 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	def __getattribute__(self, name: str) -> Any:
 		getter = super().__getattribute__
-		if (
-			(name.startswith("_") and not name.startswith("_get_"))
-			or name in (n for n in dir(AutoPropertyObject) if not n.startswith("_"))
+		if (name.startswith("_") and not name.startswith("_get_")) or name in (
+			n for n in dir(AutoPropertyObject) if not n.startswith("_")
 		):
 			return getter(name)
 		accessor = getter("_settingsAccessor")
@@ -162,9 +174,9 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	@_incomingSupportedSettings.updateCallback
 	def _updateCallback_supportedSettings(
-			self,
-			attribute: protocol.AttributeT,
-			settings: Iterable[DriverSetting]
+		self,
+		_attribute: protocol.AttributeT,
+		settings: Iterable[DriverSetting],
 	):
 		log.debug(f"Initializing settings accessor for {len(settings)} settings")
 		self._settingsAccessor = SettingsAccessorBase.createFromSettings(self, settings) if settings else None
@@ -184,18 +196,18 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		return settings
 
 	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
-	def _incoming_setting(self, attribute: protocol.AttributeT, payLoad: bytes):
+	def _incoming_setting(self, _attribute: protocol.AttributeT, payLoad: bytes):
 		assert len(payLoad) > 0
 		return self._unpickle(payLoad)
 
 	@protocol.attributeReceiver(b"available*s")
-	def _incoming_availableSettingValues(self, attribute: protocol.AttributeT, payLoad: bytes):
+	def _incoming_availableSettingValues(self, _attribute: protocol.AttributeT, payLoad: bytes):
 		return self._unpickle(payLoad)
 
 	@protocol.attributeSender(protocol.GenericAttribute.TIME_SINCE_INPUT)
 	def _outgoing_timeSinceInput(self) -> bytes:
 		return inputTime.getTimeSinceInput().to_bytes(4, sys.byteorder, signed=False)
 
-	def _handlePossibleSessionDisconnect(self, isNowLocked):
+	def _handlePossibleSessionDisconnect(self):
 		if not self.check():
 			self._handleRemoteDisconnect()

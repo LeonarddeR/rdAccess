@@ -3,16 +3,18 @@
 # License: GNU General Public License version 2.0
 
 import threading
-from concurrent.futures import ThreadPoolExecutor, Future
 import typing
+from concurrent.futures import Future, ThreadPoolExecutor
+
 import addonHandler
+import config
+import queueHandler
 import synthDriverHandler
 from baseObject import AutoPropertyObject
-from synthDrivers.remote import remoteSynthDriver
-import queueHandler
-import config
-from logHandler import log
 from braille import AUTOMATIC_PORT
+from logHandler import log
+
+from synthDrivers.remote import remoteSynthDriver
 
 if typing.TYPE_CHECKING:
 	from ...lib import detection
@@ -22,7 +24,6 @@ else:
 
 
 class _SynthDetector(AutoPropertyObject):
-
 	def __init__(self):
 		remoteSynthDriver.synthRemoteDisconnected.register(self._handleRemoteDisconnect)
 		self._executor = ThreadPoolExecutor(1, thread_name_prefix=self.__class__.__name__)
@@ -55,9 +56,11 @@ class _SynthDetector(AutoPropertyObject):
 		queueHandler.queueFunction(queueHandler.eventQueue, self._fallback)
 
 	def _fallback(self):
-		fallback = config.conf[remoteSynthDriver._configSection]\
-		.get(remoteSynthDriver.name, {})\
-		.get("fallbackSynth", AUTOMATIC_PORT[0])
+		fallback = (
+			config.conf[remoteSynthDriver._configSection]
+			.get(remoteSynthDriver.name, {})
+			.get("fallbackSynth", AUTOMATIC_PORT[0])
+		)
 		if fallback != AUTOMATIC_PORT[0]:
 			synthDriverHandler.setSynth(fallback, isFallback=True)
 		else:

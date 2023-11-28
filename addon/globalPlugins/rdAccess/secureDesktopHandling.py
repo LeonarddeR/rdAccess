@@ -3,19 +3,21 @@
 # License: GNU General Public License version 2.0
 
 from __future__ import annotations
-from .handlers import RemoteBrailleHandler, RemoteSpeechHandler
-from .handlers._remoteHandler import RemoteHandler
-import typing
-from baseObject import AutoPropertyObject
-import addonHandler
+
 import os.path
-import braille
-import synthDriverHandler
+import typing
 import weakref
 
+import addonHandler
+import braille
+import synthDriverHandler
+from baseObject import AutoPropertyObject
+
+from .handlers import RemoteBrailleHandler, RemoteSpeechHandler
+from .handlers._remoteHandler import RemoteHandler
+
 if typing.TYPE_CHECKING:
-	from ...lib import ioThreadEx
-	from ...lib import namedPipe
+	from ...lib import ioThreadEx, namedPipe
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	ioThreadEx = addon.loadModule("lib.ioThreadEx")
@@ -43,7 +45,7 @@ class SecureDesktopHandler(AutoPropertyObject):
 		self._brailleHandler.terminate()
 		synthDriverHandler.getSynth().loadSettings()
 
-	def _initializeHandler(self, handlerType: typing.Type[HandlerTypeT]) -> HandlerTypeT:
+	def _initializeHandler(self, handlerType: type[HandlerTypeT]) -> HandlerTypeT:
 		sdId = f"NVDA_SD-{handlerType.driverType.name}"
 		sdPort = os.path.join(namedPipe.PIPE_DIRECTORY, sdId)
 		handler = handlerType(self._ioThreadRef(), sdPort, False)

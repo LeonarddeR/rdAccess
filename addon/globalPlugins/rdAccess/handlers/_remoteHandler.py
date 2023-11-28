@@ -2,20 +2,19 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-import typing
-import addonHandler
-from driverHandler import Driver
-import api
-from logHandler import log
 import sys
-from extensionPoints import AccumulatingDecider
-from hwIo.ioThread import IoThread
+import typing
 from abc import abstractmethod
 
+import addonHandler
+import api
+from driverHandler import Driver
+from extensionPoints import AccumulatingDecider
+from hwIo.ioThread import IoThread
+from logHandler import log
+
 if typing.TYPE_CHECKING:
-	from ....lib import configuration
-	from ....lib import namedPipe
-	from ....lib import protocol
+	from ....lib import configuration, namedPipe, protocol
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	configuration = addon.loadModule("lib.configuration")
@@ -43,31 +42,31 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		return obj
 
 	def initIo(
-			self,
-			ioThread: IoThread,
-			pipeName: str,
-			isNamedPipeClient: bool = True,
+		self,
+		ioThread: IoThread,
+		pipeName: str,
+		isNamedPipeClient: bool = True,
 	):
 		if isNamedPipeClient:
 			self._dev = namedPipe.NamedPipeClient(
 				pipeName=pipeName,
 				onReceive=self._onReceive,
 				onReadError=self._onReadError,
-				ioThread=ioThread
+				ioThread=ioThread,
 			)
 		else:
 			self._dev = namedPipe.NamedPipeServer(
 				pipeName=pipeName,
 				onReceive=self._onReceive,
 				onConnected=self._onConnected,
-				ioThreadEx=ioThread
+				ioThreadEx=ioThread,
 			)
 
 	def __init__(
-			self,
-			ioThread: IoThread,
-			pipeName: str,
-			isNamedPipeClient: bool = True,
+		self,
+		ioThread: IoThread,
+		pipeName: str,
+		isNamedPipeClient: bool = True,
 	):
 		self._isSecureDesktopHandler = not isNamedPipeClient
 		super().__init__()
@@ -84,7 +83,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		if connected:
 			self._handleDriverChanged(self._driver)
 
-	def event_gainFocus(self, obj):
+	def event_gainFocus(self, _obj):
 		if self._isSecureDesktopHandler:
 			return
 		# Invalidate the property cache to ensure that hasFocus will be fetched again.
@@ -112,7 +111,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		return self._pickle(getattr(self._driver, name))
 
 	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
-	def _incoming_setting(self, attribute: protocol.AttributeT, payLoad: bytes):
+	def _incoming_setting(self, _attribute: protocol.AttributeT, payLoad: bytes):
 		assert len(payLoad) > 0
 		return self._unpickle(payLoad)
 
@@ -120,14 +119,14 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 	def _setIncomingSettingOnDriver(self, attribute: protocol.AttributeT, value: typing.Any):
 		if not configuration.getDriverSettingsManagement():
 			return
-		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX):].decode("ASCII")
+		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX) :].decode("ASCII")
 		setattr(self._driver, name, value)
 
 	@protocol.attributeSender(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
 	def _outgoing_setting(self, attribute: protocol.AttributeT):
 		if not configuration.getDriverSettingsManagement():
 			return self._pickle(None)
-		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX):].decode("ASCII")
+		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX) :].decode("ASCII")
 		return self._pickle(getattr(self._driver, name))
 
 	_remoteProcessHasFocus: bool
@@ -137,7 +136,10 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			self._remoteProcessHasFocus = True
 			return self._remoteProcessHasFocus
 		focus = api.getFocusObject()
-		return focus.processID in (self._dev.pipeProcessId, self._dev.pipeParentProcessId)
+		return focus.processID in (
+			self._dev.pipeProcessId,
+			self._dev.pipeParentProcessId,
+		)
 
 	hasFocus: bool
 
@@ -174,5 +176,5 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 	def _handleDriverChanged(self, driver: Driver):
 		self._attributeSenderStore(
 			protocol.GenericAttribute.SUPPORTED_SETTINGS,
-			settings=driver.supportedSettings
+			settings=driver.supportedSettings,
 		)

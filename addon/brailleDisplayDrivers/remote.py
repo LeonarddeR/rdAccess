@@ -2,18 +2,19 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-import braille
 import typing
-import addonHandler
 from typing import List
+
+import addonHandler
+import braille
 import inputCore
 from logHandler import log
 
 if typing.TYPE_CHECKING:
-	from ..lib import driver
-	from ..lib import protocol
+	from ..lib import detection, driver, protocol
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
+	detection = addon.loadModule("lib.detection")
 	driver = addon.loadModule("lib.driver")
 	protocol = addon.loadModule("lib.protocol")
 
@@ -22,7 +23,15 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 	# Translators: Name for a remote braille display.
 	description = _("Remote Braille")
 	isThreadSafe = True
+	supportsAutomaticDetection = True
 	driverType = protocol.DriverType.BRAILLE
+	_requiredAttributesOnInit = driver.RemoteDriver._requiredAttributesOnInit.union(
+		{protocol.BrailleAttribute.NUM_CELLS}
+	)
+
+	@classmethod
+	def registerAutomaticDetection(cls, driverRegistrar):
+		driverRegistrar.addDeviceScanner(detection.bgScanRD, moveToStart=True)
 
 	def _getModifierGestures(self, model: typing.Optional[str] = None):
 		"""Hacky override that throws an instance at the underlying class method.
@@ -57,7 +66,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		return self._unpickle(payload)
 
 	@_incoming_gestureMapUpdate.defaultValueGetter
-	def _default_gestureMap(self, attribute: protocol.AttributeT):
+	def _default_gestureMap(self, _attribute: protocol.AttributeT):
 		return inputCore.GlobalGestureMap()
 
 	def _get_gestureMap(self) -> inputCore.GlobalGestureMap:
