@@ -1,0 +1,123 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the rdAccess package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: rdAccess 0.5.0\n"
+"Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
+"POT-Creation-Date: 2023-07-31 03:58+0000\n"
+"PO-Revision-Date: 2024-05-02 18:24+0500\n"
+"Last-Translator: Danil Kostenkov <danilkostenkov38@gmail.com>\n"
+"Language-Team: Danil Kostenkov <danilkostenkov38@gmail.com>\n"
+"Language: ru_RU\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"X-Generator: Poedit 3.4.2\n"
+
+#. Translators: Name for a remote braille display.
+msgid "Remote Braille"
+msgstr "Удалённый брайль"
+
+#. Translators: The label for the NVDA Remote Desktop settings panel.
+#. Add-on summary, usually the user visible name of the addon.
+#. Translators: Summary for this add-on
+#. to be shown on installation and add-on information found in Add-ons Manager.
+msgid "Remote Desktop Accessibility"
+msgstr "Доступность удалённого рабочего стола"
+
+#. Translators: The label for a list of check boxes in RDAccess settings to set operating mode.
+msgid "&Enable remote desktop accessibility for"
+msgstr "&Включить доступность удалённого рабочего стола для"
+
+#. Translators: This is the label for a group of options in the
+#. Remote Desktop settings panel.
+msgid "Server"
+msgstr "Сервер"
+
+#. Translators: The label for a setting in RDAccess settings to enable
+#. automatic recovery of remote speech when the connection was lost.
+msgid "&Automatically recover remote speech after connection loss"
+msgstr "&Автоматически восстанавливать удалённую речь после сбоя соединения"
+
+#. Translators: This is the label for a group of options in the
+#. Remote Desktop settings panel.
+msgid "Client"
+msgstr "Клиент"
+
+#. Translators: The label for a setting in RDAccess settings to enable
+#. support for exchanging driver settings between the local and the remote system.
+msgid "&Allow remote system to control driver settings"
+msgstr "&Разрешить удалённой системе управлять настройками драйвера"
+
+#. Translators: The label for a setting in RDAccess settings to enable
+#. persistent registration of RD Pipe to the Windows registry.
+msgid "&Persist client support when exiting NVDA"
+msgstr "&Возобновить поддержку клиента при выключении NVDA"
+
+#. Translators: The label for a setting in RDAccess settings to enable
+#. registration of RD Pipe to the Windows registry for remote desktop support.
+msgid "Enable Microsoft &Remote Desktop support"
+msgstr "Включить поддержку &удалённых рабочих столов Майкрософт"
+
+#. Translators: The label for a setting in RDAccess settings to enable
+#. registration of RD Pipe to the Windows registry for Citrix support.
+msgid "Enable &Citrix Workspace support"
+msgstr "Включить поддержку &Citrix Workspace"
+
+msgid ""
+"You need to enable remote destkop accessibility support for at least "
+"incoming or outgoing connections."
+msgstr ""
+"Вам необходимо включить удаленную поддержку специальных возможностей "
+"desktop, по крайней мере, для входящих или исходящих подключений."
+
+#. Translators: The title of the message box
+msgid "Error"
+msgstr "Ошибка"
+
+msgid "Incoming connections (Remote Desktop Server)"
+msgstr "Входящие подключения (сервер удалённого рабочего стола)"
+
+msgid "Outgoing connections (Remote Desktop Client)"
+msgstr "Исходящие подключения (клиент удалённого рабочего стола)"
+
+msgid "Secure Desktop pass through"
+msgstr "Безопасная миграция рабочего стола"
+
+#. Translators: Name for a remote braille display.
+msgid "Remote speech"
+msgstr "Удалённая речь"
+
+#. Translators: The name of a remote synthesizer setting to select the fallback synthesizer.
+msgid "&Fallback synthesizer"
+msgstr "&Резервный синтезатор"
+
+msgid ""
+"This add-on was previously called NVDA Remote Desktop. You have an installed "
+"version of that add-on. Would you like to update to RDAccess?"
+msgstr ""
+"Этот дополнение ранее называлось удалённый рабочий стол NVDA. У вас "
+"установлена версия этого дополнения. Хотите обновить его до \"Доступность "
+"удаленного рабочего стола\"?"
+
+#. Translators: question title
+msgid "Previous version detected"
+msgstr "Önceki sürüm algılandı"
+
+msgid ""
+"Allows using speech and braille with Microsoft Remote Desktop, Citrix "
+"Workspace and VMware Horizon"
+msgstr ""
+"Позволяет использовать речь и Брайль в Microsoft Remote Desktop, Citrix "
+"Workspace и VMware Horizon"
+
+#~ msgid "Remote Desktop"
+#~ msgstr "Uzak Masaüstü"
+
+#~ msgid "&Enable NVDA RD for"
+#~ msgstr "Aşağıdakiler için NVDA RD'yi &etkinleştir"
