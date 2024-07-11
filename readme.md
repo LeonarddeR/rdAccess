@@ -23,6 +23,10 @@ This enables a user experience where managing a remote system feels as seamless 
 
 ## Changelog
 
+### Version 1.4
+
+- New stable release
+
 ### Version 1.3
 
 - Fixed broken braille display gestures.
