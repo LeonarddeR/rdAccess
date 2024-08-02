@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: rdAccess 0.5.0\n"
 "Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
 "POT-Creation-Date: 2023-07-31 03:58+0000\n"
-"PO-Revision-Date: 2024-07-19 09:35+0300\n"
+"PO-Revision-Date: 2024-07-26 23:07+0300\n"
 "Last-Translator: Ruslan Kolodyazhni <rupelodn@gmail.com>\n"
 "Language-Team: Danil Kostenkov <danilkostenkov38@gmail.com>\n"
 "Language: ru_RU\n"
@@ -57,7 +57,7 @@ msgstr "&Разрешить удалённой системе управлять
 #. Translators: The label for a setting in RDAccess settings to enable
 #. persistent registration of RD Pipe to the Windows registry.
 msgid "&Persist client support when exiting NVDA"
-msgstr "&Возобновить поддержку клиента при выключении NVDA"
+msgstr "&Сохранять поддержку клиента при выходе из NVDA"
 
 #. Translators: The label for a setting in RDAccess settings to enable
 #. registration of RD Pipe to the Windows registry for remote desktop support.
@@ -87,7 +87,7 @@ msgid "Outgoing connections (Remote Desktop Client)"
 msgstr "Исходящие подключения (клиент удалённого рабочего стола)"
 
 msgid "Secure Desktop pass through"
-msgstr "Безопасная миграция рабочего стола"
+msgstr "Пропуск на безопасный рабочий стол"
 
 #. Translators: Name for a remote braille display.
 msgid "Remote speech"

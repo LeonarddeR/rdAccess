@@ -59,114 +59,120 @@ VMware Horizon.  При установке в NVDA как на клиенте, �
 Этот список флажков определяет режим работы дополнения. Вы можете выбирать
 между:
 
-* Incoming connections (Remote Desktop Server): Choose this option if the
-  current instance of NVDA is running on a remote desktop server
-* Outgoing connections (Remote Desktop Client): Choose this option if the
-  current instance of NVDA is running on a remote desktop client that
-  connects to one or more servers
-* Secure Desktop pass through: : Choose this option if you want to use
-  braille and speech from the user instance of NVDA when accessing the
-  secure desktop. Note that for this to work, you need to make the RDAccess
-  add-on available on the secure desktop copy of NVDA. For this, choose "Use
-  currently saved settings during sign-in and on secure screens (requires
-  administrator privileges)" in NVDA's general settings.
+* Входящие подключения (сервер удалённого рабочего стола): Выберите этот
+  параметр, если текущий экземпляр NVDA запущен на сервере удалённого
+  рабочего стола
+* Исходящие подключения (клиент удалённого рабочего стола): Выберите этот
+  параметр, если текущий экземпляр NVDA запущен на клиенте удалённого
+  рабочего стола, который подключается к одному или нескольким серверам
+* Пропуск на безопасный рабочий стол: : Выберите этот параметр, если вы
+  хотите использовать Брайль и речь из пользовательского экземпляра NVDA при
+  доступе к безопасному рабочему столу. Обратите внимание, что для того,
+  чтобы это сработало, вам необходимо сделать дополнение RDAccess доступным
+  в копии NVDA на защищённом рабочем столе. Для этого выберите "Использовать
+  последнюю сохранённую конфигурацию на экране входа в систему и на других
+  защищённых экранах (требуются права администратора)" в общих настройках
+  NVDA.
 
-To ensure a smooth start with the add-on, all options are enabled by
-default. You are however encouraged to disable server or client mode as
-appropriate.
+Для обеспечения бесперебойной работы с дополнением все опции включены по
+умолчанию. Однако рекомендуется отключать серверный или клиентский режим в
+зависимости от обстоятельств.
 
-### Automatically recover remote speech after connection loss
+### Автоматически восстанавливать удалённую речь после сбоя соединения
 
-This option is only available in server mode. It ensures that the connection
-will automatically be re-established when the Remote Speech synthesizer is
-active and the connection is lost.  The behavior is very similar to that of
-braille display auto detection.  This also clarifies why there is only such
-an option for speech.  The reconnection of the Remote Braille display is
-automatically handled when choosing the Automatic option from the Braille
-Display Selection dialog.
+Эта опция доступна только в режиме сервера. Это гарантирует, что соединение
+будет автоматически восстановлено при включении удалённого синтезатора речи
+и потере соединения.  Поведение очень похоже на автоматическое определение
+брайлевского дисплея.  Это также объясняет, почему такая опция доступна
+только для речи.  Повторное подключение удалённого брайлевского дисплея
+выполняется автоматически при выборе опции "Автоматически" в диалоге выбора
+брайлевского дисплея.
 
-This option is enabled by defalt. You are strongly encouraged to leave this
-option enabled if the Remote Desktop server has no audio output.
+Эта опция включена по умолчанию. Настоятельно рекомендуется оставить эту
+опцию включённой, если на сервере удалённого рабочего стола нет аудиовыхода.
 
-### Allow remote system to control driver settings
+### Разрешить удалённой системе управлять настройками драйвера
 
-This client option, when enabled, allows you to control driver settings
-(such as synthesizer voice and pitch) from the remote system.  This is
-especially useful when you have difficulties accessing the local NVDA menu
-when controlling a remote system.  Changes performed on the remote system
-will automatically be reflected locally.
+Эта клиентская опция, если она включена, позволяет управлять настройками
+драйвера (например, голосом и высотой тона синтезатора) из удалённой
+системы.  Это особенно полезно, если у вас возникают трудности с доступом к
+локальному меню NVDA при управлении удалённой системой.  Изменения,
+внесённые в удалённую систему, будут автоматически отражены на локальном
+компьютере.
 
-While enabling this option implies some performance degradation, you are yet
-advised to enable it.  When this option is disabled, speech synthesizer
-ppitch changes for capitals don't work.
+Хотя включение этой опции приводит к некоторому снижению производительности,
+мы всё же рекомендуем вам включить её.  Если эта опция отключена,
+переключение заглавных букв в синтезаторе речи не работает.
 
-### Persist client support when exiting NVDA
+### Сохранять поддержку клиента при выходе из NVDA
 
-This client option is only available on installed copies of NVDA.  When
-enabled, it ensures that the client portion of NVDA is loaded in your remote
-desktop client, even when NVDA is not running.
+Этот параметр клиента доступен только в установленных копиях NVDA.  Если он
+включён, это гарантирует, что клиентская часть NVDA будет загружена в клиент
+удалённого рабочего стола, даже если NVDA не запущена.
 
-To use the client portion of RDAccess, several changes have to be maede in
-the Windows Registry.  The add-on ensures that these changes are made under
-the profile of the current user.  These changes don't require administrative
-privileges.  Therefore, NVDA can automatically apply the necessary changes
-when loaded, and undo these changes when exiting NVDA.  This ensures that
-the add-on is fully compatible with portable versions of NVDA.
+Чтобы использовать клиентскую часть RDAccess, необходимо внести несколько
+изменений в реестр Windows.  Дополнение гарантирует, что эти изменения будут
+внесены в профиль текущего пользователя.  Для этих изменений не требуются
+права администратора.  Таким образом, NVDA может автоматически применять
+необходимые изменения при загрузке и отменять их при выходе из NVDA.  Это
+гарантирует полную совместимость дополнения с переносными версиями NVDA.
 
-This option is disabled by default.  However, if you are running an
-installed copy and you are the only user of the system, you are advised to
-enable this option.  This ensures smooth operation in case NVDA is not
-active when connecting to a remote system and is then started afterwards.
+По умолчанию эта опция отключена.  Однако, если вы используете установленную
+копию и являетесь единственным пользователем системы, рекомендуется включить
+эту опцию.  Это обеспечивает бесперебойную работу в случае, если NVDA не
+активируется при подключении к удаленной системе, а затем запускается позже.
 
-### Enable Microsoft Remote Desktop support
+### Включить поддержку удалённого рабочего стола Microsoft
 
-This option is enabled by default and ensures that the client portion of
-RDAccess is loaded in the Microsoft Remote Desktop client (mstsc) when
-starting NVDA.  Unless persistent client support is enabled by enabling the
-previous option, these changes will be automatically undone when exiting
-NVDA.
+Этот параметр включен по умолчанию и гарантирует, что клиентская часть
+RDAccess будет загружена в клиент удалённого рабочего стола Microsoft
+(mstsc) при запуске NVDA.  Если постоянная поддержка клиентов не включена с
+помощью предыдущей опции, эти изменения будут автоматически отменены при
+выходе из NVDA.
 
-### Enable Citrix Workspace support
+### Включить поддержку Citrix Workspace
 
-This option is enabled by default and ensures that the client portion of
-RDAccess is loaded in the Citrix Workspace app when starting NVDA.  Unless
-persistent client support is enabled by enabling the previous option, these
-changes will be automatically undone when exiting NVDA.
+Эта опция включена по умолчанию и гарантирует, что клиентская часть RDAccess
+будет загружена в приложение Citrix Workspace при запуске NVDA.  Если не
+включена постоянная поддержка клиентов путём включения предыдущей опции, эти
+изменения будут автоматически отменены при выходе из NVDA.
 
-This option is only available in the following cases:
+Эта опция доступна только в следующих случаях:
 
-* Citrix Workspace is installed. Note that the Windows Store version of the
-  app is not supported due to limitations in that app itself
-* It is possible to register RDAccess under the current user context. After
-  installing the app, you have to start a remote session once to make this
-  possible
+* Установлен Citrix Workspace. Обратите внимание, что версия приложения из
+  магазина Windows Store не поддерживается из-за ограничений в самом
+  приложении
+* Можно зарегистрировать RDAccess в контексте текущего пользователя. После
+  установки приложения вам необходимо один раз запустить удалённый сеанс,
+  чтобы это стало возможным
 
-## Citrix specific instructions
+## Конкретные инструкции Citrix
 
-There are some important points of attention when using RDAccess with the
-Citrix Workspace app.
+При использовании RDAccess в приложении Citrix Workspace необходимо обратить
+внимание на несколько важных моментов.
 
-### Client side requirements
+### Требования на стороне клиента
 
-1. The Windows Store variant of the app is *not* supported.
-2. After installing Citrix Workspace, you have to start a remote session
-   once to allow RDAccess registering itself. The reason behind this is that
-   the application copies the system configuration to the user configuration
-   when it establishes a session for the first time. After that, RDAccess
-   can register itself under the current user context.
+1. Версия приложения из магазина Windows Store *не* поддерживается.
+2. После установки Citrix Workspace вам необходимо один раз запустить
+   удалённый сеанс, чтобы разрешить регистрацию RDAccess. Причина этого
+   заключается в том, что приложение копирует конфигурацию системы в
+   конфигурацию пользователя при первом запуске сеанса. После этого RDAccess
+   может самостоятельно зарегистрироваться в текущем пользовательском
+   контексте.
 
-### Server side requirement
+### Требования к серверной части
 
-In Citrix Virtual Apps and Desktops 2109, Citrix enabled the so called
-virtual channel allow list. This means that third party virtual channels,
-including the channel required by RDAccess, is not allowed by default. For
-more information, [see this Citrix blog
-post](https://www.citrix.com/blogs/2021/10/14/virtual-channel-allow-list-now-enabled-by-default/)
+В Citrix Virtual Apps и Desktops 2109 Citrix включила так называемый список
+разрешенных виртуальных каналов. Это означает, что сторонние виртуальные
+каналы, включая канал, необходимый для RDAccess, по умолчанию запрещены. Для
+получения дополнительной информации [смотрите эту запись в блоге
+Citrix](https://www.citrix.com/blogs/2021/10/14/virtual-channel-allow-list-now-enabled-by-default/)
 
-Explicitly allowing the RdPipe channel required by RDAccess is not yet
-tested. For now, it is probably your best bet to disable the allow list
-altogether. If your system administrator is unhappy with this, feel free to
-[drop a line in the devoted issue][3]
+Явное разрешение канала RdPipe, требуемого RDAccess, еще не
+протестировано. На данный момент, вероятно, лучше всего полностью отключить
+список разрешений. Если ваш системный администратор недоволен этим, не
+стесняйтесь [написать об этом в соответствующем выпуске][3]
 
 ## Проблемы и вклад в их решение
 
