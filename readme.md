@@ -10,7 +10,7 @@ This enables a user experience where managing a remote system feels as seamless 
 
 ## Features
 
-* Support for Microsoft Remote Desktop, Citrix, and VMware Horizon
+* Support for Microsoft Remote Desktop (including Azure Virtual Desktop and Microsoft Cloud PC), Citrix, and VMware Horizon
 * Speech and braille output
 * Automatic detection of remote braille using NVDA's automatic braille display detection
 * Automatic detection of remote speech using a dedicated detection process that can be disabled in NVDA's settings dialog
