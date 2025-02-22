@@ -26,7 +26,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 	supportsAutomaticDetection = True
 	driverType = protocol.DriverType.BRAILLE
 	_requiredAttributesOnInit = driver.RemoteDriver._requiredAttributesOnInit.union(
-		{protocol.BrailleAttribute.NUM_CELLS}
+		{protocol.BrailleAttribute.NUM_CELLS,}
 	)
 
 	@classmethod
@@ -52,7 +52,37 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		return ord(payload)
 
 	def _get_numCells(self) -> int:
-		attribute = protocol.BrailleAttribute.NUM_CELLS
+		value = self.numRows * self.numCols
+		if value == 0:
+			attribute = protocol.BrailleAttribute.NUM_CELLS
+			try:
+				value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
+			except KeyError:
+				value = self._attributeValueProcessor._getDefaultValue(attribute)
+				self.requestRemoteAttribute(attribute)
+		return value
+
+	@protocol.attributeReceiver(protocol.BrailleAttribute.NUM_ROWS, defaultValue=1)
+	def _incoming_numRows(self, payload: bytes) -> int:
+		assert len(payload) == 1
+		return ord(payload)
+
+	def _get_numRows(self) -> int:
+		attribute = protocol.BrailleAttribute.NUM_ROWS
+		try:
+			value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
+		except KeyError:
+			value = self._attributeValueProcessor._getDefaultValue(attribute)
+			self.requestRemoteAttribute(attribute)
+		return value
+
+	@protocol.attributeReceiver(protocol.BrailleAttribute.NUM_COLS, defaultValue=0)
+	def _incoming_numCols(self, payload: bytes) -> int:
+		assert len(payload) == 1
+		return ord(payload)
+
+	def _get_numCols(self) -> int:
+		attribute = protocol.BrailleAttribute.NUM_COLS
 		try:
 			value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
 		except KeyError:

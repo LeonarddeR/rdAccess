@@ -16,6 +16,8 @@ class BrailleCommand(IntEnum):
 
 class BrailleAttribute(bytes, Enum):
 	NUM_CELLS = b"numCells"
+	NUM_COLS = b"numCols"
+	NUM_ROWS = b"numRows"
 	GESTURE_MAP = b"gestureMap"
 	OBJECT_GESTURE_MAP = b"_gestureMap"
 
