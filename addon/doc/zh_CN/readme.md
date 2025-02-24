@@ -35,7 +35,7 @@ RDAccess插件（远程桌面辅助功能）为NVDA添加了对Microsoft远程�
 
 - 使用 [Ruff](https://github.com/astral-sh/ruff) as a formatter and linter. [#13](https://github.com/leonardder/rdAccess/pull/13)
 - 修复了客户端上的NVDA在暂停服务器上的语音时生成错误的问题。
-- Fixed support for `winAPI.secureDesktop.post_secureDesktopStateChange`.
+- 修复了对“winAPI.secureDesktop.post_secureTesktopStateChange”的支持。
 - 改进了服务器上的驱动程序初始化。
 
 ### 1.1版
@@ -93,12 +93,12 @@ RDAccess插件（远程桌面辅助功能）为NVDA添加了对Microsoft远程�
 ### 启用Microsoft远程桌面支持
 
 此选项默认启用，可确保在启动NVDA时将RDAccess的客户端部分加载到Microsoft远程桌面客户端（mstsc）中。
-Changes made through this option will be automatically undone when exiting NVDA unles退出NVDA时，通过此选项所做的更改将自动撤消，除非启用了持久客户端支持。
+退出NVDA时，通过此选项所做的更改将自动撤消，除非启用了持久客户端支持。
 
 ### 启用Citrix工作区支持
 
 此选项默认启用，可确保在启动NVDA时将RDAccess的客户端部分加载到Citrix Workspace应用程序中。
-Changes made through this option will be automatically undone when exiting NVDA退出NVDA时，通过此选项所做的更改将自动撤消，除非启用了持久客户端支持。
+退出NVDA时，通过此选项所做的更改将自动撤消，除非启用了持久客户端支持。
 
 此选项仅在以下条件下可用：
 
@@ -112,7 +112,7 @@ Changes made through this option will be automatically undone when exiting NVDA�
 ### 客户端要求
 
 1. 不支持该应用程序的Windows应用商店变体。
-1. 安装Citrix Workspace后，您需要启动一次远程会话，让RDAccess自行注册。这是因为应用程序在初始会话设置期间将系统设置复制到用户设置。在此之后，RDAccess可以在当前用户上下文中注册自己。
+1. 	
 
 ### 服务器端要求
 
