@@ -25,7 +25,9 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 	supportsAutomaticDetection = True
 	driverType = protocol.DriverType.BRAILLE
 	_requiredAttributesOnInit = driver.RemoteDriver._requiredAttributesOnInit.union(
-		{protocol.BrailleAttribute.NUM_CELLS,}
+		{
+			protocol.BrailleAttribute.NUM_CELLS,
+		}
 	)
 
 	@classmethod
