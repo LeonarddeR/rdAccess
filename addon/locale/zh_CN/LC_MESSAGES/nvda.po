@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: RdAccess\n"
 "POT-Creation-Date: 2024-07-14 16:28+0300\n"
 "PO-Revision-Date: 2024-07-18 22:19+0800\n"
-"Last-Translator: Alan <alanzhangcn22@gmail.com>\n"
+"Last-Translator: Alan <alanzhangcn22@gmail.com
 "Language-Team: nvdacn.com\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
