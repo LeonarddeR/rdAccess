@@ -16,12 +16,8 @@ from fnmatch import fnmatch
 from functools import partial, update_wrapper, wraps
 from typing import (
 	Any,
-	DefaultDict,
-	Dict,
 	Generic,
-	Optional,
 	TypeVar,
-	Union,
 	cast,
 )
 
@@ -55,10 +51,10 @@ class GenericAttribute(bytes, Enum):
 RemoteProtocolHandlerT = TypeVar("RemoteProtocolHandlerT", bound="RemoteProtocolHandler")
 HandlerFuncT = TypeVar("HandlerFuncT", bound=Callable)
 AttributeValueT = TypeVar("AttributeValueT")
-CommandT = Union[GenericCommand, SpeechCommand, BrailleCommand]
+CommandT = GenericCommand | SpeechCommand | BrailleCommand
 CommandHandlerUnboundT = Callable[[RemoteProtocolHandlerT, bytes], None]
 CommandHandlerT = Callable[[bytes], None]
-AttributeT = Union[GenericAttribute, SpeechAttribute, BrailleAttribute, bytes]
+AttributeT = GenericAttribute | SpeechAttribute | BrailleAttribute, bytes
 attributeFetcherT = Callable[..., bytes]
 attributeSenderT = Callable[..., None]
 AttributeReceiverT = Callable[[bytes], AttributeValueT]
@@ -147,9 +143,7 @@ def attributeSender(attribute: AttributeT):
 	return partial(AttributeSender, attribute)
 
 
-class AttributeReceiver(
-	AttributeHandler[Union[AttributeReceiverUnboundT, WildCardAttributeReceiverUnboundT]]
-):
+class AttributeReceiver(AttributeHandler[AttributeReceiverUnboundT | WildCardAttributeReceiverUnboundT]):
 	_defaultValueGetter: DefaultValueGetterT | None
 	_updateCallback: AttributeValueUpdateCallbackT | None
 

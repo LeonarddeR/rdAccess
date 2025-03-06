@@ -6,7 +6,6 @@ import atexit
 import typing
 from ctypes import WinError
 from fnmatch import fnmatch
-from typing import Dict, List, Type
 
 import addonHandler
 import api

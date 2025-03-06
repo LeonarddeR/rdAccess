@@ -23,7 +23,7 @@ class BrailleInputGesture(braille.BrailleDisplayGesture, brailleInput.BrailleInp
 	def __init__(
 		self,
 		source: str,
-		id: str,
+		id: str,  # noqa: A002
 		routingIndex: int | None = None,
 		model: str | None = None,
 		dots: int = 0,

@@ -6,13 +6,7 @@ import sys
 import time
 from abc import abstractmethod
 from collections.abc import Iterable, Iterator
-from typing import (
-	Any,
-	List,
-	Optional,
-	Set,
-	Union,
-)
+from typing import Any
 
 import bdDetect
 import driverHandler

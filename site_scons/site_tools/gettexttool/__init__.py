@@ -19,7 +19,7 @@ To properly configure get text, define the following variables:
 from SCons.Action import Action
 
 
-def exists(env):
+def exists(_env):
 	return True
 
 
