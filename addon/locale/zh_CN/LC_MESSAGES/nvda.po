@@ -1,0 +1,103 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: RdAccess\n"
+"POT-Creation-Date: 2024-07-14 16:28+0300\n"
+"PO-Revision-Date: 2024-07-18 22:19+0800\n"
+"Last-Translator: Alan <alanzhangcn22@gmail.com>\n"
+"Language-Team: nvdacn.com\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 3.4.4\n"
+"X-Poedit-Basepath: ../../..\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-SearchPath-0: brailleDisplayDrivers\n"
+"X-Poedit-SearchPath-1: globalPlugins\n"
+"X-Poedit-SearchPath-2: lib\n"
+"X-Poedit-SearchPath-3: synthDrivers\n"
+"X-Poedit-SearchPath-4: installTasks.py\n"
+
+#: brailleDisplayDrivers/remote.py:24
+msgid "Remote Braille"
+msgstr "远程盲文"
+
+#: globalPlugins/rdAccess/settingsPanel.py:28
+msgid "Remote Desktop Accessibility"
+msgstr "远程桌面辅助功能"
+
+#: globalPlugins/rdAccess/settingsPanel.py:34
+msgid "&Enable remote desktop accessibility for"
+msgstr "启用远程桌面访问(&E)"
+
+#: globalPlugins/rdAccess/settingsPanel.py:50
+msgid "Server"
+msgstr "服务器"
+
+#: globalPlugins/rdAccess/settingsPanel.py:58
+msgid "&Automatically recover remote speech after connection loss"
+msgstr "连接丢失后自动恢复远程语音（&A ）"
+
+#: globalPlugins/rdAccess/settingsPanel.py:66
+msgid "Client"
+msgstr "客户端"
+
+#: globalPlugins/rdAccess/settingsPanel.py:74
+msgid "&Allow remote system to control driver settings"
+msgstr "允许远程系统控制驱动程序设置（&A）"
+
+#: globalPlugins/rdAccess/settingsPanel.py:82
+msgid "&Persist client support when exiting NVDA"
+msgstr "退出 NVDA 时保持客户端支持（&P）"
+
+#: globalPlugins/rdAccess/settingsPanel.py:90
+msgid "Enable Microsoft &Remote Desktop support"
+msgstr "启用 Microsoft 远程桌面支持（&R）"
+
+#: globalPlugins/rdAccess/settingsPanel.py:98
+msgid "Enable &Citrix Workspace support"
+msgstr "启用Citrix Workspace 支持（&C）"
+
+#: globalPlugins/rdAccess/settingsPanel.py:123
+msgid ""
+"You need to enable remote destkop accessibility support for at least "
+"incoming or outgoing connections."
+msgstr "您需要至少为传入或传出连接启用远程桌面可访问性支持。"
+
+#: globalPlugins/rdAccess/settingsPanel.py:127
+msgid "Error"
+msgstr "错误"
+
+#: installTasks.py:27
+msgid ""
+"This add-on was previously called NVDA Remote Desktop. You have an installed "
+"version of that add-on. Would you like to update to RDAccess?"
+msgstr ""
+"该附加组件以前称为 NVDA 远程桌面。您已经安装了该附加组件的版本。您想更新到 "
+"RDAccess 吗？"
+
+#: installTasks.py:32
+msgid "Previous version detected"
+msgstr "检测到以前的版本"
+
+#: lib/configuration.py:25
+msgid "Incoming connections (Remote Desktop Server)"
+msgstr "传入连接（远程桌面服务器）"
+
+#: lib/configuration.py:26
+msgid "Outgoing connections (Remote Desktop Client)"
+msgstr "传出连接（远程桌面客户端）"
+
+#: lib/configuration.py:27
+msgid "Secure Desktop pass through"
+msgstr "安全桌面直通"
+
+#: synthDrivers/remote.py:34
+msgid "Remote speech"
+msgstr "远程语音"
+
+#: synthDrivers/remote.py:46
+msgid "&Fallback synthesizer"
+msgstr "备用合成器（&F）"

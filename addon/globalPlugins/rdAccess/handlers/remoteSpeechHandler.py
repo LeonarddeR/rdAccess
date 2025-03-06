@@ -52,7 +52,7 @@ class RemoteSpeechHandler(RemoteHandler):
 		return self._pickle(commands)
 
 	@protocol.attributeSender(protocol.SpeechAttribute.LANGUAGE)
-	def _outgoing_language(self, language: typing.Optional[str] = None) -> bytes:
+	def _outgoing_language(self, language: str | None = None) -> bytes:
 		if language is None:
 			language = self._driver.language
 		return self._pickle(language)
@@ -109,8 +109,8 @@ class RemoteSpeechHandler(RemoteHandler):
 
 	def _onSynthIndexReached(
 		self,
-		synth: typing.Optional[synthDriverHandler.SynthDriver] = None,
-		index: typing.Optional[int] = None,
+		synth: synthDriverHandler.SynthDriver | None = None,
+		index: int | None = None,
 	):
 		assert synth == self._driver
 		if index in self._indexesSpeaking:
@@ -126,7 +126,7 @@ class RemoteSpeechHandler(RemoteHandler):
 				log.warning("Error calling _onSynthIndexReached", exc_info=True)
 			self._indexesSpeaking.remove(index)
 
-	def _onSynthDoneSpeaking(self, synth: typing.Optional[synthDriverHandler.SynthDriver] = None):
+	def _onSynthDoneSpeaking(self, synth: synthDriverHandler.SynthDriver | None = None):
 		assert synth == self._driver
 		if len(self._indexesSpeaking) > 0:
 			self._indexesSpeaking.clear()

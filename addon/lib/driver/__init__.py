@@ -5,15 +5,8 @@
 import sys
 import time
 from abc import abstractmethod
-from typing import (
-	Any,
-	Iterable,
-	Iterator,
-	List,
-	Optional,
-	Set,
-	Union,
-)
+from collections.abc import Iterable, Iterator
+from typing import Any
 
 import bdDetect
 import driverHandler
@@ -34,9 +27,9 @@ MSG_XOFF = 0x13
 
 class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	name = "remote"
-	_settingsAccessor: Optional[SettingsAccessorBase] = None
+	_settingsAccessor: SettingsAccessorBase | None = None
 	_isVirtualChannel: bool
-	_requiredAttributesOnInit: Set[protocol.AttributeT] = {protocol.GenericAttribute.SUPPORTED_SETTINGS}
+	_requiredAttributesOnInit: set[protocol.AttributeT] = {protocol.GenericAttribute.SUPPORTED_SETTINGS}
 
 	@classmethod
 	def check(cls):
@@ -49,14 +42,14 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			yield match
 
 	@classmethod
-	def _getTryPorts(cls, port: Union[str, bdDetect.DeviceMatch]) -> Iterator[bdDetect.DeviceMatch]:
+	def _getTryPorts(cls, port: str | bdDetect.DeviceMatch) -> Iterator[bdDetect.DeviceMatch]:
 		if isinstance(port, bdDetect.DeviceMatch):
 			yield port
 		elif isinstance(port, str):
 			assert port == "auto"
 			yield from cls._getAutoPorts()
 
-	_localSettings: List[DriverSetting] = []
+	_localSettings: list[DriverSetting] = []
 
 	def initSettings(self):
 		self._initSpecificSettings(self, self._localSettings)

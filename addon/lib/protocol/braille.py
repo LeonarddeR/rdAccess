@@ -3,7 +3,6 @@
 # License: GNU General Public License version 2.0
 
 from enum import Enum, IntEnum
-from typing import Optional
 
 import braille
 import brailleInput
@@ -26,9 +25,9 @@ class BrailleInputGesture(braille.BrailleDisplayGesture, brailleInput.BrailleInp
 	def __init__(
 		self,
 		source: str,
-		id: str,
-		routingIndex: Optional[int] = None,
-		model: Optional[str] = None,
+		id: str,  # noqa: A002
+		routingIndex: int | None = None,
+		model: str | None = None,
 		dots: int = 0,
 		space: bool = False,
 		**kwargs,

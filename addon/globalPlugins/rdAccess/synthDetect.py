@@ -27,7 +27,7 @@ class _SynthDetector(AutoPropertyObject):
 	def __init__(self):
 		remoteSynthDriver.synthRemoteDisconnected.register(self._handleRemoteDisconnect)
 		self._executor = ThreadPoolExecutor(1, thread_name_prefix=self.__class__.__name__)
-		self._queuedFuture: typing.Optional[Future] = None
+		self._queuedFuture: Future | None = None
 		self._stopEvent = threading.Event()
 
 	currentSynthesizer: synthDriverHandler.SynthDriver

@@ -1,4 +1,4 @@
-""" This tool allows generation of gettext .mo compiled files, pot files from source code files
+"""This tool allows generation of gettext .mo compiled files, pot files from source code files
 and pot files for merging.
 
 Three new builders are added into the constructed environment:
@@ -15,10 +15,11 @@ To properly configure get text, define the following variables:
 
 
 """
+
 from SCons.Action import Action
 
 
-def exists(env):
+def exists(_env):
 	return True
 
 

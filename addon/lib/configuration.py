@@ -3,14 +3,14 @@
 # License: GNU General Public License version 2.0
 
 from enum import unique
-from typing import Any, Dict
+from typing import Any
 
 import addonHandler
 import config
 from utils.displayString import DisplayStringIntFlag
 
 addonHandler.initTranslation()
-_cachedConfig: Dict[str, Any] = {}
+_cachedConfig: dict[str, Any] = {}
 
 
 @unique

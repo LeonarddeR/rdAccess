@@ -29,7 +29,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 	_dev: namedPipe.NamedPipeBase
 	decide_remoteDisconnect: AccumulatingDecider
 	_isSecureDesktopHandler: bool = False
-	_remoteSessionhasFocus: typing.Optional[bool] = None
+	_remoteSessionhasFocus: bool | None = None
 	_driver: Driver
 	_abstract__driver = True
 

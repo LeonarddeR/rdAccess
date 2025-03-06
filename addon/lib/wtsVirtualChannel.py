@@ -2,6 +2,7 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
+from collections.abc import Callable
 from ctypes import (
 	POINTER,
 	GetLastError,
@@ -22,7 +23,6 @@ from ctypes.wintypes import (
 	HANDLE,
 	LPWSTR,
 )
-from typing import Callable, Optional
 
 import winKernel
 from hwIo.base import IoBase, _isDebug
@@ -91,8 +91,8 @@ class WTSVirtualChannel(IoBase):
 		self,
 		channelName: str,
 		onReceive: Callable[[bytes], None],
-		onReadError: Optional[Callable[[int], bool]] = None,
-		ioThread: Optional[IoThread] = None,
+		onReadError: Callable[[int], bool] | None = None,
+		ioThread: IoThread | None = None,
 		rawOutput=False,
 	):
 		wtsHandle = WTSVirtualChannelOpenEx(

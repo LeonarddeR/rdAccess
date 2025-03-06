@@ -27,7 +27,7 @@ else:
 class RemoteBrailleHandler(RemoteHandler):
 	driverType = protocol.DriverType.BRAILLE
 	_driver: braille.BrailleDisplayDriver
-	_queuedWrite: typing.Optional[typing.List[int]] = None
+	_queuedWrite: list[int] | None = None
 	_queuedWriteLock: threading.Lock
 
 	def __init__(self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool = True):
@@ -70,7 +70,7 @@ class RemoteBrailleHandler(RemoteHandler):
 		return intToByte(numRows)
 
 	@protocol.attributeSender(protocol.BrailleAttribute.GESTURE_MAP)
-	def _outgoing_gestureMap(self, gestureMap: typing.Optional[inputCore.GlobalGestureMap] = None) -> bytes:
+	def _outgoing_gestureMap(self, gestureMap: inputCore.GlobalGestureMap | None = None) -> bytes:
 		if gestureMap is None:
 			gestureMap = self._driver.gestureMap
 		if gestureMap and not (versionInfo.version_year == 2023 and versionInfo.version_major == 1):

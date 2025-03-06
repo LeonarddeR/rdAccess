@@ -3,7 +3,6 @@
 # License: GNU General Public License version 2.0
 
 import typing
-from typing import List
 
 import addonHandler
 import braille
@@ -33,7 +32,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 	def registerAutomaticDetection(cls, driverRegistrar):
 		driverRegistrar.addDeviceScanner(detection.bgScanRD, moveToStart=True)
 
-	def _getModifierGestures(self, model: typing.Optional[str] = None):
+	def _getModifierGestures(self, model: str | None = None):
 		"""Hacky override that throws an instance at the underlying class method.
 		If we don't do this, the method can't acces the gesture map at the instance level.
 		"""
@@ -117,7 +116,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		except inputCore.NoInputGestureAction:
 			log.error("Unexpected NoInputGestureAction", exc_info=True)
 
-	def display(self, cells: List[int]):
+	def display(self, cells: list[int]):
 		# cells will already be padded up to numCells.
 		assert len(cells) == self.numCells
 		if len(cells) == 0:

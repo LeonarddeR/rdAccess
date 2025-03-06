@@ -3,10 +3,10 @@
 # License: GNU General Public License version 2.0
 
 import threading
+from collections.abc import Callable
 from ctypes import POINTER, WINFUNCTYPE, WinError, addressof, byref, windll
 from ctypes.wintypes import BOOL, BOOLEAN, DWORD, HANDLE, LPVOID
 from inspect import ismethod
-from typing import Callable, Dict, Tuple, Union
 
 import hwIo.ioThread
 import winKernel
@@ -20,15 +20,12 @@ WT_EXECUTEONLYONCE = 0x8
 WaitOrTimerCallback = WINFUNCTYPE(None, LPVOID, BOOLEAN)
 WaitOrTimerCallbackIdT = int
 WaitOrTimerCallbackT = Callable[[int, bool], None]
-WaitOrTimerCallbackStoreT = Dict[
+WaitOrTimerCallbackStoreT = dict[
 	WaitOrTimerCallbackIdT,
-	Tuple[
+	tuple[
 		int,
 		HANDLE,
-		Union[
-			BoundMethodWeakref[WaitOrTimerCallbackT],
-			AnnotatableWeakref[WaitOrTimerCallbackT],
-		],
+		BoundMethodWeakref[WaitOrTimerCallbackT] | AnnotatableWeakref[WaitOrTimerCallbackT],
 		WaitOrTimerCallbackIdT,
 	],
 ]
@@ -89,7 +86,7 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 
 	def waitForSingleObjectWithCallback(
 		self,
-		objectHandle: Union[HANDLE, int],
+		objectHandle: HANDLE | int,
 		func: WaitOrTimerCallback,
 		param=0,
 		flags=WT_EXECUTELONGFUNCTION | WT_EXECUTEONLYONCE,
