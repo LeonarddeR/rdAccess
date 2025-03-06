@@ -34,10 +34,7 @@ class SettingsAccessorBase(AutoPropertyObject):
 			dct[f"_set_{s.id}"] = cls._makeSetSetting(s.id)
 			if not isinstance(
 				s,
-				(
-					driverSetting.BooleanDriverSetting,
-					driverSetting.NumericDriverSetting,
-				),
+				driverSetting.BooleanDriverSetting | driverSetting.NumericDriverSetting,
 			):
 				dct[f"_get_{cls._getAvailableSettingsPropertyName(s.id)}"] = cls._makeGetAvailableSettings(
 					s.id
