@@ -3,7 +3,6 @@
 # License: GNU General Public License version 2.0
 
 import os.path
-from typing import List, Optional
 
 import bdDetect
 from utils.security import isRunningOnSecureDesktop
@@ -20,7 +19,7 @@ KEY_NAMED_PIPE_CLIENT = "NamedPipeClient"
 
 def bgScanRD(
 	driverType: DriverType = DriverType.BRAILLE,
-	limitToDevices: Optional[List[str]] = None,
+	limitToDevices: list[str] | None = None,
 ):
 	from .driver import RemoteDriver
 

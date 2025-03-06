@@ -6,12 +6,10 @@ from NVDAObjects import NVDAObject
 from NVDAObjects.IAccessible import IAccessible
 
 
-class RemoteDesktopControl(NVDAObject):
-	...
+class RemoteDesktopControl(NVDAObject): ...
 
 
-class OutOfProcessChannelRemoteDesktopControl(RemoteDesktopControl):
-	...
+class OutOfProcessChannelRemoteDesktopControl(RemoteDesktopControl): ...
 
 
 def findExtraOverlayClasses(obj, clsList):

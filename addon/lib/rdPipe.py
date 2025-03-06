@@ -7,7 +7,6 @@ import platform
 import subprocess
 import winreg
 from enum import Enum
-from typing import List
 
 import addonHandler
 import COMRegistrationFixes
@@ -52,7 +51,7 @@ class Architecture(str, Enum):
 DEFAULT_ARCHITECTURE = Architecture(platform.machine())
 
 
-def execRegsrv(params: List[str], architecture: Architecture = DEFAULT_ARCHITECTURE) -> bool:
+def execRegsrv(params: list[str], architecture: Architecture = DEFAULT_ARCHITECTURE) -> bool:
 	if architecture is Architecture.X86:
 		# Points to the 32-bit version, on Windows 32-bit or 64-bit.
 		regsvr32 = os.path.join(COMRegistrationFixes.SYSTEM32, "regsvr32.exe")

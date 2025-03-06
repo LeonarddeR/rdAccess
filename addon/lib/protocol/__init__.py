@@ -8,13 +8,14 @@ import sys
 import time
 import types
 from abc import abstractmethod
+from collections import defaultdict
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, IntEnum
 from fnmatch import fnmatch
 from functools import partial, update_wrapper, wraps
 from typing import (
 	Any,
-	Callable,
 	DefaultDict,
 	Dict,
 	Generic,
@@ -149,15 +150,15 @@ def attributeSender(attribute: AttributeT):
 class AttributeReceiver(
 	AttributeHandler[Union[AttributeReceiverUnboundT, WildCardAttributeReceiverUnboundT]]
 ):
-	_defaultValueGetter: Optional[DefaultValueGetterT]
-	_updateCallback: Optional[AttributeValueUpdateCallbackT]
+	_defaultValueGetter: DefaultValueGetterT | None
+	_updateCallback: AttributeValueUpdateCallbackT | None
 
 	def __init__(
 		self,
 		attribute: AttributeT,
-		func: Union[AttributeReceiverUnboundT, WildCardAttributeReceiverUnboundT],
-		defaultValueGetter: Optional[DefaultValueGetterT],
-		updateCallback: Optional[AttributeValueUpdateCallbackT],
+		func: AttributeReceiverUnboundT | WildCardAttributeReceiverUnboundT,
+		defaultValueGetter: DefaultValueGetterT | None,
+		updateCallback: AttributeValueUpdateCallbackT | None,
 	):
 		super().__init__(attribute, func)
 		self._defaultValueGetter = defaultValueGetter
@@ -175,8 +176,8 @@ class AttributeReceiver(
 def attributeReceiver(
 	attribute: AttributeT,
 	defaultValue: Any = None,
-	defaultValueGetter: Optional[DefaultValueGetterT] = None,
-	updateCallback: Optional[AttributeValueUpdateCallbackT] = None,
+	defaultValueGetter: DefaultValueGetterT | None = None,
+	updateCallback: AttributeValueUpdateCallbackT | None = None,
 ):
 	if defaultValue is not None and defaultValueGetter is not None:
 		raise ValueError("Either defaultValue or defaultValueGetter is required, but not both")
@@ -232,15 +233,15 @@ class AttributeSenderStore(AttributeHandlerStore[attributeSenderT]):
 
 
 class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
-	_valueTimes: DefaultDict[AttributeT, float]
-	_values: Dict[AttributeT, Any]
-	_pendingAttributeRequests: DefaultDict[AttributeT, bool]
+	_valueTimes: defaultdict[AttributeT, float]
+	_values: dict[AttributeT, Any]
+	_pendingAttributeRequests: defaultdict[AttributeT, bool]
 
 	def __init__(self):
 		super().__init__()
 		self._values = {}
-		self._valueTimes = DefaultDict(float)
-		self._pendingAttributeRequests = DefaultDict(bool)
+		self._valueTimes = defaultdict(float)
+		self._pendingAttributeRequests = defaultdict(bool)
 
 	def clearCache(self):
 		self._values.clear()
@@ -354,7 +355,7 @@ class RemoteProtocolHandler(AutoPropertyObject):
 		expectedLength = int.from_bytes(message[2:4], sys.byteorder)
 		payload = message[4:]
 		actualLength = len(payload)
-		remainder: Optional[bytes] = None
+		remainder: bytes | None = None
 		if expectedLength != actualLength:
 			log.debug(
 				f"Expected payload of length {expectedLength}, "
@@ -420,7 +421,7 @@ class RemoteProtocolHandler(AutoPropertyObject):
 			ATTRIBUTE_SEPARATOR + attribute + ATTRIBUTE_SEPARATOR,
 		)
 
-	def _safeWait(self, predicate: Callable[[], bool], timeout: Optional[float] = None):
+	def _safeWait(self, predicate: Callable[[], bool], timeout: float | None = None):
 		if timeout is None:
 			timeout = self.timeout
 		log.debug(f"Waiting for {predicate!r} during {timeout} seconds")
@@ -439,7 +440,7 @@ class RemoteProtocolHandler(AutoPropertyObject):
 	def getRemoteAttribute(
 		self,
 		attribute: AttributeT,
-		timeout: Optional[float] = None,
+		timeout: float | None = None,
 	):
 		initialTime = time.perf_counter()
 		self.requestRemoteAttribute(attribute=attribute)
@@ -452,8 +453,8 @@ class RemoteProtocolHandler(AutoPropertyObject):
 	def _waitForAttributeUpdate(
 		self,
 		attribute: AttributeT,
-		initialTime: Optional[float] = None,
-		timeout: Optional[float] = None,
+		initialTime: float | None = None,
+		timeout: float | None = None,
 	):
 		if initialTime is None:
 			initialTime = 0.0

@@ -6,7 +6,6 @@ import os.path
 import sys
 import typing
 from collections import OrderedDict
-from typing import Optional
 
 import addonHandler
 import globalVars
@@ -124,7 +123,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		return value
 
 	@protocol.attributeReceiver(protocol.SpeechAttribute.LANGUAGE, defaultValue=getLanguage())
-	def _incoming_language(self, payload: bytes) -> Optional[str]:
+	def _incoming_language(self, payload: bytes) -> str | None:
 		assert len(payload) > 0
 		return self._unpickle(payload)
 

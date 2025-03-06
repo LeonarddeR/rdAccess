@@ -101,7 +101,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 
 		self.onoperatingModeChange()
 
-	def onoperatingModeChange(self, evt: typing.Optional[wx.CommandEvent] = None):
+	def onoperatingModeChange(self, evt: wx.CommandEvent | None = None):
 		if evt:
 			evt.Skip()
 		isClient = self.operatingModeList.IsChecked(
@@ -138,9 +138,9 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 				(self.operatingModes[i] for i in self.operatingModeList.CheckedItems),
 			)
 		)
-		config.conf[configuration.CONFIG_SECTION_NAME][
-			configuration.RECOVER_REMOTE_SPEECH_SETTING_NAME
-		] = self.recoverRemoteSpeechCheckbox.IsChecked()
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.RECOVER_REMOTE_SPEECH_SETTING_NAME] = (
+			self.recoverRemoteSpeechCheckbox.IsChecked()
+		)
 		isClient = self.operatingModeList.IsChecked(
 			self.operatingModes.index(configuration.OperatingMode.CLIENT)
 		)
@@ -150,9 +150,9 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.PERSISTENT_REGISTRATION_SETTING_NAME] = (
 			self.persistentRegistrationCheckbox.IsChecked() and isClient
 		)
-		config.conf[configuration.CONFIG_SECTION_NAME][
-			configuration.REMOTE_DESKTOP_SETTING_NAME
-		] = self.remoteDesktopSupportCheckbox.IsChecked()
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.REMOTE_DESKTOP_SETTING_NAME] = (
+			self.remoteDesktopSupportCheckbox.IsChecked()
+		)
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.CITRIX_SETTING_NAME] = (
 			self.citrixSupportCheckbox.IsChecked() and rdPipe.isCitrixSupported()
 		)

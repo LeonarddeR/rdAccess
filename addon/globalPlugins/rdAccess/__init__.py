@@ -51,10 +51,10 @@ supportsBrailleAutoDetectRegistration = (
 
 
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
-	_synthDetector: typing.Optional[_SynthDetector] = None
-	_ioThread: typing.Optional[ioThreadEx.IoThreadEx] = None
+	_synthDetector: _SynthDetector | None = None
+	_ioThread: ioThreadEx.IoThreadEx | None = None
 
-	def chooseNVDAObjectOverlayClasses(self, obj: NVDAObject, clsList: List[Type[NVDAObject]]):
+	def chooseNVDAObjectOverlayClasses(self, obj: NVDAObject, clsList: list[type[NVDAObject]]):
 		findExtraOverlayClasses(obj, clsList)
 
 	@classmethod
@@ -122,7 +122,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if isRunningOnSecureDesktop():
 			return
 		self._registerRdPipeInRegistry()
-		self._handlers: Dict[str, handlers.RemoteHandler] = {}
+		self._handlers: dict[str, handlers.RemoteHandler] = {}
 		self._pipeWatcher = directoryChanges.DirectoryWatcher(
 			namedPipe.PIPE_DIRECTORY,
 			directoryChanges.FileNotifyFilter.FILE_NOTIFY_CHANGE_FILE_NAME,
@@ -135,7 +135,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if isRunningOnSecureDesktop():
 			return
 		secureDesktop.post_secureDesktopStateChange.register(self._handleSecureDesktop)
-		self._sdHandler: typing.Optional[SecureDesktopHandler] = None
+		self._sdHandler: SecureDesktopHandler | None = None
 
 	def __init__(self):
 		super().__init__()

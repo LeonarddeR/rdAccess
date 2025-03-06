@@ -3,7 +3,8 @@
 # License: GNU General Public License version 2.0
 
 import weakref
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any
 
 from autoSettingsUtils import driverSetting
 from baseObject import AutoPropertyObject
@@ -18,12 +19,12 @@ if TYPE_CHECKING:
 class SettingsAccessorBase(AutoPropertyObject):
 	_driverRef: "weakref.ref[RemoteDriver]"
 	driver: "RemoteDriver"
-	_settingNames: List[str]
+	_settingNames: list[str]
 	cachePropertiesByDefault = True
 
 	@classmethod
 	def createFromSettings(cls, driver: "RemoteDriver", settings: Iterable[driverSetting.DriverSetting]):
-		dct: Dict[str, Any] = {
+		dct: dict[str, Any] = {
 			"__module__": __name__,
 		}
 		settingNames = []
@@ -47,7 +48,7 @@ class SettingsAccessorBase(AutoPropertyObject):
 	def _get_driver(self):
 		return self._driverRef()
 
-	def __init__(self, driver: "RemoteDriver", settingNames: List[str]):
+	def __init__(self, driver: "RemoteDriver", settingNames: list[str]):
 		log.debug(f"Initializing {self} for driver {driver}, settings {settingNames}")
 		self._driverRef = weakref.ref(driver)
 		self._settingNames = settingNames
