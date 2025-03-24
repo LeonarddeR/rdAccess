@@ -13,6 +13,7 @@ from extensionPoints import Action
 from gui import guiHelper, messageBox, nvdaControls
 from gui.settingsDialogs import SettingsPanel
 
+from .diagnostics import showDiagnosticsReport
 if typing.TYPE_CHECKING:
 	from ...lib import configuration, rdPipe
 else:
@@ -99,6 +100,11 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		self.citrixSupportCheckbox = clientGroup.addItem(wx.CheckBox(clientGroupBox, label=citrixSupportText))
 		self.citrixSupportCheckbox.Value = configuration.getCitrixSupport()
 
+		# Translators: The label for a button in RDAccess settings to open a diagnostics report.
+		label = _("Open diagnostics report...")
+		self.openDiagnostics = sizer_helper.addItem(wx.Button(settingsSizer, label=label))
+		self.openDiagnostics.Bind(wx.EVT_BUTTON, self.onOpenDiagnostics)
+
 		self.onoperatingModeChange()
 
 	def onoperatingModeChange(self, evt: wx.CommandEvent | None = None):
@@ -130,6 +136,9 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 			)
 			return False
 		return super().isValid()
+
+	def onOpenDiagnostics(self, _evt: wx.CommandEvent):
+		showDiagnosticsReport()
 
 	def onSave(self):
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME] = int(

@@ -19,5 +19,5 @@
     "[python]": {
         "editor.defaultFormatter": "charliermarsh.ruff"
     },
-    "ruff.importStrategy": "useBundled"
+    "ruff.importStrategy": "useBundled",
 }
