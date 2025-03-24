@@ -87,7 +87,7 @@ def initializeConfig():
 	if CONFIG_SECTION_NAME not in config.conf:
 		config.conf[CONFIG_SECTION_NAME] = {}
 	config.conf[CONFIG_SECTION_NAME].spec.update(CONFIG_SPEC)
-	cached = updateConfigCache()
+	updateConfigCache()
 	initialized = True
 
 

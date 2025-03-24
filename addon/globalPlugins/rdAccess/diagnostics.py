@@ -32,14 +32,14 @@ def _getDiagnosticsReportDict() -> dict[str, typing.Any]:
 			"isCitrixSupported": rdPipe.isCitrixSupported(),
 			"isRunningOnSecureDesktop": isRunningOnSecureDesktop(),
 			"remoteSessionMetrics": wtsVirtualChannel.getRemoteSessionMetrics(),
-			"windowsVersion": winVersion.getWinVer(),
+			"windowsVersion": str(winVersion.getWinVer()),
 		},
 	}
 	return diagnostics
 
 
 def getDiagnosticsReport() -> str:
-	return json.dumps(_getDiagnosticsReportDict(), indent=2)
+	return json.dumps(_getDiagnosticsReportDict(), indent='\t',)
 
 
 def showDiagnosticsReport():
