@@ -8,6 +8,7 @@ import typing
 import braille
 import brailleInput
 import inputCore
+import versionInfo
 from brailleViewer import postBrailleViewerToolToggledAction
 from hwIo import IoThread, intToByte
 from logHandler import log
@@ -21,6 +22,9 @@ else:
 
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	protocol = addon.loadModule("lib.protocol")
+
+
+_supportsDisplayDimensions = versionInfo.version_year >= 2025
 
 
 class RemoteBrailleHandler(RemoteHandler):
@@ -54,19 +58,21 @@ class RemoteBrailleHandler(RemoteHandler):
 			numCells = braille.handler.displaySize
 		return intToByte(numCells)
 
-	@protocol.attributeSender(protocol.BrailleAttribute.NUM_COLS)
-	def _outgoing_numCols(self, numCols=None) -> bytes:
-		if numCols is None:
-			# Use the display dimensions of the local braille handler
-			numCols = braille.handler.displayDimensions.numCols
-		return intToByte(numCols)
+	if _supportsDisplayDimensions:
 
-	@protocol.attributeSender(protocol.BrailleAttribute.NUM_ROWS)
-	def _outgoing_numRows(self, numRows=None) -> bytes:
-		if numRows is None:
-			# Use the display dimensions of the local braille handler
-			numRows = braille.handler.displayDimensions.numRows
-		return intToByte(numRows)
+		@protocol.attributeSender(protocol.BrailleAttribute.NUM_COLS)
+		def _outgoing_numCols(self, numCols=None) -> bytes:
+			if numCols is None:
+				# Use the display dimensions of the local braille handler
+				numCols = braille.handler.displayDimensions.numCols
+			return intToByte(numCols)
+
+		@protocol.attributeSender(protocol.BrailleAttribute.NUM_ROWS)
+		def _outgoing_numRows(self, numRows=None) -> bytes:
+			if numRows is None:
+				# Use the display dimensions of the local braille handler
+				numRows = braille.handler.displayDimensions.numRows
+			return intToByte(numRows)
 
 	@protocol.attributeSender(protocol.BrailleAttribute.GESTURE_MAP)
 	def _outgoing_gestureMap(self, gestureMap: inputCore.GlobalGestureMap | None = None) -> bytes:
@@ -133,5 +139,6 @@ class RemoteBrailleHandler(RemoteHandler):
 
 	def _handleDisplayDimensionChanges(self):
 		self._attributeSenderStore(protocol.BrailleAttribute.NUM_CELLS)
-		self._attributeSenderStore(protocol.BrailleAttribute.NUM_COLS)
-		self._attributeSenderStore(protocol.BrailleAttribute.NUM_ROWS)
+		if _supportsDisplayDimensions:
+			self._attributeSenderStore(protocol.BrailleAttribute.NUM_COLS)
+			self._attributeSenderStore(protocol.BrailleAttribute.NUM_ROWS)

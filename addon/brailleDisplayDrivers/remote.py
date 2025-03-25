@@ -53,8 +53,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		return ord(payload)
 
 	def _get_numCells(self) -> int:
-		value = self.numRows * self.numCols
-		if value == 0:
+		if (value := self.numRows * self.numCols) == 0:
 			attribute = protocol.BrailleAttribute.NUM_CELLS
 			try:
 				value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)

@@ -1,5 +1,5 @@
 # RDAccess: Remote Desktop Accessibility for NVDA
-# Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
+# Copyright 2023-2025 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
 import inspect
@@ -21,7 +21,9 @@ from typing import (
 	cast,
 )
 
+import addonHandler
 import queueHandler
+import versionInfo
 from baseObject import AutoPropertyObject
 from extensionPoints import HandlerRegistrar
 from hwIo.base import IoBase
@@ -30,6 +32,7 @@ from logHandler import log
 from .braille import BrailleAttribute, BrailleCommand
 from .speech import SpeechAttribute, SpeechCommand
 
+addon: addonHandler.Addon = addonHandler.getCodeAddon()
 ATTRIBUTE_SEPARATOR = b"`"
 SETTING_ATTRIBUTE_PREFIX = b"setting_"
 
@@ -46,6 +49,8 @@ class GenericCommand(IntEnum):
 class GenericAttribute(bytes, Enum):
 	TIME_SINCE_INPUT = b"timeSinceInput"
 	SUPPORTED_SETTINGS = b"supportedSettings"
+	NVDA_VERSION = b"nvdaVersion"
+	RD_ACCESS_VERSION = b"rdAccessVersion"
 
 
 RemoteProtocolHandlerT = TypeVar("RemoteProtocolHandlerT", bound="RemoteProtocolHandler")
@@ -54,7 +59,7 @@ AttributeValueT = TypeVar("AttributeValueT")
 CommandT = GenericCommand | SpeechCommand | BrailleCommand
 CommandHandlerUnboundT = Callable[[RemoteProtocolHandlerT, bytes], None]
 CommandHandlerT = Callable[[bytes], None]
-AttributeT = GenericAttribute | SpeechAttribute | BrailleAttribute, bytes
+AttributeT = GenericAttribute | SpeechAttribute | BrailleAttribute | bytes
 attributeFetcherT = Callable[..., bytes]
 attributeSenderT = Callable[..., None]
 AttributeReceiverT = Callable[[bytes], AttributeValueT]
@@ -489,3 +494,37 @@ class RemoteProtocolHandler(AutoPropertyObject):
 	@abstractmethod
 	def _onReadError(self, error: int) -> bool:
 		return False
+
+	@attributeSender(GenericAttribute.NVDA_VERSION)
+	def _outgoing_nvdaVersion(self) -> bytes:
+		return versionInfo.version_detailed.encode()
+
+	@attributeReceiver(GenericAttribute.NVDA_VERSION, defaultValue="0.0.0")
+	def _incoming_nvdaVersion(self, payload: bytes) -> str:
+		return payload.decode()
+
+	def _get_nvdaVersion(self) -> str:
+		attribute = GenericAttribute.NVDA_VERSION
+		try:
+			value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
+		except KeyError:
+			value = self._attributeValueProcessor._getDefaultValue(attribute)
+			self.requestRemoteAttribute(attribute)
+		return value
+
+	@attributeSender(GenericAttribute.RD_ACCESS_VERSION)
+	def _outgoing_rdAccessVersion(self) -> bytes:
+		return addon.version.encode()
+
+	@attributeReceiver(GenericAttribute.RD_ACCESS_VERSION, defaultValue="0.0.0")
+	def _incoming_rdAccessVersion(self, payload: bytes) -> str:
+		return payload.decode()
+
+	def _get_rdAccessVersion(self) -> str:
+		attribute = GenericAttribute.RD_ACCESS_VERSION
+		try:
+			value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
+		except KeyError:
+			value = self._attributeValueProcessor._getDefaultValue(attribute)
+			self.requestRemoteAttribute(attribute)
+		return value
