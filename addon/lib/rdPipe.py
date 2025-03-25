@@ -14,9 +14,12 @@ from logHandler import log
 
 COM_CLS_CHANNEL_NAMES_VALUE_BRAILLE = "NVDA-BRAILLE"
 COM_CLS_CHANNEL_NAMES_VALUE_SPEECH = "NVDA-SPEECH"
+COM_CLASSES_FOLDER = r"SOFTWARE\Classes\CLSID"
 CTX_MODULES_FOLDER = r"SOFTWARE\Citrix\ICA Client\Engine\Configuration\Advanced\Modules"
 CTX_RD_PIPE_FOLDER = os.path.join(CTX_MODULES_FOLDER, "DVCPlugin_RdPipe")
+CTX_DVC_PLUGINS_FOLDER = os.path.join(CTX_MODULES_FOLDER, "DvcPlugins")
 CTX_ARP_FOLDER = r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\CitrixOnlinePluginPackWeb"
+TS_ADD_INS_FOLDER = r"Software\Microsoft\Terminal Server Client\Default\AddIns\RdPipe"
 
 
 def isCitrixSupported() -> bool:
