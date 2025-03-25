@@ -45,12 +45,3 @@ def bgScanRD(
 			RemoteDriver.name,
 			bdDetect.DeviceMatch(type=KEY_VIRTUAL_CHANNEL, id=port, port=port, deviceInfo={}),
 		)
-
-
-def register():
-	bdDetect.scanForDevices.register(bgScanRD)
-	bdDetect.scanForDevices.moveToEnd(bgScanRD, last=False)
-
-
-def unregister():
-	bdDetect.scanForDevices.unregister(bgScanRD)

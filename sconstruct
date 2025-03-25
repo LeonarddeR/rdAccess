@@ -291,7 +291,8 @@ for dir in langDirs:
 pythonFiles = expandGlobs(buildVars.pythonSources)
 for file in pythonFiles:
 	env.Depends(addon, file)
-
+for file in env.Glob(os.path.join("addon", "dll", "*.dll")):
+	env.Depends(addon, file)
 # Convert markdown files to html
 # We need at least doc in English and should enable the Help button for the add-on in Add-ons Manager
 createAddonHelp("addon")

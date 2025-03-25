@@ -13,7 +13,6 @@ import braille
 import config
 import globalPluginHandler
 import gui
-import versionInfo
 from logHandler import log
 from NVDAObjects import NVDAObject
 from utils.security import isRunningOnSecureDesktop, post_sessionLockStateChanged
@@ -42,11 +41,6 @@ else:
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
 	secureDesktop = addon.loadModule("lib.secureDesktop")
-
-supportsBrailleAutoDetectRegistration = (
-	versionInfo.version_year,
-	versionInfo.version_major,
-) >= (2023, 3)
 
 
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
@@ -103,10 +97,9 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def initializeOperatingModeServer(self):
 		if configuration.getRecoverRemoteSpeech():
 			self._synthDetector = _SynthDetector()
-		if not supportsBrailleAutoDetectRegistration:
-			detection.register()
 		self._triggerBackgroundDetectRescan(
-			rescanBraille=not supportsBrailleAutoDetectRegistration, force=True
+			rescanBraille=False,
+			force=True,
 		)
 		if not isRunningOnSecureDesktop():
 			post_sessionLockStateChanged.register(self._handleLockStateChanged)
@@ -198,8 +191,6 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def terminateOperatingModeServer(self):
 		if not isRunningOnSecureDesktop():
 			post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
-		if not supportsBrailleAutoDetectRegistration:
-			detection.unregister()
 		if self._synthDetector:
 			self._synthDetector.terminate()
 
@@ -323,7 +314,10 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._triggerBackgroundDetectRescan(force=True)
 
 	def _triggerBackgroundDetectRescan(
-		self, rescanSpeech: bool = True, rescanBraille: bool = True, force: bool = False
+		self,
+		rescanSpeech: bool = True,
+		rescanBraille: bool = True,
+		force: bool = False,
 	):
 		if rescanSpeech and self._synthDetector:
 			self._synthDetector.rescan(force)

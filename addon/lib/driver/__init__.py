@@ -14,8 +14,9 @@ from autoSettingsUtils.driverSetting import DriverSetting
 from baseObject import AutoPropertyObject
 from logHandler import log
 from utils.security import isRunningOnSecureDesktop, post_sessionLockStateChanged
+from winAPI.secureDesktop import post_secureDesktopStateChange
 
-from .. import inputTime, namedPipe, protocol, secureDesktop, wtsVirtualChannel
+from .. import inputTime, namedPipe, protocol, wtsVirtualChannel
 from ..detection import KEY_NAMED_PIPE_CLIENT, KEY_VIRTUAL_CHANNEL, bgScanRD
 from .settingsAccessor import SettingsAccessorBase
 
@@ -109,11 +110,11 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 		if not isRunningOnSecureDesktop():
 			post_sessionLockStateChanged.register(self._handlePossibleSessionDisconnect)
-			secureDesktop.post_secureDesktopStateChange.register(self._handlePossibleSessionDisconnect)
+			post_secureDesktopStateChange.register(self._handlePossibleSessionDisconnect)
 
 	def terminate(self):
 		if not isRunningOnSecureDesktop():
-			secureDesktop.post_secureDesktopStateChange.unregister(self._handlePossibleSessionDisconnect)
+			post_secureDesktopStateChange.unregister(self._handlePossibleSessionDisconnect)
 			post_sessionLockStateChanged.unregister(self._handlePossibleSessionDisconnect)
 		super().terminate()
 
