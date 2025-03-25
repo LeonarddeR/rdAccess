@@ -8,6 +8,7 @@ import typing
 import braille
 import brailleInput
 import inputCore
+import versionInfo
 from brailleViewer import postBrailleViewerToolToggledAction
 from hwIo import IoThread, intToByte
 from logHandler import log
@@ -23,6 +24,9 @@ else:
 	protocol = addon.loadModule("lib.protocol")
 
 
+_supportsDisplayDimensions = versionInfo.version_year >= 2025
+
+
 class RemoteBrailleHandler(RemoteHandler):
 	driverType = protocol.DriverType.BRAILLE
 	_driver: braille.BrailleDisplayDriver
@@ -34,12 +38,12 @@ class RemoteBrailleHandler(RemoteHandler):
 		super().__init__(ioThread, pipeName, isNamedPipeClient=isNamedPipeClient)
 		braille.decide_enabled.register(self._handleBrailleHandlerEnabled)
 		braille.displayChanged.register(self._handleDriverChanged)
-		postBrailleViewerToolToggledAction.register(self._handlePostBrailleViewerToolToggled)
+		postBrailleViewerToolToggledAction.register(self._handleDisplayDimensionChanges)
 		inputCore.decide_executeGesture.register(self._handleExecuteGesture)
 
 	def terminate(self):
 		inputCore.decide_executeGesture.unregister(self._handleExecuteGesture)
-		postBrailleViewerToolToggledAction.unregister(self._handlePostBrailleViewerToolToggled)
+		postBrailleViewerToolToggledAction.unregister(self._handleDisplayDimensionChanges)
 		braille.displayChanged.unregister(self._handleDriverChanged)
 		braille.decide_enabled.unregister(self._handleBrailleHandlerEnabled)
 		super().terminate()
@@ -53,6 +57,22 @@ class RemoteBrailleHandler(RemoteHandler):
 			# Use the display size of the local braille handler
 			numCells = braille.handler.displaySize
 		return intToByte(numCells)
+
+	if _supportsDisplayDimensions:
+
+		@protocol.attributeSender(protocol.BrailleAttribute.NUM_COLS)
+		def _outgoing_numCols(self, numCols=None) -> bytes:
+			if numCols is None:
+				# Use the display dimensions of the local braille handler
+				numCols = braille.handler.displayDimensions.numCols
+			return intToByte(numCols)
+
+		@protocol.attributeSender(protocol.BrailleAttribute.NUM_ROWS)
+		def _outgoing_numRows(self, numRows=None) -> bytes:
+			if numRows is None:
+				# Use the display dimensions of the local braille handler
+				numRows = braille.handler.displayDimensions.numRows
+			return intToByte(numRows)
 
 	@protocol.attributeSender(protocol.BrailleAttribute.GESTURE_MAP)
 	def _outgoing_gestureMap(self, gestureMap: inputCore.GlobalGestureMap | None = None) -> bytes:
@@ -113,9 +133,12 @@ class RemoteBrailleHandler(RemoteHandler):
 		return not self.hasFocus
 
 	def _handleDriverChanged(self, display: braille.BrailleDisplayDriver):
-		self._attributeSenderStore(protocol.BrailleAttribute.NUM_CELLS)
+		self._handleDisplayDimensionChanges()
 		super()._handleDriverChanged(display)
 		self._attributeSenderStore(protocol.BrailleAttribute.GESTURE_MAP, gestureMap=display.gestureMap)
 
-	def _handlePostBrailleViewerToolToggled(self):
+	def _handleDisplayDimensionChanges(self):
 		self._attributeSenderStore(protocol.BrailleAttribute.NUM_CELLS)
+		if _supportsDisplayDimensions:
+			self._attributeSenderStore(protocol.BrailleAttribute.NUM_COLS)
+			self._attributeSenderStore(protocol.BrailleAttribute.NUM_ROWS)
