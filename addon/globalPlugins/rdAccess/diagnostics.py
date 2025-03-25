@@ -13,19 +13,33 @@ import winVersion
 from utils.security import isRunningOnSecureDesktop
 
 if typing.TYPE_CHECKING:
-	from ...lib import configuration, rdPipe, wtsVirtualChannel
+	from ...lib import (
+		configuration,
+		namedPipe,
+		rdPipe,
+		wtsVirtualChannel,
+	)
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	configuration = addon.loadModule("lib.configuration")
+	namedPipe = addon.loadModule("lib.namedPipe")
 	rdPipe = addon.loadModule("lib.rdPipe")
 	wtsVirtualChannel = addon.loadModule("lib.wtsVirtualChannel")
 
 
-def dumpRegistryKey(hive: winreg._KeyType, subkey: str) -> str | dict[str, typing.Any]:
+def dumpRegistryKey(
+	hive,
+	subkey: str,
+	x86: bool = False,
+) -> str | dict[str, typing.Any]:
 	result = {}
 
 	try:
-		with winreg.OpenKey(hive, subkey) as key:
+		with winreg.OpenKey(
+			hive,
+			subkey,
+			access=winreg.KEY_READ | (winreg.KEY_WOW64_32KEY if x86 else winreg.KEY_WOW64_64KEY),
+		) as key:
 			i = 0
 			while True:
 				try:
@@ -50,8 +64,8 @@ def dumpRegistryKey(hive: winreg._KeyType, subkey: str) -> str | dict[str, typin
 				subkey_path = f"{subkey}\\{subkey_name}"
 				result[subkey_name] = dumpRegistryKey(hive, subkey_path)
 
-	except FileNotFoundError:
-		return "Not found"
+	except Exception as e:
+		return str(e)
 	return result
 
 
@@ -62,6 +76,9 @@ def _getDiagnosticsReportDict() -> dict[str, typing.Any]:
 		"nvda": {
 			"version": versionInfo.version,
 		},
+		"rdPipe": {
+			"availablePipes": list(namedPipe.getRdPipeNamedPipes()),
+		},
 		"system": {
 			"defaultArchitecture": rdPipe.DEFAULT_ARCHITECTURE,
 			"isCitrixSupported": rdPipe.isCitrixSupported(),
@@ -70,8 +87,24 @@ def _getDiagnosticsReportDict() -> dict[str, typing.Any]:
 			"windowsVersion": str(winVersion.getWinVer()),
 		},
 		"registry": {
-			"HKEY_CURRENT_USER": dumpRegistryKey(winreg.HKEY_CURRENT_USER, ""),
-			"HKEY_LOCAL_MACHINE": dumpRegistryKey(winreg.HKEY_LOCAL_MACHINE, ""),
+			"currentUser": {
+				rdPipe.COM_CLASS_FOLDER: dumpRegistryKey(winreg.HKEY_CURRENT_USER, rdPipe.COM_CLASS_FOLDER),
+				rdPipe.TS_ADD_INS_FOLDER: dumpRegistryKey(winreg.HKEY_CURRENT_USER, rdPipe.TS_ADD_INS_FOLDER),
+			},
+			"localMachine": {
+				rdPipe.COM_CLASS_FOLDER: dumpRegistryKey(winreg.HKEY_LOCAL_MACHINE, rdPipe.COM_CLASS_FOLDER),
+				rdPipe.TS_ADD_INS_FOLDER: dumpRegistryKey(
+					winreg.HKEY_LOCAL_MACHINE, rdPipe.TS_ADD_INS_FOLDER
+				),
+			},
+			"localMachineX86": {
+				rdPipe.CTX_RD_PIPE_FOLDER: dumpRegistryKey(
+					winreg.HKEY_LOCAL_MACHINE, rdPipe.CTX_RD_PIPE_FOLDER, x86=True
+				),
+				rdPipe.CTX_DVC_PLUGINS_FOLDER: dumpRegistryKey(
+					winreg.HKEY_LOCAL_MACHINE, rdPipe.CTX_DVC_PLUGINS_FOLDER, x86=True
+				),
+			},
 		},
 	}
 	return diagnostics
