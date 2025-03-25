@@ -516,7 +516,7 @@ class RemoteProtocolHandler(AutoPropertyObject):
 	def _outgoing_rdAccessVersion(self) -> bytes:
 		return addon.version.encode()
 
-	@attributeReceiver(GenericAttribute.RD_ACCESS_VERSION, defaultValue="0.0.0")
+	@attributeReceiver(GenericAttribute.RD_ACCESS_VERSION, defaultValue="0.0")
 	def _incoming_rdAccessVersion(self, payload: bytes) -> str:
 		return payload.decode()
 
