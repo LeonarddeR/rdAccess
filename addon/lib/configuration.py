@@ -10,7 +10,8 @@ import config
 from utils.displayString import DisplayStringIntFlag
 
 addonHandler.initTranslation()
-_cachedConfig: dict[str, Any] = {}
+ConfigT = dict[str, Any]
+_cachedConfig: ConfigT = {}
 
 
 @unique
@@ -93,3 +94,9 @@ def initializeConfig():
 def updateConfigCache():
 	global _cachedConfig
 	_cachedConfig = config.conf[CONFIG_SECTION_NAME].copy()
+
+
+def getConfigCache(ensureUpdated: bool = True) -> ConfigT:
+	if ensureUpdated:
+		updateConfigCache()
+	return _cachedConfig
