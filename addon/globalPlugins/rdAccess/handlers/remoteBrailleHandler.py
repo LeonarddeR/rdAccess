@@ -8,7 +8,6 @@ import typing
 import braille
 import brailleInput
 import inputCore
-import versionInfo
 from brailleViewer import postBrailleViewerToolToggledAction
 from hwIo import IoThread, intToByte
 from logHandler import log
@@ -59,7 +58,7 @@ class RemoteBrailleHandler(RemoteHandler):
 	def _outgoing_gestureMap(self, gestureMap: inputCore.GlobalGestureMap | None = None) -> bytes:
 		if gestureMap is None:
 			gestureMap = self._driver.gestureMap
-		if gestureMap and not (versionInfo.version_year == 2023 and versionInfo.version_major == 1):
+		if gestureMap:
 			export = gestureMap.export()
 			gestureMap = inputCore.GlobalGestureMap(export)
 			gestureMap.update(inputCore.manager.userGestureMap.export())
