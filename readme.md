@@ -105,6 +105,11 @@ This option is available only under the following conditions:
 * Citrix Workspace is installed. Note that the Windows Store version of the app is not supported due to limitations in the app itself.
 * It is possible to register RDAccess under the current user context. After installing the app, you have to start a remote session once to enable this.
 
+### Open diagnostics report...
+
+This button opens a browsable message with JSON output containing several diagnostics that can possibly aid in debugging.
+When [filing an issue at GitHub][4], you might be asked to provide this report.
+
 ## Citrix Specific Instructions
 
 There are important points to note when using RDAccess with the Citrix Workspace app:
