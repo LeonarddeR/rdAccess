@@ -104,7 +104,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		# Translators: The label for a button in RDAccess settings to open a diagnostics report.
 		label = _("Open diagnostics report...")
 		self.openDiagnostics = sizer_helper.addItem(wx.Button(self, label=label))
-		self.openDiagnostics.Bind(wx.EVT_BUTTON, lambda _evt: 		showDiagnosticsReport())
+		self.openDiagnostics.Bind(wx.EVT_BUTTON, lambda _evt: showDiagnosticsReport())
 
 		self.onoperatingModeChange()
 
