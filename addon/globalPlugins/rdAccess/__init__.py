@@ -132,7 +132,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def __init__(self):
 		super().__init__()
-		log.info(f"{addon.name} version {addon.version}")
+		log.info(f"Initializing {addon.name} version {addon.version}")
 		configuration.initializeConfig()
 		configuredOperatingMode = configuration.getOperatingMode()
 		if (
