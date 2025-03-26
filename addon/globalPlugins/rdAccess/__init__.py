@@ -16,6 +16,7 @@ import gui
 from logHandler import log
 from NVDAObjects import NVDAObject
 from utils.security import isRunningOnSecureDesktop, post_sessionLockStateChanged
+from winAPI.secureDesktop import post_secureDesktopStateChange
 
 from . import directoryChanges, handlers, settingsPanel
 from .objects import findExtraOverlayClasses
@@ -30,7 +31,6 @@ if typing.TYPE_CHECKING:
 		namedPipe,
 		protocol,
 		rdPipe,
-		secureDesktop,
 	)
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
@@ -40,7 +40,6 @@ else:
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
-	secureDesktop = addon.loadModule("lib.secureDesktop")
 
 
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
@@ -126,7 +125,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def initializeOperatingModeSecureDesktop(self):
 		if isRunningOnSecureDesktop():
 			return
-		secureDesktop.post_secureDesktopStateChange.register(self._handleSecureDesktop)
+		post_secureDesktopStateChange.register(self._handleSecureDesktop)
 		self._sdHandler: SecureDesktopHandler | None = None
 
 	def __init__(self):
@@ -216,7 +215,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def terminateOperatingModeSecureDesktop(self):
 		if isRunningOnSecureDesktop():
 			return
-		secureDesktop.post_secureDesktopStateChange.unregister(self._handleSecureDesktop)
+		post_secureDesktopStateChange.unregister(self._handleSecureDesktop)
 		self._handleSecureDesktop(False)
 
 	@classmethod
@@ -347,16 +346,6 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 					except Exception:
 						log.error("Error calling event_gainFocus on handler", exc_info=True)
 						continue
-			if (
-				configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
-				and not secureDesktop.hasSecureDesktopExtensionPoint
-			):
-				from IAccessibleHandler import SecureDesktopNVDAObject
-
-				if isinstance(obj, SecureDesktopNVDAObject):
-					secureDesktop.post_secureDesktopStateChange.notify(isSecureDesktop=True)
-				elif self._sdHandler:
-					secureDesktop.post_secureDesktopStateChange.notify(isSecureDesktop=False)
 		if configuredOperatingMode & configuration.OperatingMode.SERVER:
 			self._triggerBackgroundDetectRescan()
 		nextHandler()
