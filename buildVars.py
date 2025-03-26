@@ -27,7 +27,7 @@ addon_info = {
 		"Allows using speech and braille with Microsoft Remote Desktop, Citrix Workspace and VMware Horizon"
 	),
 	# version
-	"addon_version": "1.4.2",
+	"addon_version": "1.4.3",
 	# Author(s)
 	"addon_author": "Leonard de Ruijter <alderuijter@gmail.com>",
 	# URL for the add-on documentation support
