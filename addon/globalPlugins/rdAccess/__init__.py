@@ -23,6 +23,9 @@ from .objects import findExtraOverlayClasses
 from .secureDesktopHandling import SecureDesktopHandler
 from .synthDetect import _SynthDetector
 
+addon: addonHandler.Addon = addonHandler.getCodeAddon()
+
+
 if typing.TYPE_CHECKING:
 	from ...lib import (
 		configuration,
@@ -33,7 +36,6 @@ if typing.TYPE_CHECKING:
 		rdPipe,
 	)
 else:
-	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	configuration = addon.loadModule("lib.configuration")
 	detection = addon.loadModule("lib.detection")
 	ioThreadEx = addon.loadModule("lib.ioThreadEx")
@@ -130,6 +132,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def __init__(self):
 		super().__init__()
+		log.info(f"{addon.name} version {addon.version}")
 		configuration.initializeConfig()
 		configuredOperatingMode = configuration.getOperatingMode()
 		if (
