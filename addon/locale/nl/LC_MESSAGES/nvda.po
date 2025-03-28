@@ -21,6 +21,10 @@ msgstr ""
 msgid "Remote Braille"
 msgstr "Extern Braille"
 
+#. Translators: Title of the diagnostics report dialog.
+msgid "RDAccess Diagnostics"
+msgstr ""
+
 #. Translators: The label for the NVDA Remote Desktop settings panel.
 #. Add-on summary, usually the user visible name of the addon.
 #. Translators: Summary for this add-on
@@ -67,6 +71,10 @@ msgstr "Ondersteuning voor Microsoft &Remote Desktop inschakelen"
 #. registration of RD Pipe to the Windows registry for Citrix support.
 msgid "Enable &Citrix Workspace support"
 msgstr "Ondersteuning voor &Citrix Workspace inschakelen"
+
+#. Translators: The label for a button in RDAccess settings to open a diagnostics report.
+msgid "Open diagnostics report..."
+msgstr ""
 
 #, fuzzy
 msgid ""
