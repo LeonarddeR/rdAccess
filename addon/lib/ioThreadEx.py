@@ -4,7 +4,15 @@
 
 import threading
 from collections.abc import Callable
-from ctypes import POINTER, WINFUNCTYPE, WinError, addressof, byref, windll
+from ctypes import (
+	POINTER,
+	WINFUNCTYPE,
+	GetLastError,
+	WinError,
+	addressof,
+	byref,
+	windll,
+)
 from ctypes.wintypes import BOOL, BOOLEAN, DWORD, HANDLE, LPVOID
 from inspect import ismethod
 
@@ -12,7 +20,7 @@ import hwIo.ioThread
 import winKernel
 from extensionPoints.util import AnnotatableWeakref, BoundMethodWeakref
 from logHandler import log
-from serial.win32 import INVALID_HANDLE_VALUE
+from serial.win32 import ERROR_IO_PENDING
 
 WT_EXECUTEINWAITTHREAD = 0x4
 WT_EXECUTELONGFUNCTION = 0x10
@@ -88,8 +96,9 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 
 	@staticmethod
 	def _postWaitOrTimerCallback(waitObject):
-		if not windll.kernel32.UnregisterWaitEx(waitObject, 0):
-			raise WinError()
+		if not windll.kernel32.UnregisterWait(waitObject):
+			if GetLastError() != ERROR_IO_PENDING:
+				raise WinError()
 
 	def waitForSingleObjectWithCallback(
 		self,
