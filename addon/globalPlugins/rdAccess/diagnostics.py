@@ -92,19 +92,17 @@ def _getDiagnosticsReportDict() -> dict[str, typing.Any]:
 			"currentUser": {
 				rdPipe.COM_CLASS_FOLDER: dumpRegistryKey(winreg.HKEY_CURRENT_USER, rdPipe.COM_CLASS_FOLDER),
 				rdPipe.TS_ADD_INS_FOLDER: dumpRegistryKey(winreg.HKEY_CURRENT_USER, rdPipe.TS_ADD_INS_FOLDER),
+				rdPipe.CTX_RD_PIPE_FOLDER: dumpRegistryKey(
+					winreg.HKEY_CURRENT_USER, rdPipe.CTX_RD_PIPE_FOLDER
+				),
+				rdPipe.CTX_DVC_PLUGINS_FOLDER: dumpRegistryKey(
+					winreg.HKEY_CURRENT_USER, rdPipe.CTX_DVC_PLUGINS_FOLDER
+				),
 			},
 			"localMachine": {
 				rdPipe.COM_CLASS_FOLDER: dumpRegistryKey(winreg.HKEY_LOCAL_MACHINE, rdPipe.COM_CLASS_FOLDER),
 				rdPipe.TS_ADD_INS_FOLDER: dumpRegistryKey(
 					winreg.HKEY_LOCAL_MACHINE, rdPipe.TS_ADD_INS_FOLDER
-				),
-			},
-			"localMachineX86": {
-				rdPipe.CTX_RD_PIPE_FOLDER: dumpRegistryKey(
-					winreg.HKEY_LOCAL_MACHINE, rdPipe.CTX_RD_PIPE_FOLDER, x86=True
-				),
-				rdPipe.CTX_DVC_PLUGINS_FOLDER: dumpRegistryKey(
-					winreg.HKEY_LOCAL_MACHINE, rdPipe.CTX_DVC_PLUGINS_FOLDER, x86=True
 				),
 			},
 		},
