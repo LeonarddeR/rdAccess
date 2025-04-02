@@ -142,6 +142,7 @@ class NamedPipeServer(NamedPipeBase):
 	_onConnected: Callable[[bool], None] | None = None
 	_waitObject: HANDLE | None = None
 	_connectOl: OVERLAPPED | None = None
+	_ioThreadRef: Callable[[], IoThreadEx]
 
 	def __init__(
 		self,
