@@ -7,8 +7,6 @@ import typing
 from time import sleep
 
 import addonHandler
-import gui
-import wx
 
 if typing.TYPE_CHECKING:
 	from .lib import configuration, rdPipe
@@ -19,23 +17,6 @@ else:
 
 
 def onInstall():
-	for addon in addonHandler.getAvailableAddons():
-		if addon.name == "nvdaRd":
-			result = gui.messageBox(
-				# Translators: message asking the user to remove nvdaRd add-on
-				_(
-					"This add-on was previously called NVDA Remote Desktop. "
-					"You have an installed version of that add-on. "
-					"Would you like to update to RDAccess?"
-				),
-				# Translators: question title
-				_("Previous version detected"),
-				wx.YES_NO | wx.ICON_WARNING,
-			)
-			if result == wx.YES:
-				addon.requestRemove()
-			else:
-				raise addonHandler.AddonError("Installed nvdaRd found that needs to be removed first")
 	configuration.initializeConfig()
 
 
