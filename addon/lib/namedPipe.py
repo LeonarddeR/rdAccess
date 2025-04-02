@@ -31,8 +31,6 @@ from serial.win32 import (
 	CreateFile,
 )
 
-from .ioThreadEx import IoThreadEx
-
 ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_CONNECTED = 0x217
 ERROR_PIPE_BUSY = 0xE7
@@ -149,7 +147,7 @@ class NamedPipeServer(NamedPipeBase):
 		onReceive: Callable[[bytes], None],
 		onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
 		onConnected: Callable[[bool], None] | None = None,
-		ioThreadEx: IoThreadEx | None = None,
+		ioThread: IoThread | None = None,
 		pipeMode: PipeMode = PipeMode.READMODE_BYTE,
 		pipeOpenMode: PipeOpenMode = (
 			PipeOpenMode.ACCESS_DUPLEX | PipeOpenMode.OVERLAPPED | PipeOpenMode.FIRST_PIPE_INSTANCE
@@ -176,7 +174,7 @@ class NamedPipeServer(NamedPipeBase):
 			fileHandle,
 			onReceive,
 			onReadError=self._onReadError,
-			ioThread=ioThreadEx,
+			ioThread=ioThread,
 			pipeMode=pipeMode,
 		)
 

@@ -13,6 +13,7 @@ import braille
 import config
 import globalPluginHandler
 import gui
+from hwIo.ioThread import IoThread
 from logHandler import log
 from NVDAObjects import NVDAObject
 from utils.security import isRunningOnSecureDesktop, post_sessionLockStateChanged
@@ -30,7 +31,6 @@ if typing.TYPE_CHECKING:
 	from ...lib import (
 		configuration,
 		detection,
-		ioThreadEx,
 		namedPipe,
 		protocol,
 		rdPipe,
@@ -38,7 +38,6 @@ if typing.TYPE_CHECKING:
 else:
 	configuration = addon.loadModule("lib.configuration")
 	detection = addon.loadModule("lib.detection")
-	ioThreadEx = addon.loadModule("lib.ioThreadEx")
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
@@ -46,7 +45,7 @@ else:
 
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	_synthDetector: _SynthDetector | None = None
-	_ioThread: ioThreadEx.IoThreadEx | None = None
+	_ioThread: IoThread | None = None
 
 	def chooseNVDAObjectOverlayClasses(self, obj: NVDAObject, clsList: list[type[NVDAObject]]):
 		findExtraOverlayClasses(obj, clsList)
@@ -108,7 +107,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def initializeOperatingModeCommonClient(self):
 		if isRunningOnSecureDesktop():
 			return
-		self._ioThread = ioThreadEx.IoThreadEx()
+		self._ioThread = IoThread()
 		self._ioThread.start()
 
 	def initializeOperatingModeRdClient(self):
