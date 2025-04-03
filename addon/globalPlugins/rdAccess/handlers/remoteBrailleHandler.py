@@ -142,3 +142,9 @@ class RemoteBrailleHandler(RemoteHandler):
 		if _supportsDisplayDimensions:
 			self._attributeSenderStore(protocol.BrailleAttribute.NUM_COLS)
 			self._attributeSenderStore(protocol.BrailleAttribute.NUM_ROWS)
+
+	def _handleNotifications(self, connected: bool):
+		if not braille.handler.enabled:
+			# There's no point in notifying of braille connections if the braille handler is disabled
+			return
+		super()._handleNotifications(connected)
