@@ -113,10 +113,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			# (E.g. "Remote braille/speech  connected/disconnected")
 			msg = _("Remote {} {}").format(driverTypeString, connectedString)
 			ui.message(msg, speechPriority=speech.speech.Spri.NEXT)
-		if (
-			configuration.SOUND_NOTIFICATIONS_SUPPORTED
-			and notifications & configuration.ConnectionNotifications.SOUNDS
-		):
+		if notifications & configuration.ConnectionNotifications.SOUNDS:
 			wave = "connected" if connected else "disconnected"
 			wavePath = os.path.join(globalVars.appDir, "waves", f"{wave}.wav")
 			if os.path.isfile(wavePath):
