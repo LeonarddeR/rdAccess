@@ -11,6 +11,7 @@ import addonHandler
 import api
 import globalVars
 import nvwave
+import speech
 import ui
 import wx
 from driverHandler import Driver
@@ -110,7 +111,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			# Translators: Translation of the connection message.
 			# (E.g. "Remote braille/speech  connected/disconnected")
 			msg = _("Remote {} {}").format(driverTypeString, connectedString)
-			ui.message(msg)
+			ui.message(msg, speechPriority=speech.speech.Spri.NEXT)
 		if (
 			configuration.SOUND_NOTIFICATIONS_SUPPORTED
 			and notifications & configuration.ConnectionNotifications.SOUNDS

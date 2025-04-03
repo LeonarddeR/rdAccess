@@ -102,7 +102,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		self.citrixSupportCheckbox.Value = configuration.getCitrixSupport()
 
 		# The label for a combobox in RDAccess settings to control connection notifications.
-		connectionNotificationsLabelText = _("Enable connection &notifications:")
+		connectionNotificationsLabelText = _("&Notify of connection changes with")
 		connectionNotificationsChoices = [
 			mode.displayString
 			for mode in configuration.ConnectionNotifications

@@ -113,6 +113,18 @@ This option is available only under the following conditions:
 * Citrix Workspace is installed. Note that the Windows Store version of the app is not supported due to limitations in the app itself.
 * It is possible to register RDAccess under the current user context. After installing the app, you have to start a remote session once to enable this.
 
+### Notify of connection changes with
+
+This combo box allows you to control notifications received when a remote system initiates the remote speech or braille connection.
+You can choose between:
+
+* Off (No notifications)
+* Messages (e.g. "Remote braille connected")
+* Sounds (NVDA 2025.1+)
+* Both messages and sounds
+
+Note that sounds are not available on NVDA versions older than 2025.1.
+
 ### Open diagnostics report...
 
 This button opens a browsable message with JSON output containing several diagnostics that can possibly aid in debugging.
