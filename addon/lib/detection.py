@@ -45,5 +45,5 @@ def bgScanRD(
 		port = f"NVDA-{driverType.name}"
 		yield (
 			RemoteDriver.name,
-			bdDetect.DeviceMatch(type=BackendType._VIRTUAL_CHANNEL, id=port, port=port, deviceInfo={}),
+			bdDetect.DeviceMatch(type=BackendType.VIRTUAL_CHANNEL, id=port, port=port, deviceInfo={}),
 		)
