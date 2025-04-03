@@ -15,8 +15,7 @@ from .wtsVirtualChannel import getRemoteSessionMetrics
 
 
 class BackendType(StrEnum):
-	_VIRTUAL_CHANNEL = "WTSVirtualChannel"
-	_NAMED_PIPE_SERVER = "NamedPipeServer"
+	VIRTUAL_CHANNEL = "WTSVirtualChannel"
 	NAMED_PIPE_CLIENT = "NamedPipeClient"
 
 
