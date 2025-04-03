@@ -35,14 +35,14 @@ PERSISTENT_REGISTRATION_SETTING_NAME = "persistentRegistration"
 REMOTE_DESKTOP_SETTING_NAME = "enableRemoteDesktopSupport"
 CITRIX_SETTING_NAME = "enableCitrixSupport"
 RECOVER_REMOTE_SPEECH_SETTING_NAME = "recoverRemoteSpeech"
-DRIVER_settings_MANAGEMENT_SETTING_NAME = "driverSettingsManagement"
+DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME = "driverSettingsManagement"
 CONFIG_SPEC = {
 	OPERATING_MODE_SETTING_NAME: "integer(default=3, min=1, max=7)",
 	PERSISTENT_REGISTRATION_SETTING_NAME: "boolean(default=false)",
 	REMOTE_DESKTOP_SETTING_NAME: "boolean(default=true)",
 	CITRIX_SETTING_NAME: "boolean(default=true)",
 	RECOVER_REMOTE_SPEECH_SETTING_NAME: "boolean(default=true)",
-	DRIVER_settings_MANAGEMENT_SETTING_NAME: "boolean(default=false)",
+	DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME: "boolean(default=false)",
 }
 
 
@@ -74,7 +74,7 @@ def getRecoverRemoteSpeech(fromCache: bool = False) -> bool:
 
 
 def getDriverSettingsManagement(fromCache: bool = False) -> bool:
-	return _getSetting(DRIVER_settings_MANAGEMENT_SETTING_NAME, fromCache)
+	return _getSetting(DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME, fromCache)
 
 
 initialized: bool = False

@@ -152,7 +152,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 			self.operatingModes.index(configuration.OperatingMode.CLIENT)
 		)
 		config.conf[configuration.CONFIG_SECTION_NAME][
-			configuration.DRIVER_settings_MANAGEMENT_SETTING_NAME
+			configuration.DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME
 		] = self.driverSettingsManagementCheckbox.IsChecked()
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.PERSISTENT_REGISTRATION_SETTING_NAME] = (
 			self.persistentRegistrationCheckbox.IsChecked() and isClient
