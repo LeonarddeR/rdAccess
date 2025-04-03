@@ -28,6 +28,7 @@ This enables a user experience where managing a remote system feels as seamless 
 - Add the ability to create a debugging diagnostics report by means of a button in the RDAccess settings panel [#23](https://github.com/leonardder/rdAccess/pull/23).
 - Support for multi-line braille displays in NVDA 2025.1 and newer [#19](https://github.com/leonardder/rdAccess/pull/13).
 - The minimum compatible NVDA version is now 2024.1. Removed support for earlier versions.
+- Added client connection notifications [#25](https://github.com/leonardder/rdAccess/pull/25).
 - Updated RdPipe dependency.
 - Updated translations.
 
