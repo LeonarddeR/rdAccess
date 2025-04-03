@@ -88,8 +88,7 @@ def getSecureDesktopNamedPipes() -> Iterator[str]:
 class PipeMode(IntFlag):
 	READMODE_BYTE = 0x00000000
 	READMODE_MESSAGE = 0x00000002
-	WAIT = 0x00000000
-	NOWAIT = 0x00000001
+	REJECT_REMOTE_CLIENTS = 0x00000008
 
 
 class PipeOpenMode(IntFlag):
@@ -110,7 +109,7 @@ MAX_PIPE_MESSAGE_SIZE = 1024 * 64
 class NamedPipeBase(IoBase):
 	pipeProcessId: int | None = None
 	pipeParentProcessId: int | None = None
-	pipeMode: PipeMode = PipeMode.READMODE_BYTE | PipeMode.WAIT
+	pipeMode: PipeMode = PipeMode.READMODE_BYTE | PipeMode.REJECT_REMOTE_CLIENTS
 	pipeName: str
 
 	def __init__(
@@ -121,7 +120,7 @@ class NamedPipeBase(IoBase):
 		onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
 		onReadError: Callable[[int], bool] | None = None,
 		ioThread: IoThread | None = None,
-		pipeMode: PipeMode = PipeMode.READMODE_BYTE,
+		pipeMode: PipeMode = PipeMode.READMODE_BYTE | PipeMode.REJECT_REMOTE_CLIENTS,
 	):
 		self.pipeName = pipeName
 		self.pipeMode = pipeMode
@@ -151,7 +150,7 @@ class NamedPipeServer(NamedPipeBase):
 		onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
 		onConnected: Callable[[bool], None] | None = None,
 		ioThreadEx: IoThreadEx | None = None,
-		pipeMode: PipeMode = PipeMode.READMODE_BYTE,
+		pipeMode: PipeMode = PipeMode.READMODE_BYTE | PipeMode.REJECT_REMOTE_CLIENTS,
 		pipeOpenMode: PipeOpenMode = (
 			PipeOpenMode.ACCESS_DUPLEX | PipeOpenMode.OVERLAPPED | PipeOpenMode.FIRST_PIPE_INSTANCE
 		),
