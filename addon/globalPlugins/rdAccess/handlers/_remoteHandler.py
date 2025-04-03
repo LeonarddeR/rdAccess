@@ -2,12 +2,16 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
+import os.path
 import sys
 import typing
 from abc import abstractmethod
 
 import addonHandler
 import api
+import globalVars
+import nvwave
+import ui
 from driverHandler import Driver
 from extensionPoints import AccumulatingDecider
 from hwIo.ioThread import IoThread
@@ -82,6 +86,36 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			self._remoteSessionhasFocus = connected
 		if connected:
 			self._handleDriverChanged(self._driver)
+		self._handleNotifications(connected)
+
+	def _handleNotifications(self, connected: bool):
+		notifications = configuration.getConnectionNotifications()
+		if notifications & configuration.ConnectionNotifications.MESSAGES:
+			match self.driverType:
+				case protocol.DriverType.SPEECH:
+					# Translators: Translation of the connection type in connection messages
+					driverTypeString = pgettext("connection type", "speech")
+				case protocol.DriverType.BRAILLE:
+					# Translators: Translation of the connection type in connection messages
+					driverTypeString = pgettext("connection type", "braille")
+
+			connectedString = (
+				# Translators: Translation of the connection status in connection messages.
+				_("connected")
+				if connected
+				# Translators: Translation of the connection status in connection messages.
+				else _("disconnected")
+			)
+			# Translators: Translation of the connection message.
+			# (E.g. "Remote braille/speech  connected/disconnected")
+			msg = _("Remote {} {}").format(driverTypeString, connectedString)
+			ui.message(msg)
+		if (
+			configuration.SOUND_NOTIFICATIONS_SUPPORTED
+			and notifications & configuration.ConnectionNotifications.SOUNDS
+		):
+			wave = "connected" if connected else "disconnected"
+			nvwave.playWaveFile(os.path.join(globalVars.appDir, "waves", f"{wave}.wav"))
 
 	def event_gainFocus(self, _obj):
 		if self._isSecureDesktopHandler:

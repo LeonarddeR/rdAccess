@@ -7,7 +7,8 @@ from typing import Any
 
 import addonHandler
 import config
-from utils.displayString import DisplayStringIntEnum, DisplayStringIntFlag
+import versionInfo
+from utils.displayString import DisplayStringIntFlag
 
 addonHandler.initTranslation()
 ConfigT = dict[str, Any]
@@ -30,7 +31,7 @@ class OperatingMode(DisplayStringIntFlag):
 
 
 @unique
-class ConnectionNotifications(DisplayStringIntEnum):
+class ConnectionNotifications(DisplayStringIntFlag):
 	"""Enumeration containing the possible config values for connection notifications.
 
 	Use ConnectionNotifications.MEMBER.value to compare with the config;
@@ -38,7 +39,7 @@ class ConnectionNotifications(DisplayStringIntEnum):
 	"""
 
 	OFF = 0
-	MESSAGE = 1
+	MESSAGES = 1
 	SOUNDS = 2
 	MESSAGE_AND_SOUNDS = 3
 
@@ -48,13 +49,13 @@ class ConnectionNotifications(DisplayStringIntEnum):
 			# Translators: A choice in a combo box in RDAccess settings for connection notifications.
 			ConnectionNotifications.OFF: pgettext("connection notifications", "Off"),
 			# Translators: A choice in a combo box in RDAccess settings for connection notifications.
-			ConnectionNotifications.MESSAGE: pgettext("connection notifications", "Message"),
+			ConnectionNotifications.MESSAGES: pgettext("connection notifications", "Messages"),
 			# Translators: A choice in a combo box in RDAccess settings for connection notifications.
 			ConnectionNotifications.SOUNDS: pgettext("connection notifications", "Sounds"),
 			ConnectionNotifications.MESSAGE_AND_SOUNDS: pgettext(
 				"connection notifications",
 				# Translators: A choice in a combo box in RDAccess settings for connection notifications.
-				"Both Message and sounds",
+				"Both Messages and sounds",
 			),
 		}
 
@@ -109,8 +110,14 @@ def getDriverSettingsManagement(fromCache: bool = False) -> bool:
 	return _getSetting(DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME, fromCache)
 
 
+SOUND_NOTIFICATIONS_SUPPORTED = versionInfo.version_year >= 2025
+
+
 def getConnectionNotifications(fromCache: bool = False) -> ConnectionNotifications:
-	return ConnectionNotifications(int(_getSetting(CONNECTION_NOTIFICATIONS_SETTING_NAME, fromCache)))
+	val = ConnectionNotifications(int(_getSetting(CONNECTION_NOTIFICATIONS_SETTING_NAME, fromCache)))
+	if not SOUND_NOTIFICATIONS_SUPPORTED:
+		val &= ~ConnectionNotifications.MESSAGES
+	return val
 
 
 initialized: bool = False
