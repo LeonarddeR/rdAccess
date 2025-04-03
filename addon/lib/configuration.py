@@ -7,7 +7,7 @@ from typing import Any
 
 import addonHandler
 import config
-from utils.displayString import DisplayStringIntFlag
+from utils.displayString import DisplayStringIntEnum, DisplayStringIntFlag
 
 addonHandler.initTranslation()
 ConfigT = dict[str, Any]
@@ -29,6 +29,36 @@ class OperatingMode(DisplayStringIntFlag):
 		}
 
 
+@unique
+class ConnectionNotifications(DisplayStringIntEnum):
+	"""Enumeration containing the possible config values for connection notifications.
+
+	Use ConnectionNotifications.MEMBER.value to compare with the config;
+	use ConnectionNotifications.MEMBER.displayString in the UI for a translatable description of this member.
+	"""
+
+	OFF = 0
+	MESSAGE = 1
+	SOUNDS = 2
+	MESSAGE_AND_SOUNDS = 3
+
+	@property
+	def _displayStringLabels(self):
+		return {
+			# Translators: A choice in a combo box in RDAccess settings for connection notifications.
+			ConnectionNotifications.OFF: pgettext("connection notifications", "Off"),
+			# Translators: A choice in a combo box in RDAccess settings for connection notifications.
+			ConnectionNotifications.MESSAGE: pgettext("connection notifications", "Message"),
+			# Translators: A choice in a combo box in RDAccess settings for connection notifications.
+			ConnectionNotifications.SOUNDS: pgettext("connection notifications", "Sounds"),
+			ConnectionNotifications.MESSAGE_AND_SOUNDS: pgettext(
+				"connection notifications",
+				# Translators: A choice in a combo box in RDAccess settings for connection notifications.
+				"Both Message and sounds",
+			),
+		}
+
+
 CONFIG_SECTION_NAME = addonHandler.getCodeAddon().name
 OPERATING_MODE_SETTING_NAME = "operatingMode"
 PERSISTENT_REGISTRATION_SETTING_NAME = "persistentRegistration"
@@ -36,6 +66,7 @@ REMOTE_DESKTOP_SETTING_NAME = "enableRemoteDesktopSupport"
 CITRIX_SETTING_NAME = "enableCitrixSupport"
 RECOVER_REMOTE_SPEECH_SETTING_NAME = "recoverRemoteSpeech"
 DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME = "driverSettingsManagement"
+CONNECTION_NOTIFICATIONS_SETTING_NAME = "connectionNotifications"
 CONFIG_SPEC = {
 	OPERATING_MODE_SETTING_NAME: "integer(default=3, min=1, max=7)",
 	PERSISTENT_REGISTRATION_SETTING_NAME: "boolean(default=false)",
@@ -43,6 +74,7 @@ CONFIG_SPEC = {
 	CITRIX_SETTING_NAME: "boolean(default=true)",
 	RECOVER_REMOTE_SPEECH_SETTING_NAME: "boolean(default=true)",
 	DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME: "boolean(default=false)",
+	CONNECTION_NOTIFICATIONS_SETTING_NAME: "integer(default=1, min=0, max=3)",
 }
 
 
@@ -75,6 +107,10 @@ def getRecoverRemoteSpeech(fromCache: bool = False) -> bool:
 
 def getDriverSettingsManagement(fromCache: bool = False) -> bool:
 	return _getSetting(DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME, fromCache)
+
+
+def getConnectionNotifications(fromCache: bool = False) -> ConnectionNotifications:
+	return ConnectionNotifications(int(_getSetting(CONNECTION_NOTIFICATIONS_SETTING_NAME, fromCache)))
 
 
 initialized: bool = False
