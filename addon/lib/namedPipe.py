@@ -87,7 +87,6 @@ def getSecureDesktopNamedPipes() -> Iterator[str]:
 
 class PipeMode(IntFlag):
 	READMODE_BYTE = 0x00000000
-	READMODE_MESSAGE = 0x00000002
 	REJECT_REMOTE_CLIENTS = 0x00000008
 
 
@@ -109,7 +108,7 @@ MAX_PIPE_MESSAGE_SIZE = 1024 * 64
 class NamedPipeBase(IoBase):
 	pipeProcessId: int | None = None
 	pipeParentProcessId: int | None = None
-	pipeMode: PipeMode = PipeMode.READMODE_BYTE | PipeMode.REJECT_REMOTE_CLIENTS
+	pipeMode: PipeMode
 	pipeName: str
 
 	def __init__(
@@ -120,7 +119,7 @@ class NamedPipeBase(IoBase):
 		onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
 		onReadError: Callable[[int], bool] | None = None,
 		ioThread: IoThread | None = None,
-		pipeMode: PipeMode = PipeMode.READMODE_BYTE | PipeMode.REJECT_REMOTE_CLIENTS,
+		pipeMode: PipeMode = PipeMode.READMODE_BYTE,
 	):
 		self.pipeName = pipeName
 		self.pipeMode = pipeMode
