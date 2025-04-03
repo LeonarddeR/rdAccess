@@ -7,7 +7,6 @@ from typing import Any
 
 import addonHandler
 import config
-import versionInfo
 from utils.displayString import DisplayStringIntEnum, DisplayStringIntFlag
 
 addonHandler.initTranslation()
@@ -110,14 +109,8 @@ def getDriverSettingsManagement(fromCache: bool = False) -> bool:
 	return _getSetting(DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME, fromCache)
 
 
-SOUND_NOTIFICATIONS_SUPPORTED = versionInfo.version_year >= 2025
-
-
 def getConnectionNotifications(fromCache: bool = False) -> ConnectionNotifications:
-	val = int(_getSetting(CONNECTION_NOTIFICATIONS_SETTING_NAME, fromCache))
-	if not SOUND_NOTIFICATIONS_SUPPORTED:
-		val &= ConnectionNotifications.MESSAGES.value
-	return ConnectionNotifications(val)
+	return ConnectionNotifications(int(_getSetting(CONNECTION_NOTIFICATIONS_SETTING_NAME, fromCache)))
 
 
 initialized: bool = False

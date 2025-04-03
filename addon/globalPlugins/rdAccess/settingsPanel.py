@@ -104,10 +104,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		# The label for a combobox in RDAccess settings to control connection notifications.
 		connectionNotificationsLabelText = _("&Notify of connection changes with")
 		connectionNotificationsChoices = [
-			mode.displayString
-			for mode in configuration.ConnectionNotifications
-			if configuration.SOUND_NOTIFICATIONS_SUPPORTED
-			or mode <= configuration.ConnectionNotifications.MESSAGES
+			mode.displayString for mode in configuration.ConnectionNotifications
 		]
 		self.connectionNotificationsList = clientGroup.addLabeledControl(
 			connectionNotificationsLabelText,
