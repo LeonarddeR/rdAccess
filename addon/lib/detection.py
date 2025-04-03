@@ -3,6 +3,7 @@
 # License: GNU General Public License version 2.0
 
 import os.path
+from enum import StrEnum
 
 import bdDetect
 from utils.security import isRunningOnSecureDesktop
@@ -12,9 +13,11 @@ from .namedPipe import PIPE_DIRECTORY, getSecureDesktopNamedPipes
 from .protocol import DriverType
 from .wtsVirtualChannel import getRemoteSessionMetrics
 
-KEY_VIRTUAL_CHANNEL = "WTSVirtualChannel"
-KEY_NAMED_PIPE_SERVER = "NamedPipeServer"
-KEY_NAMED_PIPE_CLIENT = "NamedPipeClient"
+
+class BackendType(StrEnum):
+	_VIRTUAL_CHANNEL = "WTSVirtualChannel"
+	_NAMED_PIPE_SERVER = "NamedPipeServer"
+	NAMED_PIPE_CLIENT = "NamedPipeClient"
 
 
 def bgScanRD(
@@ -33,7 +36,7 @@ def bgScanRD(
 		if sdPort in getSecureDesktopNamedPipes():
 			yield (
 				RemoteDriver.name,
-				bdDetect.DeviceMatch(type=KEY_NAMED_PIPE_CLIENT, id=sdId, port=sdPort, deviceInfo={}),
+				bdDetect.DeviceMatch(type=BackendType.NAMED_PIPE_CLIENT, id=sdId, port=sdPort, deviceInfo={}),
 			)
 	if (
 		operatingMode & configuration.OperatingMode.SERVER
@@ -43,5 +46,5 @@ def bgScanRD(
 		port = f"NVDA-{driverType.name}"
 		yield (
 			RemoteDriver.name,
-			bdDetect.DeviceMatch(type=KEY_VIRTUAL_CHANNEL, id=port, port=port, deviceInfo={}),
+			bdDetect.DeviceMatch(type=BackendType._VIRTUAL_CHANNEL, id=port, port=port, deviceInfo={}),
 		)

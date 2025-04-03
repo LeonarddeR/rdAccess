@@ -17,7 +17,7 @@ from utils.security import isRunningOnSecureDesktop, post_sessionLockStateChange
 from winAPI.secureDesktop import post_secureDesktopStateChange
 
 from .. import inputTime, namedPipe, protocol, wtsVirtualChannel
-from ..detection import KEY_NAMED_PIPE_CLIENT, KEY_VIRTUAL_CHANNEL, bgScanRD
+from ..detection import BackendType, bgScanRD
 from .settingsAccessor import SettingsAccessorBase
 
 ERROR_INVALID_HANDLE = 0x6
@@ -71,14 +71,14 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			for attr in self._requiredAttributesOnInit:
 				self._attributeValueProcessor.setAttributeRequestPending(attr)
 			try:
-				if portType == KEY_VIRTUAL_CHANNEL:
+				if portType == BackendType.VIRTUAL_CHANNEL:
 					self._isVirtualChannel = True
 					self._dev = wtsVirtualChannel.WTSVirtualChannel(
 						port,
 						onReceive=self._onReceive,
 						onReadError=self._onReadError,
 					)
-				elif portType == KEY_NAMED_PIPE_CLIENT:
+				elif portType == BackendType.NAMED_PIPE_CLIENT:
 					self._isVirtualChannel = False
 					self._dev = namedPipe.NamedPipeClient(
 						port,
@@ -88,7 +88,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			except OSError:
 				log.debugWarning("", exc_info=True)
 				continue
-			if portType == KEY_VIRTUAL_CHANNEL:
+			if portType == BackendType.VIRTUAL_CHANNEL:
 				# Wait for RdPipe at the other end to send a XON
 				if not self._safeWait(lambda: self._connected, self.timeout * 3):
 					continue
