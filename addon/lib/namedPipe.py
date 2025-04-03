@@ -245,6 +245,8 @@ class NamedPipeServer(NamedPipeBase):
 			super()._asyncRead()
 
 	def disconnect(self):
+		if not self._connected:
+			return
 		if not windll.kernel32.DisconnectNamedPipe(self._file):
 			raise WinError()
 		self._connected = False
