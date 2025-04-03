@@ -12,6 +12,7 @@ import api
 import globalVars
 import nvwave
 import ui
+import wx
 from driverHandler import Driver
 from extensionPoints import AccumulatingDecider
 from hwIo.ioThread import IoThread
@@ -86,7 +87,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			self._remoteSessionhasFocus = connected
 		if connected:
 			self._handleDriverChanged(self._driver)
-		self._handleNotifications(connected)
+		wx.CallAfter(self._handleNotifications, connected)
 
 	def _handleNotifications(self, connected: bool):
 		notifications = configuration.getConnectionNotifications()
