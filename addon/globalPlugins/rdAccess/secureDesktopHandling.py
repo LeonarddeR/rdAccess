@@ -12,6 +12,7 @@ import addonHandler
 import braille
 import synthDriverHandler
 from baseObject import AutoPropertyObject
+from logHandler import log
 
 from .handlers import RemoteBrailleHandler, RemoteSpeechHandler
 from .handlers._remoteHandler import RemoteHandler
@@ -33,6 +34,7 @@ class SecureDesktopHandler(AutoPropertyObject):
 	_speechHandler: RemoteSpeechHandler
 
 	def __init__(self, ioThread: ioThreadEx.IoThreadEx):
+		log.info("Initializing RDAccess secure desktop handling")
 		self._ioThreadRef = weakref.ref(ioThread)
 		braille.handler.display.saveSettings()
 		self._brailleHandler = self._initializeHandler(RemoteBrailleHandler)
@@ -40,6 +42,7 @@ class SecureDesktopHandler(AutoPropertyObject):
 		self._speechHandler = self._initializeHandler(RemoteSpeechHandler)
 
 	def terminate(self):
+		log.info("Terminating RDAccess secure desktop handling")
 		self._speechHandler.terminate()
 		braille.handler.display.loadSettings()
 		self._brailleHandler.terminate()
