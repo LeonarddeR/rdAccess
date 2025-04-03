@@ -80,7 +80,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		self.initIo(ioThread, pipeName, isNamedPipeClient)
 
 		if not self._isSecureDesktopHandler:
-			self._onConnected()
+			self._onConnected(True)
 		elif self._remoteSessionhasFocus is None:
 			self._remoteSessionhasFocus = False
 
@@ -217,3 +217,8 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			protocol.GenericAttribute.SUPPORTED_SETTINGS,
 			settings=driver.supportedSettings,
 		)
+
+	def terminate(self):
+		if not self._isSecureDesktopHandler:
+			self._onConnected(False)
+		super().terminate()
