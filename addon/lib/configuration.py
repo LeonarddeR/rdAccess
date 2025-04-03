@@ -3,7 +3,7 @@
 # License: GNU General Public License version 2.0
 
 from enum import unique
-from typing import Any, Self
+from typing import Any
 
 import addonHandler
 import config
