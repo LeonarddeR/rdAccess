@@ -116,7 +116,7 @@ SOUND_NOTIFICATIONS_SUPPORTED = versionInfo.version_year >= 2025
 def getConnectionNotifications(fromCache: bool = False) -> ConnectionNotifications:
 	val = int(_getSetting(CONNECTION_NOTIFICATIONS_SETTING_NAME, fromCache))
 	if not SOUND_NOTIFICATIONS_SUPPORTED:
-		val &= ~ConnectionNotifications.MESSAGES.value
+		val &= ConnectionNotifications.MESSAGES.value
 	return ConnectionNotifications(val)
 
 
