@@ -31,14 +31,14 @@ else:
 class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 	# Translators: Name for a remote braille display.
 	description = _("Remote speech")
-	supportedNotifications = {
+	supportedNotifications: typing.ClassVar = {
 		synthDriverHandler.synthIndexReached,
 		synthDriverHandler.synthDoneSpeaking,
 	}
 	driverType = protocol.DriverType.SPEECH
 	synthRemoteDisconnected = Action()
 	fallbackSynth: str
-	_localSettings = [
+	_localSettings: typing.ClassVar = [
 		DriverSetting(
 			id="fallbackSynth",
 			# Translators: The name of a remote synthesizer setting to select the fallback synthesizer.

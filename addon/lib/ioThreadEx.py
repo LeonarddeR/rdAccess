@@ -15,6 +15,7 @@ from ctypes import (
 )
 from ctypes.wintypes import BOOL, BOOLEAN, DWORD, HANDLE, LPVOID
 from inspect import ismethod
+from typing import ClassVar
 
 import hwIo.ioThread
 import winKernel
@@ -55,7 +56,7 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 
 	"""
 
-	_waitOrTimerCallbackStore: WaitOrTimerCallbackStoreT = {}
+	_waitOrTimerCallbackStore: ClassVar[WaitOrTimerCallbackStoreT] = {}
 
 	@WaitOrTimerCallback
 	def _internalWaitOrTimerCallback(param: WaitOrTimerCallbackIdT, timerOrWaitFired: bool):

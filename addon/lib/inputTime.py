@@ -4,10 +4,11 @@
 
 from ctypes import Structure, WinError, byref, sizeof, windll
 from ctypes.wintypes import DWORD, UINT
+from typing import ClassVar
 
 
 class LastINPUTINFO(Structure):
-	_fields_ = [
+	_fields_: ClassVar = [
 		("cbSize", UINT),
 		("dwTime", DWORD),
 	]

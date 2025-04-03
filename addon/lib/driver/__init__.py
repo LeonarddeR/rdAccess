@@ -6,7 +6,7 @@ import sys
 import time
 from abc import abstractmethod
 from collections.abc import Iterable, Iterator
-from typing import Any
+from typing import Any, ClassVar
 
 import bdDetect
 import driverHandler
@@ -30,7 +30,9 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	name = "remote"
 	_settingsAccessor: SettingsAccessorBase | None = None
 	_isVirtualChannel: bool
-	_requiredAttributesOnInit: set[protocol.AttributeT] = {protocol.GenericAttribute.SUPPORTED_SETTINGS}
+	_requiredAttributesOnInit: ClassVar[set[protocol.AttributeT]] = {
+		protocol.GenericAttribute.SUPPORTED_SETTINGS
+	}
 
 	@classmethod
 	def check(cls):
@@ -50,7 +52,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			assert port == "auto"
 			yield from cls._getAutoPorts()
 
-	_localSettings: list[DriverSetting] = []
+	_localSettings: ClassVar[list[DriverSetting]] = []
 
 	def initSettings(self):
 		self._initSpecificSettings(self, self._localSettings)

@@ -64,6 +64,8 @@ select = [
 	"FIX",  # flake8-fixme
 	"I",  # isort
 	"INT",  # flake8-gettext 
+	"PERF",  # Perflint
+	"RUF",  # RUFF
 	"UP",  # pyupgrade
 	"W",  # pycodestyle Warning
 ]
