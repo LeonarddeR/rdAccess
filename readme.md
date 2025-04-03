@@ -115,7 +115,7 @@ This option is available only under the following conditions:
 
 ### Notify of connection changes with
 
-This combo box allows you to control notifications received when a remote system initiates the remote speech or braille connection.
+This combo box allows you to control notifications received when a remote system opens or closes the remote speech or braille connection.
 You can choose between:
 
 * Off (No notifications)
