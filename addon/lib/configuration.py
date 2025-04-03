@@ -3,12 +3,12 @@
 # License: GNU General Public License version 2.0
 
 from enum import unique
-from typing import Any
+from typing import Any, Self
 
 import addonHandler
 import config
 import versionInfo
-from utils.displayString import DisplayStringIntFlag
+from utils.displayString import DisplayStringIntEnum, DisplayStringIntFlag
 
 addonHandler.initTranslation()
 ConfigT = dict[str, Any]
@@ -31,7 +31,7 @@ class OperatingMode(DisplayStringIntFlag):
 
 
 @unique
-class ConnectionNotifications(DisplayStringIntFlag):
+class ConnectionNotifications(DisplayStringIntEnum):
 	"""Enumeration containing the possible config values for connection notifications.
 
 	Use ConnectionNotifications.MEMBER.value to compare with the config;
@@ -41,7 +41,7 @@ class ConnectionNotifications(DisplayStringIntFlag):
 	OFF = 0
 	MESSAGES = 1
 	SOUNDS = 2
-	MESSAGE_AND_SOUNDS = 3
+	MESSAGES_AND_SOUNDS = 3
 
 	@property
 	def _displayStringLabels(self):
@@ -52,7 +52,7 @@ class ConnectionNotifications(DisplayStringIntFlag):
 			ConnectionNotifications.MESSAGES: pgettext("connection notifications", "Messages"),
 			# Translators: A choice in a combo box in RDAccess settings for connection notifications.
 			ConnectionNotifications.SOUNDS: pgettext("connection notifications", "Sounds"),
-			ConnectionNotifications.MESSAGE_AND_SOUNDS: pgettext(
+			ConnectionNotifications.MESSAGES_AND_SOUNDS: pgettext(
 				"connection notifications",
 				# Translators: A choice in a combo box in RDAccess settings for connection notifications.
 				"Both Messages and sounds",

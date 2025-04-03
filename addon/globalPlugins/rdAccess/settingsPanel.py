@@ -107,7 +107,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 			mode.displayString
 			for mode in configuration.ConnectionNotifications
 			if configuration.SOUND_NOTIFICATIONS_SUPPORTED
-			or mode.value <= configuration.ConnectionNotifications.MESSAGE
+			or mode <= configuration.ConnectionNotifications.MESSAGES
 		]
 		self.connectionNotificationsList = clientGroup.addLabeledControl(
 			connectionNotificationsLabelText,
