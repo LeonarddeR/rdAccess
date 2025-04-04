@@ -159,7 +159,10 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def _initializeExistingPipes(self):
 		for match in namedPipe.getRdPipeNamedPipes():
-			self._handleNewPipe(directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED, match)
+			try:
+				self._handleNewPipe(directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED, match)
+			except Exception:
+				log.exception("Error initializing existing pipe")
 
 	def _handleNewPipe(self, action: directoryChanges.FileNotifyInformationAction, fileName: str):
 		if not fnmatch(fileName, namedPipe.RD_PIPE_GLOB_PATTERN):
