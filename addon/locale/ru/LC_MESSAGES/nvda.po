@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: rdAccess 0.5.0\n"
 "Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
 "POT-Creation-Date: 2023-07-31 03:58+0000\n"
-"PO-Revision-Date: 2024-07-26 23:07+0300\n"
+"PO-Revision-Date: 2025-03-29 17:13+0300\n"
 "Last-Translator: Ruslan Kolodyazhni <rupelodn@gmail.com>\n"
 "Language-Team: Danil Kostenkov <danilkostenkov38@gmail.com>\n"
 "Language: ru_RU\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
-"X-Generator: Poedit 3.4.4\n"
+"X-Generator: Poedit 3.5\n"
 
 #. Translators: Name for a remote braille display.
 msgid "Remote Braille"
@@ -25,7 +25,7 @@ msgstr "Удалённый брайль"
 
 #. Translators: Title of the diagnostics report dialog.
 msgid "RDAccess Diagnostics"
-msgstr ""
+msgstr "Диагностика RDAccess"
 
 #. Translators: The label for the NVDA Remote Desktop settings panel.
 #. Add-on summary, usually the user visible name of the addon.
@@ -75,7 +75,7 @@ msgstr "Включить поддержку &Citrix Workspace"
 
 #. Translators: The label for a button in RDAccess settings to open a diagnostics report.
 msgid "Open diagnostics report..."
-msgstr ""
+msgstr "Открыть диагностический отчёт..."
 
 msgid ""
 "You need to enable remote destkop accessibility support for at least "
@@ -123,9 +123,3 @@ msgid ""
 msgstr ""
 "Позволяет использовать речь и Брайль в Microsoft Remote Desktop, Citrix "
 "Workspace и VMware Horizon"
-
-#~ msgid "Remote Desktop"
-#~ msgstr "Uzak Masaüstü"
-
-#~ msgid "&Enable NVDA RD for"
-#~ msgstr "Aşağıdakiler için NVDA RD'yi &etkinleştir"

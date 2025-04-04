@@ -1,8 +1,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: RdAccess\n"
-"POT-Creation-Date: 2024-07-14 16:28+0300\n"
-"PO-Revision-Date: 2024-07-18 22:19+0800\n"
+"Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
+"POT-Creation-Date: 2025-03-30 16:10+0800\n"
+"PO-Revision-Date: 2025-03-30 16:15+0800\n"
 "Last-Translator: Alan <alanzhangcn22@gmail.com>\n"
 "Language-Team: nvdacn.com\n"
 "Language: zh_CN\n"
@@ -11,7 +12,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Poedit 3.4.4\n"
+"X-Generator: Poedit 3.5\n"
 "X-Poedit-Basepath: ../../..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-SearchPath-0: brailleDisplayDrivers\n"
@@ -20,84 +21,125 @@ msgstr ""
 "X-Poedit-SearchPath-3: synthDrivers\n"
 "X-Poedit-SearchPath-4: installTasks.py\n"
 
-#: brailleDisplayDrivers/remote.py:24
+#. Translators: Name for a remote braille display.
+#: addon\brailleDisplayDrivers\remote.py:23
 msgid "Remote Braille"
 msgstr "远程盲文"
 
-#: globalPlugins/rdAccess/settingsPanel.py:28
+#. Translators: Title of the diagnostics report dialog.
+#: addon\globalPlugins\rdAccess\diagnostics.py:126
+msgid "RDAccess Diagnostics"
+msgstr "RDAccess 诊断"
+
+#. Translators: The label for the NVDA Remote Desktop settings panel.
+#. Add-on summary, usually the user visible name of the addon.
+#. Translators: Summary for this add-on
+#. to be shown on installation and add-on information found in Add-ons Manager.
+#: addon\globalPlugins\rdAccess\settingsPanel.py:30 buildVars.py:23
 msgid "Remote Desktop Accessibility"
-msgstr "远程桌面辅助功能"
+msgstr "远程桌面无障碍"
 
-#: globalPlugins/rdAccess/settingsPanel.py:34
+#. Translators: The label for a list of check boxes in RDAccess settings to set operating mode.
+#: addon\globalPlugins\rdAccess\settingsPanel.py:36
 msgid "&Enable remote desktop accessibility for"
-msgstr "启用远程桌面访问(&E)"
+msgstr "为以下项启用远程桌面无障碍(&E)"
 
-#: globalPlugins/rdAccess/settingsPanel.py:50
+#. Translators: This is the label for a group of options in the
+#. Remote Desktop settings panel.
+#: addon\globalPlugins\rdAccess\settingsPanel.py:52
 msgid "Server"
 msgstr "服务器"
 
-#: globalPlugins/rdAccess/settingsPanel.py:58
+#. Translators: The label for a setting in RDAccess settings to enable
+#. automatic recovery of remote speech when the connection was lost.
+#: addon\globalPlugins\rdAccess\settingsPanel.py:60
 msgid "&Automatically recover remote speech after connection loss"
-msgstr "连接丢失后自动恢复远程语音（&A ）"
+msgstr "连接丢失后自动恢复远程语音(&A)"
 
-#: globalPlugins/rdAccess/settingsPanel.py:66
+#. Translators: This is the label for a group of options in the
+#. Remote Desktop settings panel.
+#: addon\globalPlugins\rdAccess\settingsPanel.py:68
 msgid "Client"
 msgstr "客户端"
 
-#: globalPlugins/rdAccess/settingsPanel.py:74
+#. Translators: The label for a setting in RDAccess settings to enable
+#. support for exchanging driver settings between the local and the remote system.
+#: addon\globalPlugins\rdAccess\settingsPanel.py:76
 msgid "&Allow remote system to control driver settings"
-msgstr "允许远程系统控制驱动程序设置（&A）"
+msgstr "允许远程系统控制驱动程序设置(&A)"
 
-#: globalPlugins/rdAccess/settingsPanel.py:82
+#. Translators: The label for a setting in RDAccess settings to enable
+#. persistent registration of RD Pipe to the Windows registry.
+#: addon\globalPlugins\rdAccess\settingsPanel.py:84
 msgid "&Persist client support when exiting NVDA"
-msgstr "退出 NVDA 时保持客户端支持（&P）"
+msgstr "退出 NVDA 时保持客户端支持(&P)"
 
-#: globalPlugins/rdAccess/settingsPanel.py:90
+#. Translators: The label for a setting in RDAccess settings to enable
+#. registration of RD Pipe to the Windows registry for remote desktop support.
+#: addon\globalPlugins\rdAccess\settingsPanel.py:92
 msgid "Enable Microsoft &Remote Desktop support"
-msgstr "启用 Microsoft 远程桌面支持（&R）"
+msgstr "启用 Microsoft 远程桌面支持(&R)"
 
-#: globalPlugins/rdAccess/settingsPanel.py:98
+#. Translators: The label for a setting in RDAccess settings to enable
+#. registration of RD Pipe to the Windows registry for Citrix support.
+#: addon\globalPlugins\rdAccess\settingsPanel.py:100
 msgid "Enable &Citrix Workspace support"
-msgstr "启用Citrix Workspace 支持（&C）"
+msgstr "启用 Citrix Workspace 支持(&C)"
 
-#: globalPlugins/rdAccess/settingsPanel.py:123
+#. Translators: The label for a button in RDAccess settings to open a diagnostics report.
+#: addon\globalPlugins\rdAccess\settingsPanel.py:105
+msgid "Open diagnostics report..."
+msgstr "打开诊断报告..."
+
+#: addon\globalPlugins\rdAccess\settingsPanel.py:130
 msgid ""
 "You need to enable remote destkop accessibility support for at least "
 "incoming or outgoing connections."
-msgstr "您需要至少为传入或传出连接启用远程桌面可访问性支持。"
+msgstr "您至少需要为传入或传出连接启用远程桌面无障碍支持。"
 
-#: globalPlugins/rdAccess/settingsPanel.py:127
+#. Translators: The title of the message box
+#: addon\globalPlugins\rdAccess\settingsPanel.py:134
 msgid "Error"
 msgstr "错误"
 
-#: installTasks.py:27
+#: addon\lib\configuration.py:26
+msgid "Incoming connections (Remote Desktop Server)"
+msgstr "传入连接（远程桌面服务器）"
+
+#: addon\lib\configuration.py:27
+msgid "Outgoing connections (Remote Desktop Client)"
+msgstr "传出连接（远程桌面客户端）"
+
+#: addon\lib\configuration.py:28
+msgid "Secure Desktop pass through"
+msgstr "安全桌面直通"
+
+#. Translators: Name for a remote braille display.
+#: addon\synthDrivers\remote.py:33
+msgid "Remote speech"
+msgstr "远程语音"
+
+#. Translators: The name of a remote synthesizer setting to select the fallback synthesizer.
+#: addon\synthDrivers\remote.py:45
+msgid "&Fallback synthesizer"
+msgstr "备用合成器(&F)"
+
+#: addon\installTasks.py:27
 msgid ""
 "This add-on was previously called NVDA Remote Desktop. You have an installed "
 "version of that add-on. Would you like to update to RDAccess?"
 msgstr ""
-"该附加组件以前称为 NVDA 远程桌面。您已经安装了该附加组件的版本。您想更新到 "
+"该插件以前称为 NVDA Remote Desktop 您当前安装了该插件的旧版本。您想更新到 "
 "RDAccess 吗？"
 
-#: installTasks.py:32
+#. Translators: question title
+#: addon\installTasks.py:32
 msgid "Previous version detected"
 msgstr "检测到以前的版本"
 
-#: lib/configuration.py:25
-msgid "Incoming connections (Remote Desktop Server)"
-msgstr "传入连接（远程桌面服务器）"
-
-#: lib/configuration.py:26
-msgid "Outgoing connections (Remote Desktop Client)"
-msgstr "传出连接（远程桌面客户端）"
-
-#: lib/configuration.py:27
-msgid "Secure Desktop pass through"
-msgstr "安全桌面直通"
-
-#: synthDrivers/remote.py:34
-msgid "Remote speech"
-msgstr "远程语音"
-
-#: synthDrivers/remote.py:46
-msgid "&Fallback synthesizer"
-msgstr "备用合成器（&F）"
+#: buildVars.py:27
+msgid ""
+"Allows using speech and braille with Microsoft Remote Desktop, Citrix "
+"Workspace and VMware Horizon"
+msgstr ""
+"允许在微软远程桌面、Citrix Workspace 和 VMware Horizon 中使用语音和盲文"
