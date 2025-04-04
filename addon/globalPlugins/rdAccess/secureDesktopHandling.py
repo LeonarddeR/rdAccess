@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import os.path
+import sys
 import typing
 import weakref
 
@@ -53,3 +54,14 @@ class SecureDesktopHandler(AutoPropertyObject):
 		sdPort = os.path.join(namedPipe.PIPE_DIRECTORY, sdId)
 		handler = handlerType(self._ioThreadRef(), sdPort, False)
 		return handler
+
+
+def isAddonAvailableInSystemConfig() -> bool:
+	"""Check if the addon is available in the system configuration."""
+	addonPath = os.path.join(sys.prefix, "systemConfig", "addons", addon.name)
+	try:
+		addonHandler.Addon(addonPath)
+	except Exception:
+		log.debugWarning(f"Couldn't load addon from path: {addonPath!r}", exc_info=True)
+		return False
+	return True
