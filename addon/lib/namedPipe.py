@@ -13,7 +13,7 @@ from ctypes import (
 	sizeof,
 	windll,
 )
-from ctypes.wintypes import BOOL, DWORD, HANDLE, LPCWSTR
+from ctypes.wintypes import BOOL, DWORD, HANDLE, LPCWSTR, LPVOID
 from enum import IntFlag
 from glob import iglob
 
@@ -39,7 +39,16 @@ ERROR_PIPE_BUSY = 0xE7
 PIPE_DIRECTORY = "\\\\.\\pipe\\"
 RD_PIPE_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
 SECURE_DESKTOP_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "NVDA_SD-*")
+SECURITY_DESCRIPTOR_REVISION = 1
+SDDL_ALLOW_SYSTEM = "(A;;GA;;;SY)"
 TH32CS_SNAPPROCESS = 0x00000002
+windll.advapi32.ConvertStringSecurityDescriptorToSecurityDescriptorW.argtypes = [
+	LPCWSTR,
+	DWORD,
+	POINTER(LPVOID),
+	POINTER(DWORD),
+]
+windll.advapi32.ConvertStringSecurityDescriptorToSecurityDescriptorW.restype = BOOL
 windll.kernel32.CreateNamedPipeW.restype = HANDLE
 windll.kernel32.CreateNamedPipeW.argtypes = (
 	LPCWSTR,
@@ -154,8 +163,24 @@ class NamedPipeServer(NamedPipeBase):
 			PipeOpenMode.ACCESS_DUPLEX | PipeOpenMode.OVERLAPPED | PipeOpenMode.FIRST_PIPE_INSTANCE
 		),
 		maxInstances: int = 1,
+		stringSecurityDescriptor: str | None = None,
 	):
 		log.debug(f"Initializing named pipe: Name={pipeName}")
+		if stringSecurityDescriptor:
+			p_security_descriptor = LPVOID()
+			if not windll.advapi32.ConvertStringSecurityDescriptorToSecurityDescriptorW(
+				stringSecurityDescriptor,
+				SECURITY_DESCRIPTOR_REVISION,
+				byref(p_security_descriptor),
+				None,
+			):
+				raise WinError()
+			sa = winKernel.SECURITY_ATTRIBUTES(
+				lpSecurityDescriptor=p_security_descriptor,
+				bInheritHandle=False,
+			)
+		else:
+			sa = None
 		fileHandle = windll.kernel32.CreateNamedPipeW(
 			pipeName,
 			pipeOpenMode,
@@ -164,7 +189,7 @@ class NamedPipeServer(NamedPipeBase):
 			onReceiveSize,
 			onReceiveSize,
 			0,
-			None,
+			byref(sa) if sa else None,
 		)
 		if fileHandle == INVALID_HANDLE_VALUE:
 			raise WinError()
