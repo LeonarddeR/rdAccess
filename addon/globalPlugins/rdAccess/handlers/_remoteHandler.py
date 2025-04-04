@@ -67,7 +67,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 				onReceive=self._onReceive,
 				onConnected=self._onConnected,
 				ioThreadEx=ioThread,
-				stringSecurityDescriptor=namedPipe.SDDL_ALLOW_SYSTEM_DENY_EVERYONE,
+				stringSecurityDescriptor=namedPipe.SDDL_ALLOW_SYSTEM,
 			)
 
 	def __init__(

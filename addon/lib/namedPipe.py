@@ -40,7 +40,7 @@ PIPE_DIRECTORY = "\\\\.\\pipe\\"
 RD_PIPE_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
 SECURE_DESKTOP_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "NVDA_SD-*")
 SECURITY_DESCRIPTOR_REVISION = 1
-SDDL_ALLOW_SYSTEM_DENY_EVERYONE = "D:(A;;GA;;;SY)(D;;GA;;;W	D)"
+SDDL_ALLOW_SYSTEM = "(A;;GA;;;SY)"
 TH32CS_SNAPPROCESS = 0x00000002
 windll.advapi32.ConvertStringSecurityDescriptorToSecurityDescriptorW.argtypes = [
 	LPCWSTR,
