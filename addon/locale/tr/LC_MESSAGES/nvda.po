@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: rdAccess 0.5.0\n"
+"Project-Id-Version: Uzak Masaüstü Erişilebilirliği\n"
 "Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
 "POT-Creation-Date: 2023-07-31 03:58+0000\n"
-"PO-Revision-Date: 2023-08-05 13:38+0300\n"
+"PO-Revision-Date: 2025-03-29 00:01+0300\n"
 "Last-Translator: Umut KORKMAZ <umutkork@gmail.com>\n"
 "Language-Team: Umut KORKMAZ <umutkork@gmail.com>\n"
 "Language: tr_TR\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.3.2\n"
+"X-Generator: Poedit 3.5\n"
 
 #. Translators: Name for a remote braille display.
 msgid "Remote Braille"
@@ -24,7 +24,7 @@ msgstr "Uzak Braille"
 
 #. Translators: Title of the diagnostics report dialog.
 msgid "RDAccess Diagnostics"
-msgstr ""
+msgstr "Uzak Masaüstü Erişilebilirliği Tanılamaları"
 
 #. Translators: The label for the NVDA Remote Desktop settings panel.
 #. Add-on summary, usually the user visible name of the addon.
@@ -35,7 +35,7 @@ msgstr "Uzak Masaüstü Erişilebilirliği"
 
 #. Translators: The label for a list of check boxes in RDAccess settings to set operating mode.
 msgid "&Enable remote desktop accessibility for"
-msgstr "Şunlar için uzak masaüstü &erişilebilirliğini etkinleştirin:"
+msgstr "Aşağıdakiler için uzak masaüstü &erişilebilirliğini etkinleştir"
 
 #. Translators: This is the label for a group of options in the
 #. Remote Desktop settings panel.
@@ -74,7 +74,7 @@ msgstr "&Citrix Workspace desteğini etkinleştir"
 
 #. Translators: The label for a button in RDAccess settings to open a diagnostics report.
 msgid "Open diagnostics report..."
-msgstr ""
+msgstr "Tanılama raporunu aç..."
 
 msgid ""
 "You need to enable remote destkop accessibility support for at least "

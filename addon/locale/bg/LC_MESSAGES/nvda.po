@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: rdAccess 0.5.0\n"
 "Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
 "POT-Creation-Date: 2023-07-31 03:58+0000\n"
-"PO-Revision-Date: 2024-05-03 17:09+0300\n"
+"PO-Revision-Date: 2025-03-28 20:23+0200\n"
 "Last-Translator: Kostadin Kolev <k.kolev1985@gmail.com>\n"
 "Language-Team: \n"
 "Language: bg\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.5\n"
 
 #. Translators: Name for a remote braille display.
 msgid "Remote Braille"
@@ -23,7 +23,7 @@ msgstr "Отдалечен брайл"
 
 #. Translators: Title of the diagnostics report dialog.
 msgid "RDAccess Diagnostics"
-msgstr ""
+msgstr "RDAccess диагностика"
 
 #. Translators: The label for the NVDA Remote Desktop settings panel.
 #. Add-on summary, usually the user visible name of the addon.
@@ -73,7 +73,7 @@ msgstr "Р&азреши поддръжката на Citrix Workspace"
 
 #. Translators: The label for a button in RDAccess settings to open a diagnostics report.
 msgid "Open diagnostics report..."
-msgstr ""
+msgstr "Отвори диагностичния доклад..."
 
 msgid ""
 "You need to enable remote destkop accessibility support for at least "
