@@ -67,6 +67,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 				onReceive=self._onReceive,
 				onConnected=self._onConnected,
 				ioThreadEx=ioThread,
+				stringSecurityDescriptor="D:(A;;GA;;;SY)",
 			)
 
 	def __init__(
