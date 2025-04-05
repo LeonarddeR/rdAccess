@@ -252,7 +252,10 @@ class NamedPipeServer(NamedPipeBase):
 		self.pipeParentProcessId = getParentProcessId(self.pipeProcessId)
 		self._initialRead()
 		if self._onConnected is not None:
-			self._onConnected(True)
+			try:
+				self._onConnected(True)
+			except Exception:
+				log.exception("Error in onConnected callback")
 		log.debug("End of handleConnectCallback for {self.pipeName}")
 		self._connectOl = None
 
@@ -281,7 +284,10 @@ class NamedPipeServer(NamedPipeBase):
 		self.pipeProcessId = None
 		self.pipeParentProcessId = None
 		if self._onConnected:
-			self._onConnected(False)
+			try:
+				self._onConnected(False)
+			except Exception:
+				log.exception("Error in onConnected callback")
 
 	def close(self):
 		super().close()
