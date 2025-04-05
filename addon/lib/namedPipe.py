@@ -40,7 +40,7 @@ PIPE_DIRECTORY = "\\\\.\\pipe\\"
 RD_PIPE_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
 SECURE_DESKTOP_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "NVDA_SD-*")
 SECURITY_DESCRIPTOR_REVISION = 1
-SDDL_ALLOW_SYSTEM = "(A;;GA;;;SY)"
+SDDL_ALLOW_SYSTEM = "D:(A;;GA;;;SY)"
 TH32CS_SNAPPROCESS = 0x00000002
 windll.advapi32.ConvertStringSecurityDescriptorToSecurityDescriptorW.argtypes = [
 	LPCWSTR,
@@ -64,6 +64,8 @@ windll.kernel32.ConnectNamedPipe.restype = BOOL
 windll.kernel32.ConnectNamedPipe.argtypes = (HANDLE, LPOVERLAPPED)
 windll.kernel32.DisconnectNamedPipe.restype = BOOL
 windll.kernel32.DisconnectNamedPipe.argtypes = (HANDLE,)
+windll.kernel32.LocalFree.argtypes = (LPVOID,)
+windll.kernel32.LocalFree.restype = LPVOID
 
 
 def getParentProcessId(processId: int) -> int | None:
@@ -166,8 +168,8 @@ class NamedPipeServer(NamedPipeBase):
 		stringSecurityDescriptor: str | None = None,
 	):
 		log.debug(f"Initializing named pipe: Name={pipeName}")
+		p_security_descriptor = LPVOID()
 		if stringSecurityDescriptor:
-			p_security_descriptor = LPVOID()
 			if not windll.advapi32.ConvertStringSecurityDescriptorToSecurityDescriptorW(
 				stringSecurityDescriptor,
 				SECURITY_DESCRIPTOR_REVISION,
@@ -194,6 +196,8 @@ class NamedPipeServer(NamedPipeBase):
 		if fileHandle == INVALID_HANDLE_VALUE:
 			raise WinError()
 		log.debug(f"Initialized named pipe: Name={pipeName}, handle={fileHandle}")
+		if p_security_descriptor and windll.kernel32.LocalFree(p_security_descriptor):
+			raise WinError()
 		self._onConnected = onConnected
 		super().__init__(
 			pipeName,
