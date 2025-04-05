@@ -101,6 +101,18 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		self.citrixSupportCheckbox = clientGroup.addItem(wx.CheckBox(clientGroupBox, label=citrixSupportText))
 		self.citrixSupportCheckbox.Value = configuration.getCitrixSupport()
 
+		# The label for a combobox in RDAccess settings to control connection notifications.
+		connectionNotificationsLabelText = _("&Notify of connection changes with")
+		connectionNotificationsChoices = [
+			mode.displayString for mode in configuration.ConnectionNotifications
+		]
+		self.connectionNotificationsList = clientGroup.addLabeledControl(
+			connectionNotificationsLabelText,
+			wx.Choice,
+			choices=connectionNotificationsChoices,
+		)
+		self.connectionNotificationsList.Selection = configuration.getConnectionNotifications()
+
 		# Translators: The label for a button in RDAccess settings to open a diagnostics report.
 		label = _("Open diagnostics report...")
 		self.openDiagnostics = sizer_helper.addItem(wx.Button(self, label=label))
@@ -118,6 +130,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		self.persistentRegistrationCheckbox.Enable(isClient and config.isInstalledCopy())
 		self.remoteDesktopSupportCheckbox.Enable(isClient)
 		self.citrixSupportCheckbox.Enable(isClient and rdPipe.isCitrixSupported())
+		self.connectionNotificationsList.Enable(isClient)
 		self.recoverRemoteSpeechCheckbox.Enable(
 			self.operatingModeList.IsChecked(self.operatingModes.index(configuration.OperatingMode.SERVER))
 		)
@@ -152,7 +165,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 			self.operatingModes.index(configuration.OperatingMode.CLIENT)
 		)
 		config.conf[configuration.CONFIG_SECTION_NAME][
-			configuration.DRIVER_settings_MANAGEMENT_SETTING_NAME
+			configuration.DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME
 		] = self.driverSettingsManagementCheckbox.IsChecked()
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.PERSISTENT_REGISTRATION_SETTING_NAME] = (
 			self.persistentRegistrationCheckbox.IsChecked() and isClient
@@ -163,5 +176,8 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.CITRIX_SETTING_NAME] = (
 			self.citrixSupportCheckbox.IsChecked() and rdPipe.isCitrixSupported()
 		)
+		config.conf[configuration.CONFIG_SECTION_NAME][
+			configuration.CONNECTION_NOTIFICATIONS_SETTING_NAME
+		] = self.connectionNotificationsList.Selection
 
 		self.post_onSave.notify()

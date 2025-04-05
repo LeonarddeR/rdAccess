@@ -13,7 +13,7 @@ from ctypes import (
 	sizeof,
 	windll,
 )
-from ctypes.wintypes import BOOL, DWORD, HANDLE, LPCWSTR
+from ctypes.wintypes import BOOL, DWORD, HANDLE, LPCWSTR, LPVOID
 from enum import IntFlag
 from glob import iglob
 
@@ -36,10 +36,19 @@ from .ioThreadEx import IoThreadEx
 ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_CONNECTED = 0x217
 ERROR_PIPE_BUSY = 0xE7
-PIPE_DIRECTORY = "\\\\?\\pipe\\"
+PIPE_DIRECTORY = "\\\\.\\pipe\\"
 RD_PIPE_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
 SECURE_DESKTOP_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "NVDA_SD-*")
+SECURITY_DESCRIPTOR_REVISION = 1
+SDDL_ALLOW_SYSTEM = "(A;;GA;;;SY)"
 TH32CS_SNAPPROCESS = 0x00000002
+windll.advapi32.ConvertStringSecurityDescriptorToSecurityDescriptorW.argtypes = [
+	LPCWSTR,
+	DWORD,
+	POINTER(LPVOID),
+	POINTER(DWORD),
+]
+windll.advapi32.ConvertStringSecurityDescriptorToSecurityDescriptorW.restype = BOOL
 windll.kernel32.CreateNamedPipeW.restype = HANDLE
 windll.kernel32.CreateNamedPipeW.argtypes = (
 	LPCWSTR,
@@ -87,9 +96,7 @@ def getSecureDesktopNamedPipes() -> Iterator[str]:
 
 class PipeMode(IntFlag):
 	READMODE_BYTE = 0x00000000
-	READMODE_MESSAGE = 0x00000002
-	WAIT = 0x00000000
-	NOWAIT = 0x00000001
+	REJECT_REMOTE_CLIENTS = 0x00000008
 
 
 class PipeOpenMode(IntFlag):
@@ -110,7 +117,7 @@ MAX_PIPE_MESSAGE_SIZE = 1024 * 64
 class NamedPipeBase(IoBase):
 	pipeProcessId: int | None = None
 	pipeParentProcessId: int | None = None
-	pipeMode: PipeMode = PipeMode.READMODE_BYTE | PipeMode.WAIT
+	pipeMode: PipeMode
 	pipeName: str
 
 	def __init__(
@@ -142,6 +149,7 @@ class NamedPipeServer(NamedPipeBase):
 	_onConnected: Callable[[bool], None] | None = None
 	_waitObject: HANDLE | None = None
 	_connectOl: OVERLAPPED | None = None
+	_ioThreadRef: Callable[[], IoThreadEx]
 
 	def __init__(
 		self,
@@ -150,13 +158,29 @@ class NamedPipeServer(NamedPipeBase):
 		onReceiveSize: int = MAX_PIPE_MESSAGE_SIZE,
 		onConnected: Callable[[bool], None] | None = None,
 		ioThreadEx: IoThreadEx | None = None,
-		pipeMode: PipeMode = PipeMode.READMODE_BYTE,
+		pipeMode: PipeMode = PipeMode.READMODE_BYTE | PipeMode.REJECT_REMOTE_CLIENTS,
 		pipeOpenMode: PipeOpenMode = (
 			PipeOpenMode.ACCESS_DUPLEX | PipeOpenMode.OVERLAPPED | PipeOpenMode.FIRST_PIPE_INSTANCE
 		),
 		maxInstances: int = 1,
+		stringSecurityDescriptor: str | None = None,
 	):
 		log.debug(f"Initializing named pipe: Name={pipeName}")
+		if stringSecurityDescriptor:
+			p_security_descriptor = LPVOID()
+			if not windll.advapi32.ConvertStringSecurityDescriptorToSecurityDescriptorW(
+				stringSecurityDescriptor,
+				SECURITY_DESCRIPTOR_REVISION,
+				byref(p_security_descriptor),
+				None,
+			):
+				raise WinError()
+			sa = winKernel.SECURITY_ATTRIBUTES(
+				lpSecurityDescriptor=p_security_descriptor,
+				bInheritHandle=False,
+			)
+		else:
+			sa = None
 		fileHandle = windll.kernel32.CreateNamedPipeW(
 			pipeName,
 			pipeOpenMode,
@@ -165,7 +189,7 @@ class NamedPipeServer(NamedPipeBase):
 			onReceiveSize,
 			onReceiveSize,
 			0,
-			None,
+			byref(sa) if sa else None,
 		)
 		if fileHandle == INVALID_HANDLE_VALUE:
 			raise WinError()
@@ -245,6 +269,8 @@ class NamedPipeServer(NamedPipeBase):
 			super()._asyncRead()
 
 	def disconnect(self):
+		if not self._connected:
+			return
 		if not windll.kernel32.DisconnectNamedPipe(self._file):
 			raise WinError()
 		self._connected = False

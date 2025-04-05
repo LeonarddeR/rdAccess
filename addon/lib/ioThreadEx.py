@@ -4,15 +4,24 @@
 
 import threading
 from collections.abc import Callable
-from ctypes import POINTER, WINFUNCTYPE, WinError, addressof, byref, windll
+from ctypes import (
+	POINTER,
+	WINFUNCTYPE,
+	GetLastError,
+	WinError,
+	addressof,
+	byref,
+	windll,
+)
 from ctypes.wintypes import BOOL, BOOLEAN, DWORD, HANDLE, LPVOID
 from inspect import ismethod
+from typing import ClassVar
 
 import hwIo.ioThread
 import winKernel
 from extensionPoints.util import AnnotatableWeakref, BoundMethodWeakref
 from logHandler import log
-from serial.win32 import INVALID_HANDLE_VALUE
+from serial.win32 import ERROR_IO_PENDING
 
 WT_EXECUTEINWAITTHREAD = 0x4
 WT_EXECUTELONGFUNCTION = 0x10
@@ -41,7 +50,13 @@ windll.kernel32.RegisterWaitForSingleObject.argtypes = (
 
 
 class IoThreadEx(hwIo.ioThread.IoThread):
-	_waitOrTimerCallbackStore: WaitOrTimerCallbackStoreT = {}
+	"""
+	IoThreadEx is an extended implementation of the hwIo.ioThread.IoThread class, providing
+	additional functionality for handling asynchronous wait operations with callbacks.
+
+	"""
+
+	_waitOrTimerCallbackStore: ClassVar[WaitOrTimerCallbackStoreT] = {}
 
 	@WaitOrTimerCallback
 	def _internalWaitOrTimerCallback(param: WaitOrTimerCallbackIdT, timerOrWaitFired: bool):
@@ -82,7 +97,9 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 
 	@staticmethod
 	def _postWaitOrTimerCallback(waitObject):
-		windll.kernel32.UnregisterWaitEx(waitObject, INVALID_HANDLE_VALUE)
+		if not windll.kernel32.UnregisterWait(waitObject):
+			if GetLastError() != ERROR_IO_PENDING:
+				raise WinError()
 
 	def waitForSingleObjectWithCallback(
 		self,
@@ -92,6 +109,33 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 		flags=WT_EXECUTELONGFUNCTION | WT_EXECUTEONLYONCE,
 		waitTime=winKernel.INFINITE,
 	):
+		"""
+		Registers a wait operation for a single object with a callback function to be executed
+		when the wait is signaled or times out.
+
+		Args:
+			objectHandle: The handle to the object to wait on.
+			func: The callback function to execute when the wait is signaled
+				or times out. This can be a bound method or a callable object.
+			param: A parameter to pass to the callback function. Defaults to 0.
+			flags: Flags that control the behavior of the wait operation. Defaults
+				to WT_EXECUTELONGFUNCTION | WT_EXECUTEONLYONCE.
+			waitTime: The timeout interval, in milliseconds. Defaults to
+				winKernel.INFINITE.
+
+		Raises:
+			RuntimeError: If the thread is not running.
+			WinError: If the registration of the wait operation fails.
+
+		Notes:
+			- The callback function is stored as a weak reference to avoid circular references.
+			- The wait operation is registered using the Windows API function
+				`RegisterWaitForSingleObject`.
+			- The `_waitOrTimerCallbackStore` dictionary is used to manage the state of the wait
+				operation and its associated callback.
+
+		"""
+
 		if not self.is_alive():
 			raise RuntimeError("Thread is not running")
 

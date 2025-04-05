@@ -25,31 +25,32 @@ This enables a user experience where managing a remote system feels as seamless 
 
 ### Version 1.5
 
-- Add the ability to create a debugging diagnostics report by means of a button in the RDAccess settings panel [#23](https://github.com/leonardder/rdAccess/pull/23).
-- Support for multi-line braille displays in NVDA 2025.1 and newer [#19](https://github.com/leonardder/rdAccess/pull/13).
-- The minimum compatible NVDA version is now 2024.1. Removed support for earlier versions.
-- Updated RdPipe dependency.
-- Updated translations.
+* Add the ability to create a debugging diagnostics report by means of a button in the RDAccess settings panel [#23](https://github.com/leonardder/rdAccess/pull/23).
+* Support for multi-line braille displays in NVDA 2025.1 and newer [#19](https://github.com/leonardder/rdAccess/pull/13).
+* The minimum compatible NVDA version is now 2024.1. Removed support for earlier versions.
+* Added client connection notifications [#25](https://github.com/leonardder/rdAccess/pull/25).
+* Updated RdPipe dependency.
+* Updated translations.
 
 ### Version 1.4
 
-- New stable release.
+* New stable release.
 
 ### Version 1.3
 
-- Fixed broken braille display gestures.
+* Fixed broken braille display gestures.
 
 ### Version 1.2
 
-- Use [Ruff](https://github.com/astral-sh/ruff) as a formatter and linter. [#13](https://github.com/leonardder/rdAccess/pull/13).
-- Fixed an issue where NVDA on the client generates an error when pausing speech on the server.
-- Fixed support for `winAPI.secureDesktop.post_secureDesktopStateChange`.
-- Improved driver initialization on the server.
+* Use [Ruff](https://github.com/astral-sh/ruff) as a formatter and linter. [#13](https://github.com/leonardder/rdAccess/pull/13).
+* Fixed an issue where NVDA on the client generates an error when pausing speech on the server.
+* Fixed support for `winAPI.secureDesktop.post_secureDesktopStateChange`.
+* Improved driver initialization on the server.
 
 ### Version 1.1
 
-- Added support for NVDA 2023.3 style device registration for automatic detection of braille displays. [#11](https://github.com/leonardder/rdAccess/pull/11).
-- Added support for NVDA 2024.1 Alpha `winAPI.secureDesktop.post_secureDesktopStateChange` extension point. [#12](https://github.com/leonardder/rdAccess/pull/12).
+* Added support for NVDA 2023.3 style device registration for automatic detection of braille displays. [#11](https://github.com/leonardder/rdAccess/pull/11).
+* Added support for NVDA 2024.1 Alpha `winAPI.secureDesktop.post_secureDesktopStateChange` extension point. [#12](https://github.com/leonardder/rdAccess/pull/12).
 
 ### Version 1.0
 
@@ -113,7 +114,19 @@ This option is available only under the following conditions:
 * Citrix Workspace is installed. Note that the Windows Store version of the app is not supported due to limitations in the app itself.
 * It is possible to register RDAccess under the current user context. After installing the app, you have to start a remote session once to enable this.
 
-### Open diagnostics report...
+### Notify of connection changes with
+
+This combo box allows you to control notifications received when a remote system opens or closes the remote speech or braille connection.
+You can choose between:
+
+* Off (No notifications)
+* Messages (e.g. "Remote braille connected")
+* Sounds (NVDA 2025.1+)
+* Both messages and sounds
+
+Note that sounds are not available on NVDA versions older than 2025.1. Beeps will be used on older versions.
+
+### Open diagnostics report
 
 This button opens a browsable message with JSON output containing several diagnostics that can possibly aid in debugging.
 When [filing an issue at GitHub][4], you might be asked to provide this report.

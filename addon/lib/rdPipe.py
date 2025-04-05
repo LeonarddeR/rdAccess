@@ -66,7 +66,7 @@ def execRegsrv(params: list[str], architecture: Architecture = DEFAULT_ARCHITECT
 	startupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 	startupInfo.wShowWindow = subprocess.SW_HIDE
 	try:
-		subprocess.check_call([regsvr32] + params, startupinfo=startupInfo)
+		subprocess.check_call([regsvr32, *params], startupinfo=startupInfo)
 		return True
 	except subprocess.CalledProcessError as e:
 		log.warning(f"Error calling {regsvr32!r} with arguments {params!r}: {e}")

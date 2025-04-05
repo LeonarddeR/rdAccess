@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import os.path
+import sys
 import typing
 import weakref
 
@@ -12,6 +13,7 @@ import addonHandler
 import braille
 import synthDriverHandler
 from baseObject import AutoPropertyObject
+from logHandler import log
 
 from .handlers import RemoteBrailleHandler, RemoteSpeechHandler
 from .handlers._remoteHandler import RemoteHandler
@@ -33,6 +35,7 @@ class SecureDesktopHandler(AutoPropertyObject):
 	_speechHandler: RemoteSpeechHandler
 
 	def __init__(self, ioThread: ioThreadEx.IoThreadEx):
+		log.info("Initializing RDAccess secure desktop handling")
 		self._ioThreadRef = weakref.ref(ioThread)
 		braille.handler.display.saveSettings()
 		self._brailleHandler = self._initializeHandler(RemoteBrailleHandler)
@@ -40,6 +43,7 @@ class SecureDesktopHandler(AutoPropertyObject):
 		self._speechHandler = self._initializeHandler(RemoteSpeechHandler)
 
 	def terminate(self):
+		log.info("Terminating RDAccess secure desktop handling")
 		self._speechHandler.terminate()
 		braille.handler.display.loadSettings()
 		self._brailleHandler.terminate()
@@ -50,3 +54,14 @@ class SecureDesktopHandler(AutoPropertyObject):
 		sdPort = os.path.join(namedPipe.PIPE_DIRECTORY, sdId)
 		handler = handlerType(self._ioThreadRef(), sdPort, False)
 		return handler
+
+
+def isAddonAvailableInSystemConfig() -> bool:
+	"""Check if the addon is available in the system configuration."""
+	addonPath = os.path.join(sys.prefix, "systemConfig", "addons", addon.name)
+	try:
+		addonHandler.Addon(addonPath)
+	except Exception:
+		log.debugWarning(f"Couldn't load addon from path: {addonPath!r}", exc_info=True)
+		return False
+	return True

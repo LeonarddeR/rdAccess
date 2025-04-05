@@ -20,7 +20,7 @@ from winAPI.secureDesktop import post_secureDesktopStateChange
 
 from . import directoryChanges, handlers, settingsPanel
 from .objects import findExtraOverlayClasses
-from .secureDesktopHandling import SecureDesktopHandler
+from .secureDesktopHandling import SecureDesktopHandler, isAddonAvailableInSystemConfig
 from .synthDetect import _SynthDetector
 
 addon: addonHandler.Addon = addonHandler.getCodeAddon()
@@ -159,7 +159,10 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def _initializeExistingPipes(self):
 		for match in namedPipe.getRdPipeNamedPipes():
-			self._handleNewPipe(directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED, match)
+			try:
+				self._handleNewPipe(directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED, match)
+			except Exception:
+				log.exception("Error initializing existing pipe")
 
 	def _handleNewPipe(self, action: directoryChanges.FileNotifyInformationAction, fileName: str):
 		if not fnmatch(fileName, namedPipe.RD_PIPE_GLOB_PATTERN):
@@ -354,7 +357,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		nextHandler()
 
 	def _handleSecureDesktop(self, isSecureDesktop: bool):
-		if isSecureDesktop:
+		if isSecureDesktop and isAddonAvailableInSystemConfig():
 			self._sdHandler = SecureDesktopHandler(self._ioThread)
 		elif self._sdHandler:
 			self._sdHandler.terminate()

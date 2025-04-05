@@ -2,12 +2,19 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
+import os.path
 import sys
 import typing
 from abc import abstractmethod
 
 import addonHandler
 import api
+import globalVars
+import nvwave
+import speech
+import tones
+import ui
+import wx
 from driverHandler import Driver
 from extensionPoints import AccumulatingDecider
 from hwIo.ioThread import IoThread
@@ -60,6 +67,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 				onReceive=self._onReceive,
 				onConnected=self._onConnected,
 				ioThreadEx=ioThread,
+				stringSecurityDescriptor=namedPipe.SDDL_ALLOW_SYSTEM,
 			)
 
 	def __init__(
@@ -73,7 +81,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 		self.initIo(ioThread, pipeName, isNamedPipeClient)
 
 		if not self._isSecureDesktopHandler:
-			self._onConnected()
+			self._onConnected(True)
 		elif self._remoteSessionhasFocus is None:
 			self._remoteSessionhasFocus = False
 
@@ -82,6 +90,38 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			self._remoteSessionhasFocus = connected
 		if connected:
 			self._handleDriverChanged(self._driver)
+		wx.CallAfter(self._handleNotifications, connected)
+
+	def _handleNotifications(self, connected: bool):
+		notifications = configuration.getConnectionNotifications()
+		if notifications & configuration.ConnectionNotifications.MESSAGES:
+			match self.driverType:
+				case protocol.DriverType.SPEECH:
+					# Translators: Translation of the connection type in connection messages
+					driverTypeString = pgettext("connection type", "speech")
+				case protocol.DriverType.BRAILLE:
+					# Translators: Translation of the connection type in connection messages
+					driverTypeString = pgettext("connection type", "braille")
+
+			connectedString = (
+				# Translators: Translation of the connection status in connection messages.
+				_("connected")
+				if connected
+				# Translators: Translation of the connection status in connection messages.
+				else _("disconnected")
+			)
+			# Translators: Translation of the connection message.
+			# (E.g. "Remote braille/speech  connected/disconnected")
+			msg = _("Remote {} {}").format(driverTypeString, connectedString)
+			ui.message(msg, speechPriority=speech.speech.Spri.NEXT)
+		if notifications & configuration.ConnectionNotifications.SOUNDS:
+			wave = "connected" if connected else "disconnected"
+			wavePath = os.path.join(globalVars.appDir, "waves", f"{wave}.wav")
+			if os.path.isfile(wavePath):
+				nvwave.playWaveFile(wavePath)
+			else:
+				hz = 550 if connected else 137.5
+				tones.beep(hz, 100)
 
 	def event_gainFocus(self, _obj):
 		if self._isSecureDesktopHandler:
@@ -178,3 +218,8 @@ class RemoteHandler(protocol.RemoteProtocolHandler):
 			protocol.GenericAttribute.SUPPORTED_SETTINGS,
 			settings=driver.supportedSettings,
 		)
+
+	def terminate(self):
+		if not self._isSecureDesktopHandler:
+			self._onConnected(False)
+		super().terminate()
