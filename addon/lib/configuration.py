@@ -68,7 +68,7 @@ RECOVER_REMOTE_SPEECH_SETTING_NAME = "recoverRemoteSpeech"
 DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME = "driverSettingsManagement"
 CONNECTION_NOTIFICATIONS_SETTING_NAME = "connectionNotifications"
 CONFIG_SPEC = {
-	OPERATING_MODE_SETTING_NAME: "integer(default=3, min=1, max=7)",
+	OPERATING_MODE_SETTING_NAME: "integer(default=7, min=1, max=7)",
 	PERSISTENT_REGISTRATION_SETTING_NAME: "boolean(default=false)",
 	REMOTE_DESKTOP_SETTING_NAME: "boolean(default=true)",
 	CITRIX_SETTING_NAME: "boolean(default=true)",
