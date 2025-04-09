@@ -40,6 +40,10 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		"""
 		return super()._getModifierGestures.__func__(self, model)
 
+	def _handleRemoteDriverChange(self):
+		super()._handleRemoteDriverChange()
+		braille.handler.initialDisplay()
+
 	def _handleRemoteDisconnect(self):
 		# Raise an exception because handleDisplayUnavailable expects one
 		try:
