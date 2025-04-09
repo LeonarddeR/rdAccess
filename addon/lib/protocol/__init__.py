@@ -378,7 +378,7 @@ class RemoteProtocolHandler(AutoPropertyObject):
 		attribute, value = payload[1:].split(b"`", 1)
 		log.debug(f"Handling attribute {attribute!r} on {self!r}, value {value!r}")
 		if not value:
-			log.debug(f"No value sent for attribute {attribute!r} on {self!r}, direction outgoing")
+			log.debug(f"No value sent for attribute {attribute!r} on {self!r}, expecting a reply")
 			self._attributeSenderStore(attribute)
 		else:
 			log.debug(

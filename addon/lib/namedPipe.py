@@ -244,7 +244,7 @@ class NamedPipeServer(NamedPipeBase):
 			self._ioDone(error, 0, byref(self._connectOl))
 			return
 		self._connected = True
-		log.debug("Succesfully connected {self.pipeName}, handling post connection logic")
+		log.debug(f"Succesfully connected {self.pipeName}, handling post connection logic")
 		clientProcessId = c_ulong()
 		if not windll.kernel32.GetNamedPipeClientProcessId(HANDLE(self._file), byref(clientProcessId)):
 			raise WinError()
