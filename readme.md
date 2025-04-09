@@ -156,7 +156,7 @@ To report an issue or contribute, refer to [the issues page on Github][4].
 This add-on relies on [RD Pipe][5], a library written in Rust backing the remote desktop client support.
 RD Pipe is redistributed as part of this add-on under the terms of [version 3 of the GNU Affero General Public License][6].
 
-[[!tag dev beta]]
+[[!tag stable dev beta]]
 
 [1]: https://github.com/leonardder/
 

@@ -68,8 +68,8 @@ def execRegsrv(params: list[str], architecture: Architecture = DEFAULT_ARCHITECT
 	try:
 		subprocess.check_call([regsvr32, *params], startupinfo=startupInfo)
 		return True
-	except subprocess.CalledProcessError as e:
-		log.warning(f"Error calling {regsvr32!r} with arguments {params!r}: {e}")
+	except subprocess.CalledProcessError:
+		log.exception(f"Error calling {regsvr32!r} with arguments {params!r}")
 		return False
 
 
