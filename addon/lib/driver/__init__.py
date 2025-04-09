@@ -183,6 +183,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	def _handleRemoteDriverChange(self):
 		log.debug("Handling remote driver change")
+		self.invalidateCache()
 
 	def _get_supportedSettings(self):
 		settings = []
