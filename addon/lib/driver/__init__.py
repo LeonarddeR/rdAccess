@@ -112,6 +112,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		else:
 			raise RuntimeError("No remote device found")
 
+		self.invalidateCache()
 		if not isRunningOnSecureDesktop():
 			post_sessionLockStateChanged.register(self._handlePossibleSessionDisconnect)
 			post_secureDesktopStateChange.register(self._handlePossibleSessionDisconnect)
