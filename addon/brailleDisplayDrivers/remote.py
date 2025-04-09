@@ -40,7 +40,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		"""Hacky override that throws an instance at the underlying class method.
 		If we don't do this, the method can't acces the gesture map at the instance level.
 		"""
-		return super()._getModifierGestures.__func__(self, model)
+		return typing.cast(classmethod, super()._getModifierGestures).__func__(self, model)
 
 	def _handleRemoteDisconnect(self):
 		# Raise an exception because handleDisplayUnavailable expects one

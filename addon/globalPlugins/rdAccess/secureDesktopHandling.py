@@ -18,10 +18,10 @@ from logHandler import log
 from .handlers import RemoteBrailleHandler, RemoteSpeechHandler
 from .handlers._remoteHandler import RemoteHandler
 
+addon: addonHandler.Addon = addonHandler.getCodeAddon()
 if typing.TYPE_CHECKING:
 	from ...lib import ioThreadEx, namedPipe
 else:
-	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	ioThreadEx = addon.loadModule("lib.ioThreadEx")
 	namedPipe = addon.loadModule("lib.namedPipe")
 

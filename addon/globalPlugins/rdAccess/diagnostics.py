@@ -10,8 +10,10 @@ import addonHandler
 import ui
 import versionInfo
 import winVersion
+import wx
 from utils.security import isRunningOnSecureDesktop
 
+addon: addonHandler.Addon = addonHandler.getCodeAddon()
 if typing.TYPE_CHECKING:
 	from ...lib import (
 		configuration,
@@ -20,7 +22,6 @@ if typing.TYPE_CHECKING:
 		wtsVirtualChannel,
 	)
 else:
-	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	configuration = addon.loadModule("lib.configuration")
 	namedPipe = addon.loadModule("lib.namedPipe")
 	rdPipe = addon.loadModule("lib.rdPipe")
@@ -117,7 +118,7 @@ def getDiagnosticsReport() -> str:
 	)
 
 
-def showDiagnosticsReport():
+def showDiagnosticsReport(_evt: wx.CommandEvent | None = None):
 	kwargs = dict(
 		message=getDiagnosticsReport(),
 		# Translators: Title of the diagnostics report dialog.

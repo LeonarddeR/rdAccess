@@ -129,7 +129,7 @@ def initializeConfig():
 
 def updateConfigCache():
 	global _cachedConfig
-	_cachedConfig = config.conf[CONFIG_SECTION_NAME].copy()
+	_cachedConfig = config.conf[CONFIG_SECTION_NAME].copy()  # type: ignore
 
 
 def getConfigCache(ensureUpdated: bool = True) -> ConfigT:

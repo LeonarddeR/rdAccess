@@ -30,14 +30,14 @@ else:
 
 
 MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS = 200
+DriverT = typing.TypeVar("DriverT", bound=Driver)
 
 
-class RemoteHandler(protocol.RemoteProtocolHandler):
-	_dev: namedPipe.NamedPipeBase
+class RemoteHandler(protocol.RemoteProtocolHandler[namedPipe.NamedPipeBase], typing.Generic[DriverT]):
 	decide_remoteDisconnect: AccumulatingDecider
 	_isSecureDesktopHandler: bool = False
 	_remoteSessionhasFocus: bool | None = None
-	_driver: Driver
+	_driver: DriverT
 	_abstract__driver = True
 
 	def _get__driver(self) -> Driver:

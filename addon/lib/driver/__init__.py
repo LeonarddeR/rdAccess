@@ -37,11 +37,11 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	)
 
 	@classmethod
-	def check(cls):
+	def check(cls) -> bool:
 		return any(cls._getAutoPorts())
 
 	@classmethod
-	def _getAutoPorts(cls, _usb=True, _bluetooth=True) -> Iterable[bdDetect.DeviceMatch]:
+	def _getAutoPorts(cls, usb=True, bluetooth=True) -> Iterable[bdDetect.DeviceMatch]:  # noqa: ARG003
 		for driver, match in bgScanRD(cls.driverType, [cls.name]):
 			assert driver == cls.name
 			yield match
@@ -50,7 +50,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	def _getTryPorts(cls, port: str | bdDetect.DeviceMatch) -> Iterator[bdDetect.DeviceMatch]:
 		if isinstance(port, bdDetect.DeviceMatch):
 			yield port
-		elif isinstance(port, str):
+		else:
 			assert port == "auto"
 			yield from cls._getAutoPorts()
 
@@ -96,7 +96,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 					continue
 			else:
 				self._connected = True
-			handledAttributes = set()
+			handledAttributes = set[protocol.AttributeT]()
 			for attr in self._requiredAttributesOnInit:
 				if self._waitForAttributeUpdate(attr, initialTime):
 					handledAttributes.add(attr)
@@ -104,7 +104,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 					log.debugWarning(f"Error getting {attr}")
 
 			else:
-				if handledAttributes == self._requiredAttributesOnInit:
+				if handledAttributes == set(self._requiredAttributesOnInit):
 					log.debug(f"Required attributes received: {handledAttributes!r}")
 					break
 

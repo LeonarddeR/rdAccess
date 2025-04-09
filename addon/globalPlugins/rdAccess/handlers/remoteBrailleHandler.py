@@ -27,9 +27,8 @@ else:
 _supportsDisplayDimensions = versionInfo.version_year >= 2025
 
 
-class RemoteBrailleHandler(RemoteHandler):
+class RemoteBrailleHandler(RemoteHandler[braille.BrailleDisplayDriver]):
 	driverType = protocol.DriverType.BRAILLE
-	_driver: braille.BrailleDisplayDriver
 	_queuedWrite: list[int] | None = None
 	_queuedWriteLock: threading.Lock
 

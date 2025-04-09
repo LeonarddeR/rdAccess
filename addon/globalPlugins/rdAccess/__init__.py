@@ -21,7 +21,7 @@ from winAPI.secureDesktop import post_secureDesktopStateChange
 from . import directoryChanges, handlers, settingsPanel
 from .objects import findExtraOverlayClasses
 from .secureDesktopHandling import SecureDesktopHandler, isAddonAvailableInSystemConfig
-from .synthDetect import _SynthDetector
+from .synthDetect import SynthDetector
 
 addon: addonHandler.Addon = addonHandler.getCodeAddon()
 
@@ -29,7 +29,6 @@ addon: addonHandler.Addon = addonHandler.getCodeAddon()
 if typing.TYPE_CHECKING:
 	from ...lib import (
 		configuration,
-		detection,
 		ioThreadEx,
 		namedPipe,
 		protocol,
@@ -37,7 +36,6 @@ if typing.TYPE_CHECKING:
 	)
 else:
 	configuration = addon.loadModule("lib.configuration")
-	detection = addon.loadModule("lib.detection")
 	ioThreadEx = addon.loadModule("lib.ioThreadEx")
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")
@@ -45,7 +43,7 @@ else:
 
 
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
-	_synthDetector: _SynthDetector | None = None
+	_synthDetector: SynthDetector | None = None
 	_ioThread: ioThreadEx.IoThreadEx | None = None
 
 	def chooseNVDAObjectOverlayClasses(self, obj: NVDAObject, clsList: list[type[NVDAObject]]):
@@ -97,7 +95,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def initializeOperatingModeServer(self):
 		if configuration.getRecoverRemoteSpeech():
-			self._synthDetector = _SynthDetector()
+			self._synthDetector = SynthDetector()
 		self._triggerBackgroundDetectRescan(
 			rescanBraille=False,
 			force=True,
@@ -281,7 +279,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			newRecoverRemoteSpeech = configuration.getRecoverRemoteSpeech(False)
 			if oldRecoverRemoteSpeech is not newRecoverRemoteSpeech:
 				if newRecoverRemoteSpeech:
-					self._synthDetector = _SynthDetector()
+					self._synthDetector = SynthDetector()
 					self._synthDetector._queueBgScan()
 				elif self._synthDetector:
 					self._synthDetector.terminate()
