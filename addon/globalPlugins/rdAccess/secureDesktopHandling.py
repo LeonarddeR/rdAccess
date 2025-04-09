@@ -5,12 +5,12 @@
 from __future__ import annotations
 
 import os.path
-import sys
 import typing
 import weakref
 
 import addonHandler
 import braille
+import installer
 import synthDriverHandler
 from baseObject import AutoPropertyObject
 from logHandler import log
@@ -58,7 +58,7 @@ class SecureDesktopHandler(AutoPropertyObject):
 
 def isAddonAvailableInSystemConfig() -> bool:
 	"""Check if the addon is available in the system configuration."""
-	addonPath = os.path.join(sys.prefix, "systemConfig", "addons", addon.name)
+	addonPath = os.path.join(installer.getInstallPath(), "systemConfig", "addons", addon.name)
 	try:
 		addonHandler.Addon(addonPath)
 	except Exception:
