@@ -30,9 +30,11 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	name = "remote"
 	_settingsAccessor: SettingsAccessorBase | None = None
 	_isVirtualChannel: bool
-	_requiredAttributesOnInit: ClassVar[set[protocol.AttributeT]] = {
-		protocol.GenericAttribute.SUPPORTED_SETTINGS
-	}
+	_requiredAttributesOnInit: frozenset[protocol.AttributeT] = frozenset(
+		{
+			protocol.GenericAttribute.SUPPORTED_SETTINGS,
+		}
+	)
 
 	@classmethod
 	def check(cls):
@@ -103,7 +105,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 			else:
 				if handledAttributes == self._requiredAttributesOnInit:
-					log.debug("Required attributes received")
+					log.debug(f"Required attributes received: {handledAttributes!r}")
 					break
 
 			self._dev.close()
