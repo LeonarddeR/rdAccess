@@ -59,6 +59,7 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 	_waitOrTimerCallbackStore: ClassVar[WaitOrTimerCallbackStoreT] = {}
 
 	@WaitOrTimerCallback
+	@staticmethod
 	def _internalWaitOrTimerCallback(param: WaitOrTimerCallbackIdT, timerOrWaitFired: bool):
 		(
 			threadIdent,
@@ -104,7 +105,7 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 	def waitForSingleObjectWithCallback(
 		self,
 		objectHandle: HANDLE | int,
-		func: WaitOrTimerCallback,
+		func: WaitOrTimerCallback,  # type: ignore
 		param=0,
 		flags=WT_EXECUTELONGFUNCTION | WT_EXECUTEONLYONCE,
 		waitTime=winKernel.INFINITE,

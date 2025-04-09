@@ -112,7 +112,7 @@ class DirectoryWatcher(IoThread):
 		if not res:
 			raise WinError()
 
-	def _ioDone(self, error, numberOfBytes: int, _overlapped: LPOVERLAPPED):
+	def _ioDone(self, error, numberOfBytes: int, _overlapped: LPOVERLAPPED):  # type: ignore
 		if not self._watching:
 			# We stopped watching
 			return

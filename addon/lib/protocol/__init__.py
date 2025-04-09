@@ -135,7 +135,7 @@ class AttributeHandler(HandlerDecoratorBase, Generic[AttributeHandlerT]):
 class AttributeSender(AttributeHandler[attributeFetcherT]):
 	def __call__(
 		self,
-		protocolHandler: RemoteProtocolHandlerT,
+		protocolHandler: "RemoteProtocolHandler",
 		attribute: AttributeT,
 		*args,
 		**kwargs,
@@ -207,19 +207,20 @@ class CommandHandlerStore(HandlerRegistrar):
 		handler(payload)
 
 
-class AttributeHandlerStore(HandlerRegistrar, Generic[AttributeHandlerT]):
-	def _getRawHandler(self, attribute: AttributeT) -> AttributeHandlerT:
+class AttributeHandlerStore(HandlerRegistrar[AttributeHandler], Generic[AttributeHandlerT]):
+	def _getRawHandler(self, attribute: AttributeT) -> AttributeHandler:
 		handler = next((v for v in self.handlers if fnmatch(attribute, v._attribute)), None)
 		if handler is None:
 			raise NotImplementedError(f"No attribute sender for attribute {attribute}")
 		return handler
 
 	def _getHandler(self, attribute: AttributeT) -> AttributeHandlerT:
-		return partial(self._getRawHandler(attribute), attribute)
+		return cast(AttributeHandlerT, partial(self._getRawHandler(attribute), attribute))
 
 	def isAttributeSupported(self, attribute: AttributeT):
 		try:
-			return self._getHandler(attribute) is not None
+			self._getHandler(attribute)
+			return True
 		except NotImplementedError:
 			return False
 
@@ -231,7 +232,7 @@ class AttributeSenderStore(AttributeHandlerStore[attributeSenderT]):
 		handler(*args, **kwargs)
 
 
-class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
+class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
 	_valueTimes: defaultdict[AttributeT, float]
 	_values: dict[AttributeT, Any]
 	_pendingAttributeRequests: defaultdict[AttributeT, bool]
@@ -257,7 +258,7 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 	def hasNewValueSince(self, attribute: AttributeT, t: float) -> bool:
 		return t <= self._valueTimes[attribute]
 
-	def _getDefaultValue(self, attribute: AttributeT) -> AttributeValueT:
+	def _getDefaultValue(self, attribute: AttributeT) -> Any:
 		handler = self._getRawHandler(attribute)
 		log.debug(
 			f"Getting default value for attribute {attribute!r} on {self!r} "
@@ -266,7 +267,7 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 		getter = handler._defaultValueGetter.__get__(handler.__self__)
 		return getter(attribute)
 
-	def _invokeUpdateCallback(self, attribute: AttributeT, value: AttributeValueT):
+	def _invokeUpdateCallback(self, attribute: AttributeT, value: Any):
 		handler = self._getRawHandler(attribute)
 		if handler._updateCallback is not None:
 			callback = handler._updateCallback.__get__(handler.__self__)
@@ -296,8 +297,11 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiverT]):
 		self.setValue(attribute, value)
 
 
-class RemoteProtocolHandler(AutoPropertyObject):
-	_dev: IoBase
+IoTypeT = TypeVar("IoTypeT", bound=IoBase)
+
+
+class RemoteProtocolHandler(AutoPropertyObject, Generic[IoTypeT]):
+	_dev: IoTypeT
 	driverType: DriverType
 	_receiveBuffer: bytes
 	_commandHandlerStore: CommandHandlerStore

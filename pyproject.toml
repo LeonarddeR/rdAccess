@@ -56,16 +56,75 @@ ignore = [
 logger-objects = ["logHandler.log"]
 select = [
 	"A",  # flake8-builtins
-	"ARG",  # flake8-unused-arguments 
+	"ARG",  # flake8-unused-arguments
 	"B",  # flake8-bugbear
 	"C90", # mccabe
 	"E",  # pycodestyle Error
 	"F",  # Pyflakes
 	"FIX",  # flake8-fixme
 	"I",  # isort
-	"INT",  # flake8-gettext 
+	"INT",  # flake8-gettext
 	"PERF",  # Perflint
 	"RUF",  # RUFF
 	"UP",  # pyupgrade
 	"W",  # pycodestyle Warning
 ]
+
+[tool.pyright]
+venvPath = "../nvda/.venv"
+venv = "."
+pythonPlatform = "Windows"
+typeCheckingMode = "strict"
+
+include = [
+	"**/*.py",
+	"**/*.pyw",
+]
+
+exclude = [
+	"sconstruct",
+	".git",
+	"__pycache__",
+]
+
+extraPaths = [
+	"../nvda/source",
+	"../nvda/miscDeps/python",
+]
+
+deprecateTypingAliases = true
+strictListInference = true
+strictDictionaryInference = true
+strictSetInference = true
+
+reportDuplicateImport = true
+reportIncompleteStub = true
+reportInconsistentConstructor = true
+reportInvalidStringEscapeSequence = true
+reportInvalidStubStatement = true
+reportMatchNotExhaustive = true
+reportPropertyTypeMismatch = true
+reportShadowedImports = true
+reportTypeCommentUsage = true
+reportUnnecessaryCast = true
+reportUnnecessaryContains = true
+reportUnnecessaryTypeIgnoreComment = true
+reportUntypedClassDecorator = true
+reportUntypedFunctionDecorator = true
+reportUnusedClass = true
+reportMissingTypeStubs = false
+
+reportMissingTypeArgument = false
+reportIncompatibleMethodOverride = false
+reportPrivateUsage = false
+reportOptionalSubscript = false
+reportCallIssue = false
+reportOptionalMemberAccess = false
+reportIndexIssue = false
+reportAttributeAccessIssue = false
+reportArgumentType = false
+reportUnknownParameterType = false
+reportMissingParameterType = false
+reportUnknownVariableType = false
+reportUnknownArgumentType = false
+reportUnknownMemberType = false

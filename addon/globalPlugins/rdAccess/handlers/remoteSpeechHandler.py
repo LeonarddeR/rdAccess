@@ -25,9 +25,8 @@ else:
 	protocol = addon.loadModule("lib.protocol")
 
 
-class RemoteSpeechHandler(RemoteHandler):
+class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 	driverType = protocol.DriverType.SPEECH
-	_driver: synthDriverHandler.SynthDriver
 
 	def __init__(self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool = True):
 		self._indexesSpeaking = []

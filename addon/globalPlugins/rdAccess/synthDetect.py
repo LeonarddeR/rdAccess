@@ -23,7 +23,7 @@ else:
 	detection = addon.loadModule("lib.detection")
 
 
-class _SynthDetector(AutoPropertyObject):
+class SynthDetector(AutoPropertyObject):
 	def __init__(self):
 		remoteSynthDriver.synthRemoteDisconnected.register(self._handleRemoteDisconnect)
 		self._executor = ThreadPoolExecutor(1, thread_name_prefix=self.__class__.__name__)
@@ -32,7 +32,7 @@ class _SynthDetector(AutoPropertyObject):
 
 	currentSynthesizer: synthDriverHandler.SynthDriver
 
-	def _get_currentSynthesizer(self) -> synthDriverHandler.SynthDriver:
+	def _get_currentSynthesizer(self) -> synthDriverHandler.SynthDriver | None:
 		return synthDriverHandler.getSynth()
 
 	def _set_currentSynthesizer(self, synth):
