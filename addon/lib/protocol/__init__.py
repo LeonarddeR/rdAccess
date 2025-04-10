@@ -396,14 +396,12 @@ class RemoteProtocolHandler(AutoPropertyObject, Generic[IoTypeT]):
 		raise NotImplementedError
 
 	def writeMessage(self, command: CommandT, payload: bytes = b""):
-		data = bytes(
-			(
-				self.driverType,
-				command,
-				*len(payload).to_bytes(length=2, byteorder=sys.byteorder, signed=False),
-				*payload,
-			)
-		)
+		data = bytes((
+			self.driverType,
+			command,
+			*len(payload).to_bytes(length=2, byteorder=sys.byteorder, signed=False),
+			*payload,
+		))
 		self._dev.write(data)
 
 	def setRemoteAttribute(self, attribute: AttributeT, value: bytes):

@@ -6,7 +6,7 @@ import os.path
 import platform
 import subprocess
 import winreg
-from enum import Enum
+from enum import StrEnum
 
 import addonHandler
 import COMRegistrationFixes
@@ -45,7 +45,7 @@ def isCitrixSupported() -> bool:
 		return False
 
 
-class Architecture(str, Enum):
+class Architecture(StrEnum):
 	X86 = "x86"
 	AMD64 = "AMD64"
 	ARM64 = "ARM64"
@@ -73,7 +73,7 @@ def execRegsrv(params: list[str], architecture: Architecture = DEFAULT_ARCHITECT
 		return False
 
 
-class CommandFlags(str, Enum):
+class CommandFlags(StrEnum):
 	COM_SERVER = "c"
 	RDP = "r"
 	CITRIX = "x"

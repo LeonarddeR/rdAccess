@@ -22,6 +22,7 @@ Issues = "https://github.com/LeonarddeR/RDAccess.git/issues"
 
 [tool.ruff]
 fix = true
+preview=true
 line-length = 110
 builtins = [
 	# translation lookup
