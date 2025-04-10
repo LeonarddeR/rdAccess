@@ -104,7 +104,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 					log.debugWarning(f"Error getting {attr}")
 
 			else:
-				if handledAttributes == set(self._requiredAttributesOnInit):
+				if not (self._requiredAttributesOnInit - handledAttributes):
 					log.debug(f"Required attributes received: {handledAttributes!r}")
 					break
 
