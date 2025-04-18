@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: rdAccess 0.5.0\n"
 "Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
 "POT-Creation-Date: 2023-07-31 03:58+0000\n"
-"PO-Revision-Date: 2025-03-29 17:13+0300\n"
+"PO-Revision-Date: 2025-04-13 12:28+0300\n"
 "Last-Translator: Ruslan Kolodyazhni <rupelodn@gmail.com>\n"
 "Language-Team: Danil Kostenkov <danilkostenkov38@gmail.com>\n"
 "Language: ru_RU\n"
@@ -73,6 +73,10 @@ msgstr "Включить поддержку &удалённых рабочих �
 msgid "Enable &Citrix Workspace support"
 msgstr "Включить поддержку &Citrix Workspace"
 
+#. The label for a combobox in RDAccess settings to control connection notifications.
+msgid "&Notify of connection changes with"
+msgstr "&Уведомлять об изменениях подключения с помощью"
+
 #. Translators: The label for a button in RDAccess settings to open a diagnostics report.
 msgid "Open diagnostics report..."
 msgstr "Открыть диагностический отчёт..."
@@ -88,6 +92,29 @@ msgstr ""
 msgid "Error"
 msgstr "Ошибка"
 
+#. Translators: Translation of the connection type in connection messages
+msgctxt "connection type"
+msgid "speech"
+msgstr "речь"
+
+#. Translators: Translation of the connection type in connection messages
+msgctxt "connection type"
+msgid "braille"
+msgstr "брайль"
+
+#. Translators: Translation of the connection status in connection messages.
+msgid "connected"
+msgstr "подключено"
+
+#. Translators: Translation of the connection status in connection messages.
+msgid "disconnected"
+msgstr "отключено"
+
+#. Translators: Translation of the connection message.
+#. (E.g. "Remote braille/speech  connected/disconnected")
+msgid "Remote {} {}"
+msgstr "Удалённое {} {}"
+
 msgid "Incoming connections (Remote Desktop Server)"
 msgstr "Входящие подключения (сервер удалённого рабочего стола)"
 
@@ -97,6 +124,26 @@ msgstr "Исходящие подключения (клиент удалённо
 msgid "Secure Desktop pass through"
 msgstr "Пропуск на безопасный рабочий стол"
 
+#. Translators: A choice in a combo box in RDAccess settings for connection notifications.
+msgctxt "connection notifications"
+msgid "Off"
+msgstr "Отключены"
+
+#. Translators: A choice in a combo box in RDAccess settings for connection notifications.
+msgctxt "connection notifications"
+msgid "Messages"
+msgstr "Сообщения"
+
+#. Translators: A choice in a combo box in RDAccess settings for connection notifications.
+msgctxt "connection notifications"
+msgid "Sounds"
+msgstr "Звуки"
+
+#. Translators: A choice in a combo box in RDAccess settings for connection notifications.
+msgctxt "connection notifications"
+msgid "Both Messages and sounds"
+msgstr "Сообщения и звуки"
+
 #. Translators: Name for a remote braille display.
 msgid "Remote speech"
 msgstr "Удалённая речь"
@@ -104,18 +151,6 @@ msgstr "Удалённая речь"
 #. Translators: The name of a remote synthesizer setting to select the fallback synthesizer.
 msgid "&Fallback synthesizer"
 msgstr "&Резервный синтезатор"
-
-msgid ""
-"This add-on was previously called NVDA Remote Desktop. You have an installed "
-"version of that add-on. Would you like to update to RDAccess?"
-msgstr ""
-"Это дополнение ранее называлось удалённый рабочий стол NVDA. У вас "
-"установлена версия этого дополнения. Хотите обновить его до \"Доступность "
-"удаленного рабочего стола\"?"
-
-#. Translators: question title
-msgid "Previous version detected"
-msgstr "Обнаружена предыдущая версия"
 
 msgid ""
 "Allows using speech and braille with Microsoft Remote Desktop, Citrix "

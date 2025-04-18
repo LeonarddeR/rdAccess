@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: rdAccess 0.5.0\n"
 "Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
 "POT-Creation-Date: 2023-07-31 03:58+0000\n"
-"PO-Revision-Date: 2025-03-28 22:58+0200\n"
+"PO-Revision-Date: 2025-04-12 21:29+0300\n"
 "Last-Translator: Jani Kinnunen <janikinnunen340@gmail.com>\n"
 "Language-Team: fi_FI <janikinnunen340@gmail.com>\n"
 "Language: fi\n"
@@ -73,6 +73,10 @@ msgstr "Ota käyttöön Microsoft-&etätyöpöydän tuki"
 msgid "Enable &Citrix Workspace support"
 msgstr "Ota käyttöön &Citrix Workspacen tuki"
 
+#. The label for a combobox in RDAccess settings to control connection notifications.
+msgid "&Notify of connection changes with"
+msgstr "&Ilmaise yhteyden muutokset"
+
 #. Translators: The label for a button in RDAccess settings to open a diagnostics report.
 msgid "Open diagnostics report..."
 msgstr "Avaa vianmääritysraportti..."
@@ -88,6 +92,29 @@ msgstr ""
 msgid "Error"
 msgstr "Virhe"
 
+#. Translators: Translation of the connection type in connection messages
+msgctxt "connection type"
+msgid "speech"
+msgstr "puhe"
+
+#. Translators: Translation of the connection type in connection messages
+msgctxt "connection type"
+msgid "braille"
+msgstr "pistenäyttö"
+
+#. Translators: Translation of the connection status in connection messages.
+msgid "connected"
+msgstr "yhdistetty"
+
+#. Translators: Translation of the connection status in connection messages.
+msgid "disconnected"
+msgstr "yhteys katkaistu"
+
+#. Translators: Translation of the connection message.
+#. (E.g. "Remote braille/speech  connected/disconnected")
+msgid "Remote {} {}"
+msgstr "Etäkone {} {}"
+
 msgid "Incoming connections (Remote Desktop Server)"
 msgstr "Saapuville yhteyksille (etätyöpöytäpalvelin)"
 
@@ -96,6 +123,26 @@ msgstr "Lähteville yhteyksille (etätyöpöytäasiakas)"
 
 msgid "Secure Desktop pass through"
 msgstr "Suojatun työpöydän läpivienti"
+
+#. Translators: A choice in a combo box in RDAccess settings for connection notifications.
+msgctxt "connection notifications"
+msgid "Off"
+msgstr "Ei käytössä"
+
+#. Translators: A choice in a combo box in RDAccess settings for connection notifications.
+msgctxt "connection notifications"
+msgid "Messages"
+msgstr "Ilmoituksilla"
+
+#. Translators: A choice in a combo box in RDAccess settings for connection notifications.
+msgctxt "connection notifications"
+msgid "Sounds"
+msgstr "Äänillä"
+
+#. Translators: A choice in a combo box in RDAccess settings for connection notifications.
+msgctxt "connection notifications"
+msgid "Both Messages and sounds"
+msgstr "Ilmoituksilla ja äänillä"
 
 #. Translators: Name for a remote braille display.
 msgid "Remote speech"
@@ -106,23 +153,22 @@ msgid "&Fallback synthesizer"
 msgstr "Vai&htoehtoinen syntetisaattori"
 
 msgid ""
-"This add-on was previously called NVDA Remote Desktop. You have an installed "
-"version of that add-on. Would you like to update to RDAccess?"
-msgstr ""
-"Tämä lisäosa oli aiemmalta nimeltään NVDA:n etätyöpöytätuki. Sinulla on "
-"kyseinen versio asennettuna. Haluatko päivittää Etätyöpöydän saavutettavuus -"
-"lisäosaan?"
-
-#. Translators: question title
-msgid "Previous version detected"
-msgstr "Aiempi versio havaittu"
-
-msgid ""
 "Allows using speech and braille with Microsoft Remote Desktop, Citrix "
 "Workspace and VMware Horizon"
 msgstr ""
 "Mahdollistaa puheen ja pistenäytön käyttämisen Microsoft-etätyöpöydän, "
 "Citrix Workspacen ja VMware Horizonin kanssa"
+
+#~ msgid ""
+#~ "This add-on was previously called NVDA Remote Desktop. You have an "
+#~ "installed version of that add-on. Would you like to update to RDAccess?"
+#~ msgstr ""
+#~ "Tämä lisäosa oli aiemmalta nimeltään NVDA:n etätyöpöytätuki. Sinulla on "
+#~ "kyseinen versio asennettuna. Haluatko päivittää Etätyöpöydän "
+#~ "saavutettavuus -lisäosaan?"
+
+#~ msgid "Previous version detected"
+#~ msgstr "Aiempi versio havaittu"
 
 #~ msgid "Remote Desktop"
 #~ msgstr "Etätyöpöytä"
