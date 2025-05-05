@@ -2,7 +2,7 @@
 
 * Tekijä: [Leonard de Ruijter][1]
 * Lataa [viimeisin vakaa versio][2]
-* Yhteensopivuus: NVDA 2023.2 ja uudemmat
+* Yhteensopivuus: NVDA 2024.1 tai uudempi
 
 RDAccess-lisäosa (Remote Desktop Accessibility) lisää NVDA:han tuen
 etätyöpöytäistunnoille Microsoft Etätyöpöytää, Citrixiä tai VMware Horizonia
@@ -14,7 +14,8 @@ käyttämiseltä.
 
 ## Ominaisuudet
 
-* Tuki Microsoft Etätyöpöydälle, Citrixille ja VMware Horizonille
+* Tuki Microsoft Etätyöpöydälle (Azure Virtual Desktop ja Microsoft Cloud PC
+  mukaan lukien), Citrixille sekä VMware Horizonille
 * Puheen ja pistekirjoituksen tuottaminen
 * Automaattinen etäpistenäyttöjen tunnistus NVDA:n automaattista pistenäytön
   tunnistusta käyttäen
@@ -34,6 +35,47 @@ käyttämiseltä.
 
 ## Muutosloki
 
+### Versio 1.5
+
+* Lisätty mahdollisuus luoda virheenjäljityksen vianmääritysraportti
+  painikkeen avulla RDAccessin asetuspaneelissa
+  [#23](https://github.com/leonardder/rdAccess/pull/23).
+* Tuki monirivisille pistenäytöille NVDA 2025.1:ssä ja sitä uudemmissa
+  [#19](https://github.com/leonardder/rdAccess/pull/13).
+* NVDA:n yhteensopiva vähimmäisversio on nyt 2024.1. Aiempien versioidenn
+  tuki on poistettu.
+* Lisätty asiakasyhteyden ilmoitukset
+  [#25](https://github.com/leonardder/rdAccess/pull/25).
+* RdPipe-riippuvuus päivitetty.
+* Käännöksiä päivitetty.
+
+### Versio 1.4
+
+* Uusi vakaa versio.
+
+### Versio 1.3
+
+* Rikkoutuneet pistenäyttöjen näppäinkomennot korjattu.
+
+### Versio 1.2
+
+* Käytetään [Ruffia](https://github.com/astral-sh/ruff) koodin muotoilijana
+  ja
+  tarkistustyökaluna. [#13](https://github.com/leonardder/rdAccess/pull/13).
+* Korjattu ongelma, joka aiheutti sen, että asiakas-NVDA tuotti virheen, kun
+  puhe tauotettiin palvelimella.
+* Korjattu `winAPI.secureDesktop.post_secureDesktopStateChange`:n tuki.
+* Ajurin alustusta paranneltu palvelimella.
+
+### Versio 1.1
+
+* Added support for NVDA 2023.3 style device registration for automatic
+  detection of braille
+  displays. [#11](https://github.com/leonardder/rdAccess/pull/11).
+* Lisätty tuki NVDA 2024.1 alfan
+  `winAPI.secureDesktop.post_secureDesktopStateChange`laajennuspisteelle.
+  [#12](https://github.com/leonardder/rdAccess/pull/12).
+
 ### Versio 1.0
 
 Ensimmäinen vakaa versio.
@@ -50,7 +92,7 @@ Ensimmäinen vakaa versio.
 
 ## Asetusten määrittäminen
 
-RDAccess-lisäosan asennuksen jälkeen sen asetukset voidaan määrittää NVDA:n asetusvalintaikkunasta, Johon pääsee valitsemalla NVDA-valikosta Asetukset > Asetukset...
+RDAccess-lisäosan asennuksen jälkeen sen asetukset voidaan määrittää NVDA:n asetusvalintaikkunasta, Johon pääsee valitsemalla NVDA-valikosta Mukautukset > Asetukset...
 Valitse tämän jälkeen Etätyöpöytä-kategoria.
 
 Tässä valintaikkunassa on seuraavat asetukset:
@@ -81,11 +123,8 @@ tarpeen mukaan joko palvelin- tai asiakastila.
 
 Tämä asetus on käytettävissä vain palvelintilassa. Se varmistaa, että yhteys
 muodostetaan automaattisesti uudelleen, kun etäpuhesyntetisaattori on
-käytössä yhteyden katketessa.  Tämä toiminnallisuus on hyvin samankaltainen
-kuin pistenäytön automaattinen tunnistus.  Tämä selittää myös, miksi
-tällainen asetus on käytettävissä vain puhetta varten.  Etäpistenäytön
-uudelleenyhdistäminen hoidetaan automaattisesti valitsemalla
-"Automaattinen"-vaihtoehto Valitse pistenäyttö -valintaikkunasta.
+käytössä yhteyden katketessa.  Tämä toiminnallisuus on samankaltainen kuin
+pistenäytön automaattinen tunnistus.
 
 Tämä asetus on oletusarvoisesti käytössä. Tämän asetuksen käytössä pitäminen
 on erittäin suositeltavaa, mikäli etätyöpöytäpalvelimella ei ole äänilähtöä.
@@ -95,15 +134,7 @@ on erittäin suositeltavaa, mikäli etätyöpöytäpalvelimella ei ole äänilä
 Tämä asiakasasetus mahdollistaa käytössä ollessaan ajurin asetusten (kuten
 syntetisaattorin äänen ja äänenkorkeuden) säätämisen etäjärjestelmästä.
 Etäjärjestelmässä tehdyt muutokset toteutetaan automaattisesti paikallisessa
-järjestelmässä.  Voit ottaa tämän asetuksen käyttöön, mikäli sinulla on
-vaikeuksia NVDA-valikon avaamisessa etäjärjestelmää hallitessasi.  Muutoin
-asetus kannattaa poistaa käytöstä, koska se saattaa aiheuttaa suorituskyvyn
-heikentymistä.
-
-Vaikka tämän asetuksen käyttöönotto saattaa aiheuttaa jonkin verran
-suorituskyvyn heikkenemistä, suosittelemme silti sen käyttämistä. Kun tämä
-asetus on poistettu käytöstä, puhesyntetisaattorin äänenkorkeuden muutokset
-isoille kirjaimille eivät toimi.
+järjestelmässä.
 
 ### Säilytä asiakastuki NVDA:ta suljettaessa
 
@@ -111,44 +142,59 @@ Tämä asiakasasetus on käytettävissä vain NVDA:n asennetuissa versioissa.
 Asetus varmistaa käytössä ollessaan, että NVDA:n asiakasosa ladataan
 etätyöpöytäasiakkaaseesi, vaikka NVDA ei olisi käynnissä.
 
-RDAccessin asiakasosan käyttöä varten Windowsin rekisteriin on tehtävä
-useita muutoksia. Lisäosa varmistaa, että nämä muutokset tehdään nykyiseen
+Windowsin rekisteriin on tehtävä muutoksia RDAccessin asiakasosan käyttöä
+varten. Lisäosa varmistaa, että nämä muutokset tehdään nykyiseen
 käyttäjäprofiiliin. Muutosten tekemiseen ei tarvita järjestelmänvalvojan
 oikeuksia. Siksi NVDA voi käynnistettäessä tehdä tarvittavat muutokset
 automaattisesti ja perua ne suljettaessa. Tämä varmistaa, että lisäosa on
-täysin yhteensopiva NVDA:n massamuistiversioiden kanssa. Tämän
-mahdollistamiseksi asetus on oletusarvoisesti poissa käytöstä. Jos kuitenkin
-käytät NVDA:n asennettua versiota ja olet järjestelmän ainoa käyttäjä, ota
-tämä asetus käyttöön varmistaaksesi sujuvan toiminnan NVDA:n käynnistyessä
-tai kun se ei ole käynnissä muodostettaessa yhteyttä etäjärjestelmään.
+täysin yhteensopiva NVDA:n massamuistiversioiden kanssa.
 
 Tämä asetus on oletusarvoisesti poissa käytöstä. Jos käytössäsi kuitenkin on
 asennettu versio ja olet järjestelmän ainoa käyttäjä, suosittelemme tämän
-asetuksen käyttöön ottamista. Tämä varmistaa sujuvan toiminnan, mikäli NVDA
-ei ole käynnissä muodostettaessa yhteyttä etäjärjestelmään vaan se
-käynnistetään vasta myöhemmin.
+asetuksen käyttöön ottamista. Tämä varmistaa sujuvan toiminnan
+muodostettaessa yhteyttä etäjärjestelmään NVDA:n käynnistyksen jälkeen.
 
 ### Ota käyttöön Microsoft-etätyöpöydän tuki
 
 Tämä asetus on oletusarvoisesti käytössä ja varmistaa, että  RDAccessin
 asiakasosa ladataan Microsoft-etätyöpöytäasiakkaaseen NVDA:ta
-käynnistettäessä.  Ellei asiakastuen säilyttämistä ole otettu käyttöön, nämä
-muutokset perutaan automaattisesti NVDA:ta suljettaessa.
+käynnistettäessä.  Nämä muutokset perutaan automaattisesti NVDA:ta
+suljettaessa, ellei asiakastuen säilyttämistä ole otettu käyttöön.
 
 ### Ota käyttöön Citrix Workspacen tuki
 
 Tämä asetus on oletusarvoisesti käytössä ja varmistaa, että RDAccessin
 asiakasosa ladataan Citrix Workspace -sovellukseen NVDA:ta
-käynnistettäessä.  Ellei asiakastuen säilyttämistä ole otettu käyttöön, nämä
-muutokset perutaan automaattisesti NVDA:ta suljettaessa.
+käynnistettäessä.  Nämä muutokset perutaan automaattisesti NVDA:ta
+suljettaessa, ellei asiakastuen säilyttämistä ole otettu käyttöön.
 
 Tämä asetus on käytettävissä vain seuraavissa tilanteissa:
 
 * Citrix Workspace on asennettu. Huom: Sovelluksen Windows Store -versiota
   ei tueta sen rajoitusten vuoksi.
-* RDAccess on mahdollista rekisteröidä nykyiselle käyttäjälle. Tämä
-  mahdollistetaan aloittamalla etäistunto kerran sovelluksen asennuksen
-  jälkeen.
+* RDAccess on mahdollista rekisteröidä nykyiselle käyttäjälle. Tämä tehdään
+  aloittamalla etäistunto kerran sovelluksen asennuksen jälkeen.
+
+### Ilmaise yhteyden muutokset
+
+Tästä yhdistelmäruudusta voit hallita ilmoituksia, jotka vastaanotetaan, kun
+etäjärjestelmä avaa tai sulkee etäpuhe- tai pistenäyttöyhteyden. Seuraavat
+vaihtoehdot ovat käytettävissä:
+
+* Ei käytössä (ei ilmoituksia)
+* Ilmoituksilla (esim. "Etäpistenäyttö yhdistetty")
+* Äänillä (NVDA 2025.1 ja uudemmat)
+* Ilmoituksilla ja äänillä
+
+Huomaa, että äänet eivät ole käytettävissä NVDA 2025.1:tä vanhemmissa
+versioissa. Vanhemmissa versioissa käytetään äänimerkkejä.
+
+### Avaa vianmääritysraportti
+
+Tämä painike avaa erillisen ikkunan, joka sisältää JSON-muotoisen tulosteen
+useista vianmäärityksistä, jotka voivat mahdollisesti auttaa
+virheenjäljityksessä.  Kun [teet vikailmoituksen GitHubissa][4], sinua
+saatetaan pyytää toimittamaan tämä raportti lisäosan tekijöille.
 
 ## Citrix-ohjeet
 
@@ -158,7 +204,7 @@ huomioon joitakin tärkeitä seikkoja.
 ### Asiakaspuolen vaatimukset
 
 1. Sovelluksen Windows Store -versiota ei tueta.
-2. Kun olet asentanut Citrix Workspace -sovelluksen, sinun on käynnistettävä
+1. Kun olet asentanut Citrix Workspace -sovelluksen, sinun on käynnistettävä
    etäistunto kerran, jotta RDAccess voi rekisteröidä itsensä. Syynä tähän
    on se, että sovellus kopioi järjestelmän asetukset käyttäjän asetuksiin
    luodessaan istunnon ensimmäistä kertaa. Tämän jälkeen RDAccess voi
@@ -181,14 +227,14 @@ omistetussa aiheessa][3].
 ## Ongelmat ja osallistuminen
 
 Jos haluat ilmoittaa ongelmasta tai osallistua kehitykseen, tutustu
-[GitHubin Issues-sivuun][3].
+[GitHubin Issues-sivuun][4].
 
 ## Ulkoiset osat
 
-Tämä lisäosa on riippuvainen [RD Pipestä][4], Rust-ohjelmointikielellä
+Tämä lisäosa on riippuvainen [RD Pipestä][5], Rust-ohjelmointikielellä
 kirjoitetusta kirjastosta, joka mahdollistaa etätyöpöytäasiakkaan tuen.  RD
 Pipeä jaetaan tämän lisäosan mukana Free Software Foundationin julkaiseman
-[GNU AGPL -lisenssin (versio 3)][5] ehtojen mukaisesti.
+[GNU AGPL -lisenssin (versio 3)][6] ehtojen mukaisesti.
 
 [[!tag stable dev beta]]
 
@@ -196,8 +242,10 @@ Pipeä jaetaan tämän lisäosan mukana Free Software Foundationin julkaiseman
 
 [2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess
 
-[3]: https://github.com/leonardder/rdAccess/issues
+[3]: https://github.com/leonardder/rdAccess/issues/1
 
-[4]: https://github.com/leonardder/rd_pipe-rs
+[4]: https://github.com/leonardder/rdAccess/issues
 
-[5]: https://github.com/leonardder/rd_pipe-rs/blob/master/LICENSE
+[5]: https://github.com/leonardder/rd_pipe-rs
+
+[6]: https://github.com/leonardder/rd_pipe-rs/blob/master/LICENSE

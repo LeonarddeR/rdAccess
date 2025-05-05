@@ -2,7 +2,7 @@
 
 * 作者： [Leonard de Ruijter][1]
 * 下载： [latest stable version][2]
-* NVDA 兼容性：2023.2 及更高版本
+* NVDA兼容性：2024.1及更高版本
 
 RDAccess 插件（Remote Desktop Accessibility，远程桌面无障碍）为 NVDA 添加了对 Microsoft
 远程桌面、Citrix 或 VMware Horizon 远程会话的支持。
@@ -24,6 +24,41 @@ RDAccess 插件（Remote Desktop Accessibility，远程桌面无障碍）为 NVD
 
 ## 更新日志
 
+### 1.5 版
+
+* 在 RDAccess 设置面板中添加了一个按钮，用于创建调试诊断报告
+  [#23](https://github.com/leonardder/rdAccess/pull/23)。
+* 在 NVDA 2025.1 及更高版本中支持多行盲文点显器
+  [#19](https://github.com/leonardder/rdAccess/pull/13)。
+* 最低兼容 NVDA2024.1。移除了对旧版的支持。
+* 添加了客户端连接通知 [#25](https://github.com/leonardder/rdAccess/pull/25)。
+* 更新了RdPipe依赖项。
+* 更新了翻译。
+
+### 1.4 版
+
+* 初始稳定版。
+
+### 1.3 版
+
+* 修复了盲文点显器的手势故障。
+
+### 1.2 版
+
+* 使用 Ruff (https://github.com/astral-sh/ruff)
+  作为格式化工具和代码检查工具。[#13](https://github.com/leonardder/rdAccess/pull/13)。
+* 修复了客户端 NVDA 在服务器暂停语音时产生错误的问题。
+* 修复了对`winAPI.secureDesktop.post_secureDesktopStateChange`的支持。
+* 改进服务器端的驱动程序初始化。
+
+### 1.1 版
+
+* 增加了对 NVDA 2023.3
+  风格设备注册的支持，以便自动检测盲文点显器。[#11](https://github.com/leonardder/rdAccess/pull/11)
+* 增加了对 NVDA 2024.1 Alpha 的
+  `winAPI.secureDesktop.post_secureDesktopStateChange`
+  扩展点的支持。[#12](https://github.com/leonardder/rdAccess/pull/12)
+
 ### 1.0 版本
 
 初始稳定版本。
@@ -37,7 +72,8 @@ RDAccess 插件（Remote Desktop Accessibility，远程桌面无障碍）为 NVD
 
 ## 配置
 
-安装后，可以通过 NVDA 的设置面板设置 RDAccess 插件，可以从 NVDA 菜单中选择“选项”>“设置...”找到 RDAccess 设置类别。
+安装后，可以通过 NVDA 的设置面板设置 RDAccess 插件。
+可以从 NVDA 菜单中选择“选项”>“设置...”找到 RDAccess 设置类别。
 
 此面板包含以下设置：
 
@@ -45,8 +81,8 @@ RDAccess 插件（Remote Desktop Accessibility，远程桌面无障碍）为 NVD
 
 此复选框列表控制插件的操作模式。请在以下选项中选择：
 
-* 传入连接（远程桌面服务器）：如果当前 NVDA 实例运行在远程桌面服务器上，请选择此选项
-* 传出连接（远程桌面客户端）：如果当前 NVDA 实例运行在连接到一个或多个服务器的远程桌面客户端上，请选择此选项
+* 传入连接（远程桌面服务器）：如果当前 NVDA 实例运行在远程桌面服务器上，请选择此选项。
+* 传出连接（远程桌面客户端）：如果当前 NVDA 实例运行在连接到一个或多个服务器的远程桌面客户端上，请选择此选项。
 * 安全桌面直通：如果您想在访问安全桌面时使用来自用户 NVDA 实例的盲文和语音，请选择此选项。请注意，要使其工作，您需要让 RDAccess
   插件在安全桌面上的 NVDA 副本中可用。为此，请在 NVDA 的常规设置中选择“在登录和安全屏幕上使用当前保存的设置（需要管理员权限）”。
 
@@ -62,15 +98,9 @@ RDAccess 插件（Remote Desktop Accessibility，远程桌面无障碍）为 NVD
 
 在客户端启用此选项后，您可以从远程系统控制驱动程序设置（例如语音合成器的语音和音高）。在远程系统上所做的更改将自动反映在本地。
 
-While enabling this option implies some performance degradation, you are yet
-advised to enable it.  When this option is disabled, speech synthesizer
-ppitch changes for capitals don't work.
-
 ### 退出 NVDA 时保持客户端支持
 
-This client option is only available on installed copies of NVDA.  When
-enabled, it ensures that the client portion of NVDA is loaded in your remote
-desktop client, even when NVDA is not running.
+此客户端选项适用于已安装 NVDA 的副本，它确保即使 NVDA 未运行，NVDA 的客户端部分也会加载到您的远程桌面客户端中。
 
 此客户端选项（在 NVDA 安装版上可用）确保即使 NVDA 未运行时，NVDA 的客户端部分也会加载到您的远程桌面客户端中。
 要使用 RDAccess 的客户端部分，需要在 Windows 注册表中进行更改。
@@ -91,17 +121,33 @@ desktop client, even when NVDA is not running.
 
 此选项仅在以下条件下可用：
 
-* 已安装 Citrix Workspace。请注意，由于应用本身的限制，不支持该应用的 Windows 应用商店版本
-* 可以在当前用户上下文中注册 RDAccess。安装该应用后，您必须启动一次远程会话才能启用此功能
+* 已安装 Citrix Workspace。请注意，由于应用本身的限制，不支持该应用的 Windows 应用商店版本。
+* 可以在当前用户上下文中注册 RDAccess。安装该应用后，您必须启动一次远程会话才能启用此功能。
+
+### 连接状态变更通知
+
+此组合框允许您控制远程系统打开或关闭远程语音或盲文连接时收到的通知。您可以选择：
+
+* 关闭（无通知）
+* 消息（例如：“远程盲文设备已连接”）
+* 声音 (NVDA 2025.1+)
+* 消息和声音
+
+请注意，在 2025.1 之前的 NVDA 版本中，声音选项不可用。较旧的版本会使用蜂鸣声。
+
+### 打开诊断报告
+
+此按钮打开一个可浏览的消息，其中包含 JSON 格式的输出，其中包含多个诊断信息，这些信息可能有助于调试。当您[在 GitHub
+上提交问题][4]时，可能会要求您提供此报告。
 
 ## Citrix 特定说明
 
-使用 RDAccess 与 Citrix Workspace 应用时，有一些重要的注意事项。
+使用 RDAccess 与 Citrix Workspace 应用时，有一些重要的注意事项：
 
 ### 客户端要求
 
 1. 不支持 Windows 应用商店版本的应用。
-2. 安装 Citrix Workspace 后，您需要启动一次远程会话以让 RDAccess
+1. 安装 Citrix Workspace 后，您需要启动一次远程会话以让 RDAccess
    进行注册。这是因为该应用程序在初始会话设置期间会将系统设置复制到用户设置。在此之后，RDAccess 才能在当前用户上下文中自注册。
 
 ### 服务端要求
@@ -129,8 +175,10 @@ RD Pipe 作为此插件的一部分，根据[GNU Affero 通用公共许可证第
 
 [2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess
 
-[3]: https://github.com/leonardder/rdAccess/issues
+[3]: https://github.com/leonardder/rdAccess/issues/1
 
-[4]: https://github.com/leonardder/rd_pipe-rs
+[4]: https://github.com/leonardder/rdAccess/issues
 
-[5]: https://github.com/leonardder/rd_pipe-rs/blob/master/LICENSE
+[5]: https://github.com/leonardder/rd_pipe-rs
+
+[6]: https://github.com/leonardder/rd_pipe-rs/blob/master/LICENSE
