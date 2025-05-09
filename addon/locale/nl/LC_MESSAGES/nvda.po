@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: rdAccess 0.5.0\n"
 "Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
 "POT-Creation-Date: 2023-07-31 03:58+0000\n"
-"PO-Revision-Date: 2023-08-01 22:54+0200\n"
+"PO-Revision-Date: 2025-05-05 19:42+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 3.3.2\n"
+"X-Generator: Poedit 3.6\n"
 
 #. Translators: Name for a remote braille display.
 msgid "Remote Braille"
@@ -23,7 +23,7 @@ msgstr "Extern Braille"
 
 #. Translators: Title of the diagnostics report dialog.
 msgid "RDAccess Diagnostics"
-msgstr ""
+msgstr "RDAccess Diagnostiek"
 
 #. Translators: The label for the NVDA Remote Desktop settings panel.
 #. Add-on summary, usually the user visible name of the addon.
@@ -33,9 +33,8 @@ msgid "Remote Desktop Accessibility"
 msgstr "Toegankelijkheid van extern bureaublad"
 
 #. Translators: The label for a list of check boxes in RDAccess settings to set operating mode.
-#, fuzzy
 msgid "&Enable remote desktop accessibility for"
-msgstr "Toegankelijkheid van extern bureaublad"
+msgstr "Toegankelijkheid van &extern bureaublad inschakelen voor"
 
 #. Translators: This is the label for a group of options in the
 #. Remote Desktop settings panel.
@@ -72,21 +71,47 @@ msgstr "Ondersteuning voor Microsoft &Remote Desktop inschakelen"
 msgid "Enable &Citrix Workspace support"
 msgstr "Ondersteuning voor &Citrix Workspace inschakelen"
 
+#. The label for a combobox in RDAccess settings to control connection notifications.
+msgid "&Notify of connection changes with"
+msgstr "Wijzigi&ngen in verbinding melden met"
+
 #. Translators: The label for a button in RDAccess settings to open a diagnostics report.
 msgid "Open diagnostics report..."
-msgstr ""
+msgstr "Open diagnostisch rapport..."
 
-#, fuzzy
 msgid ""
 "You need to enable remote destkop accessibility support for at least "
 "incoming or outgoing connections."
 msgstr ""
-"Je moet NVDA RD tenminste inschakelen voor inkomende of uitgaande "
-"verbindingen."
+"Je moet toegankelijkheid van extern bureaublad tenminste inschakelen voor "
+"inkomende of uitgaande verbindingen."
 
 #. Translators: The title of the message box
 msgid "Error"
 msgstr "Fout"
+
+#. Translators: Translation of the connection type in connection messages
+msgctxt "connection type"
+msgid "speech"
+msgstr "spraak"
+
+#. Translators: Translation of the connection type in connection messages
+msgctxt "connection type"
+msgid "braille"
+msgstr "braille"
+
+#. Translators: Translation of the connection status in connection messages.
+msgid "connected"
+msgstr "verbonden"
+
+#. Translators: Translation of the connection status in connection messages.
+msgid "disconnected"
+msgstr "verbinding verbroken"
+
+#. Translators: Translation of the connection message.
+#. (E.g. "Remote braille/speech  connected/disconnected")
+msgid "Remote {} {}"
+msgstr "Extern {} {}"
 
 msgid "Incoming connections (Remote Desktop Server)"
 msgstr "Binnenkomende verbindingen (Extern bureaublad Server)"
@@ -97,6 +122,26 @@ msgstr "Uitgaande verbindingen (Extern bureaublad client)"
 msgid "Secure Desktop pass through"
 msgstr "Beveiligd bureaublad doorgeven"
 
+#. Translators: A choice in a combo box in RDAccess settings for connection notifications.
+msgctxt "connection notifications"
+msgid "Off"
+msgstr "Uit"
+
+#. Translators: A choice in a combo box in RDAccess settings for connection notifications.
+msgctxt "connection notifications"
+msgid "Messages"
+msgstr "Berichten"
+
+#. Translators: A choice in a combo box in RDAccess settings for connection notifications.
+msgctxt "connection notifications"
+msgid "Sounds"
+msgstr "Geluiden"
+
+#. Translators: A choice in a combo box in RDAccess settings for connection notifications.
+msgctxt "connection notifications"
+msgid "Both Messages and sounds"
+msgstr "Zowel berichten als geluiden"
+
 #. Translators: Name for a remote braille display.
 msgid "Remote speech"
 msgstr "Externe Spraak"
@@ -106,22 +151,21 @@ msgid "&Fallback synthesizer"
 msgstr "&Terugvallen op synthesizer"
 
 msgid ""
-"This add-on was previously called NVDA Remote Desktop. You have an installed "
-"version of that add-on. Would you like to update to RDAccess?"
-msgstr ""
-"Deze add-on heette voorheen NVDA Extern Bureaublad. U hebt een "
-"geïnstalleerde versie van die add-on. Wilt u updaten naar RDAccess?"
-
-#. Translators: question title
-msgid "Previous version detected"
-msgstr "Vorige versie gedetecteerd"
-
-msgid ""
 "Allows using speech and braille with Microsoft Remote Desktop, Citrix "
 "Workspace and VMware Horizon"
 msgstr ""
 "Maakt het gebruik van spraak en braille mogelijk met Microsoft Remote "
 "Desktop, Citrix Workspace en VMware Horizon"
+
+#~ msgid ""
+#~ "This add-on was previously called NVDA Remote Desktop. You have an "
+#~ "installed version of that add-on. Would you like to update to RDAccess?"
+#~ msgstr ""
+#~ "Deze add-on heette voorheen NVDA Extern Bureaublad. U hebt een "
+#~ "geïnstalleerde versie van die add-on. Wilt u updaten naar RDAccess?"
+
+#~ msgid "Previous version detected"
+#~ msgstr "Vorige versie gedetecteerd"
 
 #~ msgid "Remote Desktop"
 #~ msgstr "Extern Bureaublad"
