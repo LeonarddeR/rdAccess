@@ -5,6 +5,7 @@
 import os.path
 import platform
 import subprocess
+import sysconfig
 import winreg
 from enum import StrEnum
 
@@ -51,10 +52,19 @@ class Architecture(StrEnum):
 	ARM64 = "ARM64"
 
 
-DEFAULT_ARCHITECTURE = Architecture(platform.machine())
+defaultArchitecture = Architecture(platform.machine())
+match sysconfig.get_platform():
+	case "win32":
+		nvdaArchitecture = Architecture.X86
+	case "win-amd64":
+		nvdaArchitecture = Architecture.AMD64
+	case "win-arm64":
+		nvdaArchitecture = Architecture.ARM64
+	case _:
+		raise RuntimeError(f"Unsupported platform: {_}")
 
 
-def execRegsrv(params: list[str], architecture: Architecture = DEFAULT_ARCHITECTURE) -> bool:
+def execRegsrv(params: list[str], architecture: Architecture = defaultArchitecture) -> bool:
 	if architecture is Architecture.X86:
 		# Points to the 32-bit version, on Windows 32-bit or 64-bit.
 		regsvr32 = os.path.join(COMRegistrationFixes.SYSTEM32, "regsvr32.exe")
@@ -79,7 +89,7 @@ class CommandFlags(StrEnum):
 	CITRIX = "x"
 
 
-def getDllPath(architecture: Architecture = DEFAULT_ARCHITECTURE) -> str:
+def getDllPath(architecture: Architecture = defaultArchitecture) -> str:
 	addon = addonHandler.getCodeAddon()
 	expectedPath = os.path.join(addon.path, "dll", f"rd_pipe_{architecture.lower()}.dll")
 	if not os.path.isfile(expectedPath):
@@ -92,7 +102,7 @@ def dllInstall(
 	comServer: bool,
 	rdp: bool,
 	citrix: bool,
-	architecture: Architecture = DEFAULT_ARCHITECTURE,
+	architecture: Architecture = defaultArchitecture,
 ) -> bool:
 	path = getDllPath(architecture)
 	command = ""

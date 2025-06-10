@@ -21,7 +21,7 @@ def onInstall():
 
 
 def onUninstall():
-	for architecture in set((rdPipe.DEFAULT_ARCHITECTURE, rdPipe.Architecture.X86)):
+	for architecture in set((rdPipe.defaultArchitecture, rdPipe.Architecture.X86)):
 		rdPipe.dllInstall(
 			install=False,
 			comServer=True,

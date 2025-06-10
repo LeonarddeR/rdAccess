@@ -57,7 +57,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			citrix = False
 		if not rdp and not citrix:
 			return False
-		if rdPipe.DEFAULT_ARCHITECTURE == rdPipe.Architecture.X86:
+		if rdPipe.defaultArchitecture == rdPipe.Architecture.X86:
 			return rdPipe.dllInstall(
 				install=install,
 				comServer=True,

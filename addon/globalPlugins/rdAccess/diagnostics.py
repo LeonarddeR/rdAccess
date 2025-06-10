@@ -83,7 +83,8 @@ def _getDiagnosticsReportDict() -> dict[str, typing.Any]:
 			"availablePipes": list(namedPipe.getRdPipeNamedPipes()),
 		},
 		"system": {
-			"defaultArchitecture": rdPipe.DEFAULT_ARCHITECTURE,
+			"defaultArchitecture": rdPipe.defaultArchitecture,
+			"nvdaArchitecture": rdPipe.nvdaArchitecture,
 			"isCitrixSupported": rdPipe.isCitrixSupported(),
 			"isRunningOnSecureDesktop": isRunningOnSecureDesktop(),
 			"remoteSessionMetrics": wtsVirtualChannel.getRemoteSessionMetrics(),
