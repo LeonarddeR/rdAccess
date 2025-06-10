@@ -4,15 +4,22 @@ repos:
     hooks:
       - id: check-ast
       - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: debug-statements
       - id: check-yaml
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: fix-byte-order-marker
+      - id: check-vcs-permalinks
+      - id: check-illegal-windows-names
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.11.4
+    rev: v0.11.13
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
       - id: ruff-format
   - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.399
+    rev: v1.1.401
     hooks:
     - id: pyright
