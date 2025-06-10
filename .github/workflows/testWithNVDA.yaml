@@ -6,6 +6,6 @@ on:
 jobs:
 
   nvda:
-  
+
     name: NVDA
     uses: nvdaes/nvdaAddonWorkflows/.github/workflows/testWithNVDA.yaml@main

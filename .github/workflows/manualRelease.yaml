@@ -3,7 +3,7 @@ name: Manual release
 on:
   workflow_dispatch:
     inputs:
-      version:  
+      version:
         description: 'Add-on version'
         required: true
         default: '0.0.0'
@@ -40,7 +40,7 @@ jobs:
           f.seek(0)
           f.write(text)
           f.truncate()
-      shell: python 
+      shell: python
     - name: Build add-on
       run: scons
     - name: Push changes
