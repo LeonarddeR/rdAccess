@@ -89,7 +89,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 
 		# Translators: The label for a setting in RDAccess settings to enable
 		# registration of RD Pipe to the Windows registry for remote desktop support.
-		remoteDesktopSupportText = _("Enable Microsoft &Remote Desktop support")
+		remoteDesktopSupportText = _("Enable default &Remote Desktop support")
 		self.remoteDesktopSupportCheckbox = clientGroup.addItem(
 			wx.CheckBox(clientGroupBox, label=remoteDesktopSupportText)
 		)

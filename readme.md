@@ -4,13 +4,13 @@
 * Download [latest stable version][2]
 * NVDA compatibility: 2024.1 and later
 
-The RDAccess add-on (Remote Desktop Accessibility) adds support for Microsoft Remote Desktop, Citrix, or VMware Horizon remote sessions to NVDA.
+The RDAccess add-on (Remote Desktop Accessibility) adds support for Microsoft Remote Desktop, Citrix, Parallels RAS, or VMware Horizon remote sessions to NVDA.
 When installed on both the client and the server in NVDA, speech and braille generated on the server will be spoken and displayed in braille on the client machine.
 This enables a user experience where managing a remote system feels as seamless as operating the local system.
 
 ## Features
 
-* Support for Microsoft Remote Desktop (including Azure Virtual Desktop and Microsoft Cloud PC), Citrix, and VMware Horizon
+* Support for Microsoft Remote Desktop (including Azure Virtual Desktop and Microsoft Cloud PC), Citrix, Parallels RAS, and VMware Horizon
 * Speech and braille output
 * Automatic detection of remote braille using NVDA's automatic braille display detection
 * Automatic detection of remote speech using a dedicated detection process that can be disabled in NVDA's settings dialog
@@ -22,6 +22,10 @@ This enables a user experience where managing a remote system feels as seamless 
 * Ability to use speech and braille from the user session when accessing secure desktops
 
 ## Changelog
+
+### Version 1.6
+
+* Document and improve Parallels RAS support.
 
 ### Version 1.5
 
@@ -99,9 +103,10 @@ Therefore, NVDA can automatically apply the necessary changes when loaded and un
 
 This option is disabled by default. However, if you are running an installed copy and you are the only user of the system, it is advised to enable this option for smooth operation when connecting to a remote system after NVDA starts.
 
-### Enable Microsoft Remote Desktop Support
+### Enable Default Remote Desktop Support
 
 This option, enabled by default, ensures that the client portion of RDAccess is loaded in the Microsoft Remote Desktop client (mstsc) when starting NVDA.
+This is also required for VMware Horizon, Parallels RAS, Azure Virtual Desktop. etc.
 Changes made through this option will be automatically undone when exiting NVDA unless persistent client support is enabled.
 
 ### Enable Citrix Workspace Support

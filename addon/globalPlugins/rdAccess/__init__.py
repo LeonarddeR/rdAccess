@@ -19,7 +19,6 @@ from utils.security import isRunningOnSecureDesktop, post_sessionLockStateChange
 from winAPI.secureDesktop import post_secureDesktopStateChange
 
 from . import directoryChanges, handlers, settingsPanel
-from .objects import findExtraOverlayClasses
 from .secureDesktopHandling import SecureDesktopHandler, isAddonAvailableInSystemConfig
 from .synthDetect import SynthDetector
 
@@ -45,9 +44,6 @@ else:
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	_synthDetector: SynthDetector | None = None
 	_ioThread: ioThreadEx.IoThreadEx | None = None
-
-	def chooseNVDAObjectOverlayClasses(self, obj: NVDAObject, clsList: list[type[NVDAObject]]):
-		findExtraOverlayClasses(obj, clsList)
 
 	@classmethod
 	def _updateRegistryForRdPipe(cls, install: bool, rdp: bool, citrix: bool) -> bool:
