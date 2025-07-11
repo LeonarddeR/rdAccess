@@ -65,7 +65,8 @@ msgstr "Client-Unterstützung beim NVDA-Beenden &beibehalten"
 
 #. Translators: The label for a setting in RDAccess settings to enable
 #. registration of RD Pipe to the Windows registry for remote desktop support.
-msgid "Enable Microsoft &Remote Desktop support"
+#, fuzzy
+msgid "Enable default &Remote Desktop support"
 msgstr "Unterstützung für Microsoft &Remote Desktop aktivieren"
 
 #. Translators: The label for a setting in RDAccess settings to enable
@@ -152,9 +153,10 @@ msgstr "Unterstützung der Sprachausgabe via Remote"
 msgid "&Fallback synthesizer"
 msgstr "Sprachausgabe im &Notfall"
 
+#, fuzzy
 msgid ""
 "Allows using speech and braille with Microsoft Remote Desktop, Citrix "
-"Workspace and VMware Horizon"
+"Workspace, Parallels RAS and VMware Horizon"
 msgstr ""
 "Ermöglicht die Verwendung von Sprachausgabe und Braille mit Microsoft Remote-"
 "Desktop, Citrix Workspace und VMware Horizon"

@@ -11,8 +11,7 @@ msgstr ""
 "PO-Revision-Date: 2025-04-25 20:08+0100\n"
 "Last-Translator: Ângelo Abrantes <ampa4374@gmail.com>\n"
 "Language-Team: Equipa Portuguesa do NVDA: Ângelo Miguel Abrantes "
-"<ampa4374@gmail.com>, Rui Fontes <rui.fontes@tiflotecnia.com> "
-"(07-08-2023)\n"
+"<ampa4374@gmail.com>, Rui Fontes <rui.fontes@tiflotecnia.com> (07-08-2023)\n"
 "Language: pt_PT\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -66,7 +65,8 @@ msgstr "suporte ao cliente &Persist ao sair do NVDA"
 
 #. Translators: The label for a setting in RDAccess settings to enable
 #. registration of RD Pipe to the Windows registry for remote desktop support.
-msgid "Enable Microsoft &Remote Desktop support"
+#, fuzzy
+msgid "Enable default &Remote Desktop support"
 msgstr "Ativar o suporte do Microsoft &Remote Desktop"
 
 #. Translators: The label for a setting in RDAccess settings to enable
@@ -153,9 +153,10 @@ msgstr "Discurso à distância"
 msgid "&Fallback synthesizer"
 msgstr "&Sintetizador de retorno"
 
+#, fuzzy
 msgid ""
 "Allows using speech and braille with Microsoft Remote Desktop, Citrix "
-"Workspace and VMware Horizon"
+"Workspace, Parallels RAS and VMware Horizon"
 msgstr ""
 "Permite a utilização da voz e do braille com o Microsoft Remote Desktop, o "
 "Citrix Workspace e o VMware Horizon"

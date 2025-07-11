@@ -63,7 +63,8 @@ msgstr "&Продължавай поддръжката на клиента сл�
 
 #. Translators: The label for a setting in RDAccess settings to enable
 #. registration of RD Pipe to the Windows registry for remote desktop support.
-msgid "Enable Microsoft &Remote Desktop support"
+#, fuzzy
+msgid "Enable default &Remote Desktop support"
 msgstr "&Разреши поддръжката на Microsoft Remote Desktop"
 
 #. Translators: The label for a setting in RDAccess settings to enable
@@ -150,9 +151,10 @@ msgstr "Отдалечена реч"
 msgid "&Fallback synthesizer"
 msgstr "Ре&зервен синтезатор"
 
+#, fuzzy
 msgid ""
 "Allows using speech and braille with Microsoft Remote Desktop, Citrix "
-"Workspace and VMware Horizon"
+"Workspace, Parallels RAS and VMware Horizon"
 msgstr ""
 "Позволява използването на реч и брайл с Microsoft Remote Desktop, Citrix "
 "Workspace и VMware Horizon"
