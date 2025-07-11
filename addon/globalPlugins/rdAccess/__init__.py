@@ -14,7 +14,6 @@ import config
 import globalPluginHandler
 import gui
 from logHandler import log
-from NVDAObjects import NVDAObject
 from utils.security import isRunningOnSecureDesktop, post_sessionLockStateChanged
 from winAPI.secureDesktop import post_secureDesktopStateChange
 
