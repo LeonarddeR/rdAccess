@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: rdAccess 0.5.0\n"
 "Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
 "POT-Creation-Date: 2023-07-31 03:58+0000\n"
-"PO-Revision-Date: 2025-04-13 15:17+0200\n"
+"PO-Revision-Date: 2025-07-11 21:42+0200\n"
 "Last-Translator: José Manuel Delicado <jm.delicado@nvda.es>\n"
 "Language-Team: \n"
 "Language: es\n"
@@ -63,9 +63,8 @@ msgstr "&Mantener soporte de cliente al salir de NVDA"
 
 #. Translators: The label for a setting in RDAccess settings to enable
 #. registration of RD Pipe to the Windows registry for remote desktop support.
-#, fuzzy
 msgid "Enable default &Remote Desktop support"
-msgstr "Activar soporte para Escritorio &remoto de Microsoft"
+msgstr "Activar soporte para Escritorio &remoto predeterminado"
 
 #. Translators: The label for a setting in RDAccess settings to enable
 #. registration of RD Pipe to the Windows registry for Citrix support.
@@ -151,10 +150,9 @@ msgstr "Voz remota"
 msgid "&Fallback synthesizer"
 msgstr "Sintetizador de &respaldo"
 
-#, fuzzy
 msgid ""
 "Allows using speech and braille with Microsoft Remote Desktop, Citrix "
 "Workspace, Parallels RAS and VMware Horizon"
 msgstr ""
 "Permite usar voz y braille en el escritorio remoto de Microsoft, Citrix "
-"Workspace y VMware Horizon"
+"Workspace, Parallels RAS y VMware Horizon"

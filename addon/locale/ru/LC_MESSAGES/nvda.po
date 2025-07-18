@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: rdAccess 0.5.0\n"
 "Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
 "POT-Creation-Date: 2023-07-31 03:58+0000\n"
-"PO-Revision-Date: 2025-04-13 12:28+0300\n"
+"PO-Revision-Date: 2025-07-12 18:42+0300\n"
 "Last-Translator: Ruslan Kolodyazhni <rupelodn@gmail.com>\n"
 "Language-Team: Danil Kostenkov <danilkostenkov38@gmail.com>\n"
 "Language: ru_RU\n"
@@ -65,9 +65,8 @@ msgstr "&Сохранять поддержку клиента при выход�
 
 #. Translators: The label for a setting in RDAccess settings to enable
 #. registration of RD Pipe to the Windows registry for remote desktop support.
-#, fuzzy
 msgid "Enable default &Remote Desktop support"
-msgstr "Включить поддержку &удалённых рабочих столов Майкрософт"
+msgstr "Включить поддержку &удалённых рабочих столов по умолчанию"
 
 #. Translators: The label for a setting in RDAccess settings to enable
 #. registration of RD Pipe to the Windows registry for Citrix support.
@@ -153,10 +152,9 @@ msgstr "Удалённая речь"
 msgid "&Fallback synthesizer"
 msgstr "&Резервный синтезатор"
 
-#, fuzzy
 msgid ""
 "Allows using speech and braille with Microsoft Remote Desktop, Citrix "
 "Workspace, Parallels RAS and VMware Horizon"
 msgstr ""
 "Позволяет использовать речь и Брайль в Microsoft Remote Desktop, Citrix "
-"Workspace и VMware Horizon"
+"Workspace, Parallels RAS и VMware Horizon"
