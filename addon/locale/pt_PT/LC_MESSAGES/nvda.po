@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: rdAccess 0.5.0\n"
 "Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
 "POT-Creation-Date: 2023-07-31 03:58+0000\n"
-"PO-Revision-Date: 2025-04-25 20:08+0100\n"
+"PO-Revision-Date: 2025-07-11 22:46+0100\n"
 "Last-Translator: Ângelo Abrantes <ampa4374@gmail.com>\n"
 "Language-Team: Equipa Portuguesa do NVDA: Ângelo Miguel Abrantes "
 "<ampa4374@gmail.com>, Rui Fontes <rui.fontes@tiflotecnia.com> "
@@ -66,8 +66,8 @@ msgstr "suporte ao cliente &Persist ao sair do NVDA"
 
 #. Translators: The label for a setting in RDAccess settings to enable
 #. registration of RD Pipe to the Windows registry for remote desktop support.
-msgid "Enable Microsoft &Remote Desktop support"
-msgstr "Ativar o suporte do Microsoft &Remote Desktop"
+msgid "Enable default &Remote Desktop support"
+msgstr "Ativar o suporte predefinido do &Remote Desktop"
 
 #. Translators: The label for a setting in RDAccess settings to enable
 #. registration of RD Pipe to the Windows registry for Citrix support.
@@ -155,10 +155,10 @@ msgstr "&Sintetizador de retorno"
 
 msgid ""
 "Allows using speech and braille with Microsoft Remote Desktop, Citrix "
-"Workspace and VMware Horizon"
+"Workspace, Parallels RAS and VMware Horizon"
 msgstr ""
-"Permite a utilização da voz e do braille com o Microsoft Remote Desktop, o "
-"Citrix Workspace e o VMware Horizon"
+"Permite a utilização de voz e braille com o Microsoft Remote Desktop, "
+"Citrix Workspace, Parallels RAS e VMware Horizon"
 
 #~ msgid ""
 #~ "This add-on was previously called NVDA Remote Desktop. You have an "
