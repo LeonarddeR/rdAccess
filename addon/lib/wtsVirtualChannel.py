@@ -53,7 +53,7 @@ CHANNEL_PDU_LENGTH = CHANNEL_CHUNK_LENGTH + sizeof(ChannelPduHeader)
 
 try:
 	vdp_rdpvcbridge = cdll.vdp_rdpvcbridge
-except OSError:
+except (OSError, AttributeError):
 	WTSVirtualChannelOpenEx = windll.wtsapi32.WTSVirtualChannelOpenEx
 	WTSVirtualChannelQuery = windll.wtsapi32.WTSVirtualChannelQuery
 	WTSVirtualChannelClose = windll.wtsapi32.WTSVirtualChannelClose
