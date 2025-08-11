@@ -8,19 +8,20 @@ import subprocess
 import sysconfig
 import winreg
 from enum import StrEnum
+from functools import cached_property
+from typing import Final
 
 import addonHandler
-import COMRegistrationFixes
 from logHandler import log
 
-COM_CLS_CHANNEL_NAMES_VALUE_BRAILLE = "NVDA-BRAILLE"
-COM_CLS_CHANNEL_NAMES_VALUE_SPEECH = "NVDA-SPEECH"
-COM_CLASS_FOLDER = r"SOFTWARE\Classes\CLSID\{D1F74DC7-9FDE-45BE-9251-FA72D4064DA3}"
-CTX_MODULES_FOLDER = r"SOFTWARE\Citrix\ICA Client\Engine\Configuration\Advanced\Modules"
-CTX_RD_PIPE_FOLDER = os.path.join(CTX_MODULES_FOLDER, "DVCPlugin_RdPipe")
-CTX_DVC_PLUGINS_FOLDER = os.path.join(CTX_MODULES_FOLDER, "DvcPlugins")
-CTX_ARP_FOLDER = r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\CitrixOnlinePluginPackWeb"
-TS_ADD_INS_FOLDER = r"Software\Microsoft\Terminal Server Client\Default\AddIns\RdPipe"
+COM_CLS_CHANNEL_NAMES_VALUE_BRAILLE: Final[str] = "NVDA-BRAILLE"
+COM_CLS_CHANNEL_NAMES_VALUE_SPEECH: Final[str] = "NVDA-SPEECH"
+COM_CLASS_FOLDER: Final[str] = r"SOFTWARE\Classes\CLSID\{D1F74DC7-9FDE-45BE-9251-FA72D4064DA3}"
+CTX_MODULES_FOLDER: Final[str] = r"SOFTWARE\Citrix\ICA Client\Engine\Configuration\Advanced\Modules"
+CTX_RD_PIPE_FOLDER: Final[str] = os.path.join(CTX_MODULES_FOLDER, "DVCPlugin_RdPipe")
+CTX_DVC_PLUGINS_FOLDER: Final[str] = os.path.join(CTX_MODULES_FOLDER, "DvcPlugins")
+CTX_ARP_FOLDER: Final[str] = r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\CitrixOnlinePluginPackWeb"
+TS_ADD_INS_FOLDER: Final[str] = r"Software\Microsoft\Terminal Server Client\Default\AddIns\RdPipe"
 
 
 def isCitrixSupported() -> bool:
@@ -51,8 +52,22 @@ class Architecture(StrEnum):
 	AMD64 = "AMD64"
 	ARM64 = "ARM64"
 
+	@cached_property
+	def dllPath(self) -> str:
+		addon = addonHandler.getCodeAddon()
+		match self:
+			case Architecture.AMD64:
+				archPart = "x64"
+			case _:
+				archPart = self.lower()
 
-defaultArchitecture = Architecture(platform.machine())
+		expectedPath = os.path.join(addon.path, "dll", archPart, "rd_pipe.dll")
+		if not os.path.isfile(expectedPath):
+			raise FileNotFoundError(expectedPath)
+		return expectedPath
+
+
+defaultArchitecture: Final[Architecture] = Architecture(platform.machine())
 match sysconfig.get_platform():
 	case "win32":
 		nvdaArchitecture = Architecture.X86
@@ -63,14 +78,23 @@ match sysconfig.get_platform():
 	case _:
 		raise RuntimeError(f"Unsupported platform: {_}")
 
+SYSTEM_ROOT = os.path.expandvars("%SYSTEMROOT%")
+if defaultArchitecture is Architecture.AMD64 and nvdaArchitecture is Architecture.X86:
+	SYSTEM32_64 = os.path.join(
+		SYSTEM_ROOT, "Sysnative"
+	)  # Virtual folder for reaching 64-bit exes from 32-bit apps
+else:
+	SYSTEM32_64 = os.path.join(SYSTEM_ROOT, "System32")  # type: ignore
+
+if defaultArchitecture is Architecture.AMD64:
+	SYSTEM32_32 = os.path.join(SYSTEM_ROOT, "SysWOW64")
+else:
+	SYSTEM32_32 = SYSTEM32_64  # type: ignore
+
 
 def execRegsrv(params: list[str], architecture: Architecture = defaultArchitecture) -> bool:
-	if architecture is Architecture.X86:
-		# Points to the 32-bit version, on Windows 32-bit or 64-bit.
-		regsvr32 = os.path.join(COMRegistrationFixes.SYSTEM32, "regsvr32.exe")
-	else:
-		# SysWOW64 provides a virtual directory to allow 32-bit programs to reach 64-bit executables.
-		regsvr32 = os.path.join(COMRegistrationFixes.SYSNATIVE, "regsvr32.exe")
+	# Points to the 32-bit version, on Windows 32-bit or 64-bit.
+	regsvr32 = os.path.join(SYSTEM32_32 if architecture is Architecture.X86 else SYSTEM32_64, "regsvr32.exe")
 	# Make sure a console window doesn't show when running regsvr32.exe
 	startupInfo = subprocess.STARTUPINFO()
 	startupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -89,14 +113,6 @@ class CommandFlags(StrEnum):
 	CITRIX = "x"
 
 
-def getDllPath(architecture: Architecture = defaultArchitecture) -> str:
-	addon = addonHandler.getCodeAddon()
-	expectedPath = os.path.join(addon.path, "dll", f"rd_pipe_{architecture.lower()}.dll")
-	if not os.path.isfile(expectedPath):
-		raise FileNotFoundError(expectedPath)
-	return expectedPath
-
-
 def dllInstall(
 	install: bool,
 	comServer: bool,
@@ -104,7 +120,7 @@ def dllInstall(
 	citrix: bool,
 	architecture: Architecture = defaultArchitecture,
 ) -> bool:
-	path = getDllPath(architecture)
+	path = architecture.dllPath
 	command = ""
 	if rdp:
 		command += CommandFlags.RDP
