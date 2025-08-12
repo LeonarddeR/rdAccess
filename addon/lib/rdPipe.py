@@ -6,13 +6,15 @@ import os.path
 import platform
 import subprocess
 import sysconfig
+import tempfile
 import winreg
-from enum import StrEnum
+from enum import StrEnum, unique
 from functools import cached_property
 from typing import Final
 
 import addonHandler
 from logHandler import log
+from utils.displayString import DisplayStringIntEnum
 
 COM_CLS_CHANNEL_NAMES_VALUE_BRAILLE: Final[str] = "NVDA-BRAILLE"
 COM_CLS_CHANNEL_NAMES_VALUE_SPEECH: Final[str] = "NVDA-SPEECH"
@@ -92,19 +94,21 @@ else:
 	SYSTEM32_32 = SYSTEM32_64  # type: ignore
 
 
-def execRegsrv(params: list[str], architecture: Architecture = defaultArchitecture) -> bool:
+def execRegsrv(params: list[str], architecture: Architecture = defaultArchitecture):
 	# Points to the 32-bit version, on Windows 32-bit or 64-bit.
 	regsvr32 = os.path.join(SYSTEM32_32 if architecture is Architecture.X86 else SYSTEM32_64, "regsvr32.exe")
 	# Make sure a console window doesn't show when running regsvr32.exe
 	startupInfo = subprocess.STARTUPINFO()
 	startupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 	startupInfo.wShowWindow = subprocess.SW_HIDE
-	try:
-		subprocess.check_call([regsvr32, *params], startupinfo=startupInfo)
-		return True
-	except subprocess.CalledProcessError:
-		log.exception(f"Error calling {regsvr32!r} with arguments {params!r}")
-		return False
+	log.debug(f"Running {regsvr32!r} with params: {params}")
+	subprocess.run(
+		[regsvr32, *params],
+		startupinfo=startupInfo,
+		check=True,
+		capture_output=True,
+		text=True,
+	)
 
 
 class CommandFlags(StrEnum):
@@ -119,7 +123,7 @@ def dllInstall(
 	rdp: bool,
 	citrix: bool,
 	architecture: Architecture = defaultArchitecture,
-) -> bool:
+):
 	path = architecture.dllPath
 	command = ""
 	if rdp:
@@ -134,4 +138,54 @@ def dllInstall(
 	if not install:
 		cmdLine.append("/u")
 	cmdLine.append(path)
-	return execRegsrv(cmdLine, architecture)
+	execRegsrv(cmdLine, architecture)
+
+
+@unique
+class RdPipeLogLevel(DisplayStringIntEnum):
+	DEFAULT = 0
+	ERROR = 1
+	WARN = 2
+	INFO = 3
+	DEBUG = 4
+	TRACE = 5
+
+	@property
+	def _displayStringLabels(self):
+		return {i: i._name_.title() for i in RdPipeLogLevel}
+
+
+LOG_FILE_PATH = os.path.join(tempfile.tempdir, "rdPipe.log")
+
+
+def logFileExists() -> bool:
+	return os.path.isfile(LOG_FILE_PATH)
+
+
+def getRdPipeLogLevel() -> RdPipeLogLevel:
+	try:
+		with winreg.OpenKey(
+			winreg.HKEY_CURRENT_USER,
+			COM_CLASS_FOLDER,
+			0,
+			winreg.KEY_READ | winreg.KEY_WOW64_64KEY,
+		) as key:
+			value, _reg_type = winreg.QueryValueEx(key, "LogLevel")
+			return RdPipeLogLevel(value)
+	except OSError:
+		return RdPipeLogLevel.DEFAULT
+
+
+def setRdPipeLogLevel(level: RdPipeLogLevel) -> None:
+	with winreg.OpenKey(
+		winreg.HKEY_CURRENT_USER,
+		COM_CLASS_FOLDER,
+		0,
+		winreg.KEY_WRITE | winreg.KEY_WOW64_64KEY,
+	) as key:
+		if level == RdPipeLogLevel.DEFAULT:
+			# Remove the value if it exists, ignore if not found
+			winreg.DeleteValue(key, "LogLevel")
+		else:
+			# Set the value as the underlying int value of the enum
+			winreg.SetValueEx(key, "LogLevel", 0, winreg.REG_DWORD, level.value)
