@@ -19,7 +19,7 @@ class RdPipeLogViewer(logViewer.LogViewer):
 
 	def __init__(self, parent):
 		super().__init__(parent)
-		# Translators: The titleof the RdPipe Log Viewer
+		# Translators: The title of the RdPipe Log Viewer
 		self.SetTitle(_("RdPipe Log Viewer"))
 
 	def refresh(self, evt=None):  # noqa: ARG002
