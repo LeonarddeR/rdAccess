@@ -137,7 +137,7 @@ def dllInstall(
 	cmdLine = ["/s", f'/i:"{command}"', "/n"]
 	if not install:
 		cmdLine.append("/u")
-	cmdLine.append(path)
+	cmdLine.append(f'"{path}"')
 	execRegsrv(cmdLine, architecture)
 
 
