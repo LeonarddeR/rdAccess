@@ -147,9 +147,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		self.remoteDesktopSupportCheckbox.Enable(isClient)
 		self.citrixSupportCheckbox.Enable(isClient and rdPipe.isCitrixSupported())
 		self.connectionNotificationsList.Enable(isClient)
-		self.rdPipeLogLevelList.Enable(
-			self.persistentRegistrationCheckbox.IsEnabled() and self.persistentRegistrationCheckbox.Value
-		)
+		self.rdPipeLogLevelList.Enable(self.persistentRegistrationCheckbox.IsEnabled())
 		self.openRdPipeLogButton.Enable(isClient and rdPipe.logFileExists())
 		self.recoverRemoteSpeechCheckbox.Enable(
 			self.operatingModeList.IsChecked(self.operatingModes.index(configuration.OperatingMode.SERVER))
