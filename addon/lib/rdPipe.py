@@ -155,7 +155,7 @@ class RdPipeLogLevel(DisplayStringIntEnum):
 		return {i: i._name_.title() for i in RdPipeLogLevel}
 
 
-LOG_FILE_PATH = os.path.join(tempfile.tempdir, "rdPipe.log")
+LOG_FILE_PATH = os.path.join(tempfile.gettempdir(), "rdPipe.log")
 
 
 def logFileExists() -> bool:
@@ -185,7 +185,10 @@ def setRdPipeLogLevel(level: RdPipeLogLevel) -> None:
 	) as key:
 		if level == RdPipeLogLevel.DEFAULT:
 			# Remove the value if it exists, ignore if not found
-			winreg.DeleteValue(key, "LogLevel")
+			try:
+				winreg.DeleteValue(key, "LogLevel")
+			except FileNotFoundError:
+				pass
 		else:
 			# Set the value as the underlying int value of the enum
 			winreg.SetValueEx(key, "LogLevel", 0, winreg.REG_DWORD, level.value)
