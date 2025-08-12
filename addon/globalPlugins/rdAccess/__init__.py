@@ -3,6 +3,7 @@
 # License: GNU General Public License version 2.0
 
 import atexit
+import subprocess
 import typing
 from ctypes import WinError
 from fnmatch import fnmatch
@@ -13,6 +14,7 @@ import braille
 import config
 import globalPluginHandler
 import gui
+import wx
 from logHandler import log
 from utils.security import isRunningOnSecureDesktop, post_sessionLockStateChanged
 from winAPI.secureDesktop import post_secureDesktopStateChange
@@ -53,31 +55,42 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if not rdp and not citrix:
 			return False
 		if rdPipe.defaultArchitecture == rdPipe.Architecture.X86:
-			return rdPipe.dllInstall(
-				install=install,
-				comServer=True,
-				rdp=rdp,
-				citrix=citrix,
-			)
+			try:
+				rdPipe.dllInstall(
+					install=install,
+					comServer=True,
+					rdp=rdp,
+					citrix=citrix,
+				)
+				return True
+			except subprocess.CalledProcessError:
+				log.exception()
+				return False
 		else:
 			res = False
 			if rdp:
-				if rdPipe.dllInstall(
-					install=install,
-					comServer=True,
-					rdp=True,
-					citrix=False,
-				):
+				try:
+					rdPipe.dllInstall(
+						install=install,
+						comServer=True,
+						rdp=True,
+						citrix=False,
+					)
 					res = True
+				except subprocess.CalledProcessError:
+					log.exception()
 			if citrix:
-				if rdPipe.dllInstall(
-					install=install,
-					comServer=True,
-					rdp=False,
-					citrix=True,
-					architecture=rdPipe.Architecture.X86,
-				):
+				try:
+					rdPipe.dllInstall(
+						install=install,
+						comServer=True,
+						rdp=False,
+						citrix=True,
+						architecture=rdPipe.Architecture.X86,
+					)
 					res = True
+				except subprocess.CalledProcessError:
+					log.exception()
 		return res
 
 	@classmethod
@@ -107,7 +120,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def initializeOperatingModeRdClient(self):
 		if isRunningOnSecureDesktop():
 			return
-		self._registerRdPipeInRegistry()
+		wx.CallAfter(self._registerRdPipeInRegistry)
 		self._handlers: dict[str, handlers.RemoteHandler] = {}
 		self._pipeWatcher = directoryChanges.DirectoryWatcher(
 			namedPipe.PIPE_DIRECTORY,

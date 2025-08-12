@@ -10,10 +10,11 @@ import addonHandler
 import config
 import wx
 from extensionPoints import Action
-from gui import guiHelper, messageBox, nvdaControls
+from gui import guiHelper, mainFrame, messageBox, nvdaControls
 from gui.settingsDialogs import SettingsPanel
 
 from .diagnostics import showDiagnosticsReport
+from .rdPipeLogViewer import RdPipeLogViewer
 
 if typing.TYPE_CHECKING:
 	from ...lib import configuration, rdPipe
@@ -101,7 +102,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		self.citrixSupportCheckbox = clientGroup.addItem(wx.CheckBox(clientGroupBox, label=citrixSupportText))
 		self.citrixSupportCheckbox.Value = configuration.getCitrixSupport()
 
-		# The label for a combobox in RDAccess settings to control connection notifications.
+		# Translators: The label for a combobox in RDAccess settings to control connection notifications.
 		connectionNotificationsLabelText = _("&Notify of connection changes with")
 		connectionNotificationsChoices = [
 			mode.displayString for mode in configuration.ConnectionNotifications
@@ -113,10 +114,25 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		)
 		self.connectionNotificationsList.Selection = configuration.getConnectionNotifications()
 
+		# Translators: The label for a combobox in RDAccess settings to control RdPIpe log level.
+		rdPipeLogLevelLabelText = _("&RdPipe log level")
+		rdPipeLogLevelChoices = [level.displayString for level in rdPipe.RdPipeLogLevel]
+		self.rdPipeLogLevelList = clientGroup.addLabeledControl(
+			rdPipeLogLevelLabelText,
+			wx.Choice,
+			choices=rdPipeLogLevelChoices,
+		)
+		self.rdPipeLogLevelList.Selection = rdPipe.getRdPipeLogLevel()
+
+		# Translators: The label for a button in RDAccess settings to open the rdPipe Log
+		label = _("Open RdPipe Log...")
+		self.openRdPipeLogButton = clientGroup.addItem(wx.Button(self, label=label))
+		self.openRdPipeLogButton.Bind(wx.EVT_BUTTON, self.showRdPipeLogViewer)
+
 		# Translators: The label for a button in RDAccess settings to open a diagnostics report.
 		label = _("Open diagnostics report...")
-		self.openDiagnostics = sizer_helper.addItem(wx.Button(self, label=label))
-		self.openDiagnostics.Bind(wx.EVT_BUTTON, showDiagnosticsReport)
+		self.openDiagnosticsButton = sizer_helper.addItem(wx.Button(self, label=label))
+		self.openDiagnosticsButton.Bind(wx.EVT_BUTTON, showDiagnosticsReport)
 
 		self.onoperatingModeChange()
 
@@ -131,6 +147,8 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		self.remoteDesktopSupportCheckbox.Enable(isClient)
 		self.citrixSupportCheckbox.Enable(isClient and rdPipe.isCitrixSupported())
 		self.connectionNotificationsList.Enable(isClient)
+		self.rdPipeLogLevelList.Enable(self.persistentRegistrationCheckbox.IsEnabled())
+		self.openRdPipeLogButton.Enable(isClient and rdPipe.logFileExists())
 		self.recoverRemoteSpeechCheckbox.Enable(
 			self.operatingModeList.IsChecked(self.operatingModes.index(configuration.OperatingMode.SERVER))
 		)
@@ -179,5 +197,13 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		config.conf[configuration.CONFIG_SECTION_NAME][
 			configuration.CONNECTION_NOTIFICATIONS_SETTING_NAME
 		] = self.connectionNotificationsList.Selection
-
+		rdPipe.setRdPipeLogLevel(rdPipe.RdPipeLogLevel(self.rdPipeLogLevelList.Selection))
 		self.post_onSave.notify()
+
+	def showRdPipeLogViewer(self, evt: wx.CommandEvent | None = None):
+		if evt:
+			evt.Skip()
+		logViewer = RdPipeLogViewer(mainFrame)
+		logViewer.Raise()
+		logViewer.Maximize()
+		logViewer.Show()
