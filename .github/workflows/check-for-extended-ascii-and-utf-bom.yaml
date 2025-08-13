@@ -1,8 +1,0 @@
-name: Check that we dont have extended ascii or utf boms in our files
-
-on:
-  pull_request:
-
-jobs:
-  extendedAsciiAndBom:
-    uses: nvdaes/nvdaAddonWorkflows/.github/workflows/check-for-extended-ascii-and-utf-bom.yaml@main
