@@ -111,12 +111,12 @@ class RemoteBrailleHandler(RemoteHandler[braille.BrailleDisplayDriver]):
 			and not braille.handler.enabled
 			and self.hasFocus
 		):
-			kwargs = dict(
-				source=gesture.source,
-				id=gesture.id,
-				routingIndex=gesture.routingIndex,
-				model=gesture.model,
-			)
+			kwargs = {
+				"source": gesture.source,
+				"id": gesture.id,
+				"routingIndex": gesture.routingIndex,
+				"model": gesture.model,
+			}
 			if isinstance(gesture, brailleInput.BrailleInputGesture):
 				kwargs["dots"] = gesture.dots
 				kwargs["space"] = gesture.space

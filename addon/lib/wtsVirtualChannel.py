@@ -106,7 +106,10 @@ class WTSVirtualChannel(IoBase):
 			fileHandlePtr = POINTER(HANDLE)()
 			length = DWORD()
 			if not WTSVirtualChannelQuery(
-				wtsHandle, WTSVirtualFileHandle, byref(fileHandlePtr), byref(length)
+				wtsHandle,
+				WTSVirtualFileHandle,
+				byref(fileHandlePtr),
+				byref(length),
 			):
 				raise WinError()
 			try:

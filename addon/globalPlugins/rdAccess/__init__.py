@@ -159,29 +159,44 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			return
 		config.post_configProfileSwitch.register(self._handlePostConfigProfileSwitch)
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(
-			settingsPanel.RemoteDesktopSettingsPanel
+			settingsPanel.RemoteDesktopSettingsPanel,
 		)
-		settingsPanel.RemoteDesktopSettingsPanel.post_onSave.register(self._handlePostConfigProfileSwitch)
+		settingsPanel.RemoteDesktopSettingsPanel.post_onSave.register(
+			self._handlePostConfigProfileSwitch,
+		)
 
 	def _initializeExistingPipes(self):
 		for match in namedPipe.getRdPipeNamedPipes():
 			try:
-				self._handleNewPipe(directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED, match)
+				self._handleNewPipe(
+					directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED,
+					match,
+				)
 			except Exception:
 				log.exception("Error initializing existing pipe")
 
-	def _handleNewPipe(self, action: directoryChanges.FileNotifyInformationAction, fileName: str):
+	def _handleNewPipe(
+		self,
+		action: directoryChanges.FileNotifyInformationAction,
+		fileName: str,
+	):
 		if not fnmatch(fileName, namedPipe.RD_PIPE_GLOB_PATTERN):
 			return
 		if action == directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED:
 			if fnmatch(
 				fileName,
-				namedPipe.RD_PIPE_GLOB_PATTERN.replace("*", f"{protocol.DriverType.BRAILLE.name}*"),
+				namedPipe.RD_PIPE_GLOB_PATTERN.replace(
+					"*",
+					f"{protocol.DriverType.BRAILLE.name}*",
+				),
 			):
 				HandlerClass = handlers.RemoteBrailleHandler
 			elif fnmatch(
 				fileName,
-				namedPipe.RD_PIPE_GLOB_PATTERN.replace("*", f"{protocol.DriverType.SPEECH.name}*"),
+				namedPipe.RD_PIPE_GLOB_PATTERN.replace(
+					"*",
+					f"{protocol.DriverType.SPEECH.name}*",
+				),
 			):
 				HandlerClass = handlers.RemoteSpeechHandler
 			else:
@@ -195,7 +210,9 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			log.debug(f"Pipe with name {fileName!r} removed")
 			handler = self._handlers.pop(fileName, None)
 			if handler:
-				log.debug(f"Terminating handler {handler!r} for Pipe with name {fileName!r}")
+				log.debug(
+					f"Terminating handler {handler!r} for Pipe with name {fileName!r}",
+				)
 				handler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
 				handler.terminate()
 
@@ -241,12 +258,14 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		try:
 			if not isRunningOnSecureDesktop():
 				settingsPanel.RemoteDesktopSettingsPanel.post_onSave.unregister(
-					self._handlePostConfigProfileSwitch
+					self._handlePostConfigProfileSwitch,
 				)
 				gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(
-					settingsPanel.RemoteDesktopSettingsPanel
+					settingsPanel.RemoteDesktopSettingsPanel,
 				)
-				config.post_configProfileSwitch.unregister(self._handlePostConfigProfileSwitch)
+				config.post_configProfileSwitch.unregister(
+					self._handlePostConfigProfileSwitch,
+				)
 			configuredOperatingMode = configuration.getOperatingMode()
 			if configuredOperatingMode & configuration.OperatingMode.SERVER or (
 				configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
@@ -301,8 +320,12 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		elif not oldClient and newClient:
 			self.initializeOperatingModeRdClient()
 		elif newClient:
-			oldDriverSettingsManagement = configuration.getDriverSettingsManagement(True)
-			newDriverSettingsManagement = configuration.getDriverSettingsManagement(False)
+			oldDriverSettingsManagement = configuration.getDriverSettingsManagement(
+				True,
+			)
+			newDriverSettingsManagement = configuration.getDriverSettingsManagement(
+				False,
+			)
 			if oldDriverSettingsManagement is not newDriverSettingsManagement:
 				for handler in self._handlers.values():
 					handler._handleDriverChanged(handler._driver)
@@ -340,7 +363,11 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 				limitToDevices=detector._limitToDevices,
 			)
 
-	def _handleRemoteDisconnect(self, handler: handlers.RemoteHandler, error: int) -> bool:
+	def _handleRemoteDisconnect(
+		self,
+		handler: handlers.RemoteHandler,
+		error: int,
+	) -> bool:
 		if isinstance(WinError(error), BrokenPipeError):
 			handler.terminate()
 			if handler._dev.pipeName in self._handlers:
@@ -350,14 +377,13 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def event_gainFocus(self, obj, nextHandler):
 		configuredOperatingMode = configuration.getOperatingMode()
-		if not isRunningOnSecureDesktop():
-			if configuredOperatingMode & configuration.OperatingMode.CLIENT:
-				for handler in self._handlers.values():
-					try:
-						handler.event_gainFocus(obj)
-					except Exception:
-						log.error("Error calling event_gainFocus on handler", exc_info=True)
-						continue
+		if not isRunningOnSecureDesktop() and configuredOperatingMode & configuration.OperatingMode.CLIENT:
+			for handler in self._handlers.values():
+				try:
+					handler.event_gainFocus(obj)
+				except Exception:
+					log.error("Error calling event_gainFocus on handler", exc_info=True)
+					continue
 		if configuredOperatingMode & configuration.OperatingMode.SERVER:
 			self._triggerBackgroundDetectRescan()
 		nextHandler()

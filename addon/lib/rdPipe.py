@@ -2,6 +2,7 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
+import contextlib
 import os.path
 import platform
 import subprocess
@@ -83,7 +84,8 @@ match sysconfig.get_platform():
 SYSTEM_ROOT = os.path.expandvars("%SYSTEMROOT%")
 if defaultArchitecture is Architecture.AMD64 and nvdaArchitecture is Architecture.X86:
 	SYSTEM32_64 = os.path.join(
-		SYSTEM_ROOT, "Sysnative"
+		SYSTEM_ROOT,
+		"Sysnative",
 	)  # Virtual folder for reaching 64-bit exes from 32-bit apps
 else:
 	SYSTEM32_64 = os.path.join(SYSTEM_ROOT, "System32")  # type: ignore
@@ -185,10 +187,8 @@ def setRdPipeLogLevel(level: RdPipeLogLevel) -> None:
 	) as key:
 		if level == RdPipeLogLevel.DEFAULT:
 			# Remove the value if it exists, ignore if not found
-			try:
+			with contextlib.suppress(FileNotFoundError):
 				winreg.DeleteValue(key, "LogLevel")
-			except FileNotFoundError:
-				pass
 		else:
 			# Set the value as the underlying int value of the enum
 			winreg.SetValueEx(key, "LogLevel", 0, winreg.REG_DWORD, level.value)

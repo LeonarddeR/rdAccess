@@ -1,6 +1,7 @@
 # RDAccess: Remote Desktop Accessibility for NVDA
 # Copyright 2023-2025 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
+from __future__ import annotations
 
 import inspect
 import pickle
@@ -99,7 +100,7 @@ class CommandHandler(HandlerDecoratorBase[CommandHandlerT]):
 		super().__init__(func)
 		self._command = command
 
-	def __call__(self, protocolHandler: "RemoteProtocolHandler", payload: bytes):
+	def __call__(self, protocolHandler: RemoteProtocolHandler, payload: bytes):
 		log.debug(f"Calling {self!r} for command {self._command!r}")
 		return self._func(protocolHandler, payload)
 
@@ -121,7 +122,7 @@ class AttributeHandler(HandlerDecoratorBase, Generic[AttributeHandlerT]):
 
 	def __call__(
 		self,
-		protocolHandler: "RemoteProtocolHandler",
+		protocolHandler: RemoteProtocolHandler,
 		attribute: AttributeT,
 		*args,
 		**kwargs,
@@ -135,7 +136,7 @@ class AttributeHandler(HandlerDecoratorBase, Generic[AttributeHandlerT]):
 class AttributeSender(AttributeHandler[attributeFetcherT]):
 	def __call__(
 		self,
-		protocolHandler: "RemoteProtocolHandler",
+		protocolHandler: RemoteProtocolHandler,
 		attribute: AttributeT,
 		*args,
 		**kwargs,
@@ -182,7 +183,7 @@ def attributeReceiver(
 		raise ValueError("Either defaultValue or defaultValueGetter is required, but not both")
 	if defaultValueGetter is None:
 
-		def _defaultValueGetter(_self: "RemoteProtocolHandler", _attribute: AttributeT):
+		def _defaultValueGetter(_self: RemoteProtocolHandler, _attribute: AttributeT):
 			return defaultValue
 
 		defaultValueGetter = _defaultValueGetter
@@ -262,7 +263,7 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
 		handler = self._getRawHandler(attribute)
 		log.debug(
 			f"Getting default value for attribute {attribute!r} on {self!r} "
-			f"using {handler._defaultValueGetter!r}"
+			f"using {handler._defaultValueGetter!r}",
 		)
 		getter = handler._defaultValueGetter.__get__(handler.__self__)
 		return getter(attribute)
@@ -362,7 +363,7 @@ class RemoteProtocolHandler(AutoPropertyObject, Generic[IoTypeT]):
 		if expectedLength != actualLength:
 			log.debug(
 				f"Expected payload of length {expectedLength}, "
-				f"actual length of payload {payload!r} is {actualLength}"
+				f"actual length of payload {payload!r} is {actualLength}",
 			)
 			if expectedLength > actualLength:
 				self._receiveBuffer = message
@@ -387,7 +388,7 @@ class RemoteProtocolHandler(AutoPropertyObject, Generic[IoTypeT]):
 		else:
 			log.debug(
 				f"Value of length {len(value)} sent for attribute {attribute!r} "
-				f"on {self!r}, direction incoming"
+				f"on {self!r}, direction incoming",
 			)
 			self._attributeValueProcessor(attribute, value)
 

@@ -27,7 +27,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 	_requiredAttributesOnInit = frozenset(
 		driver.RemoteDriver._requiredAttributesOnInit.union({
 			protocol.BrailleAttribute.NUM_CELLS,
-		})
+		}),
 	)
 
 	@classmethod

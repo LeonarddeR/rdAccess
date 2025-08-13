@@ -85,7 +85,8 @@ class DirectoryWatcher(IoThread):
 		self._watching = False
 		try:
 			if hasattr(self, "_dirHandle") and not windll.kernel32.CancelIoEx(
-				self._dirHandle, byref(self._overlapped)
+				self._dirHandle,
+				byref(self._overlapped),
 			):
 				raise WinError()
 		finally:
@@ -135,7 +136,8 @@ class DirectoryWatcher(IoThread):
 			)
 			formatStr = f"@3I{fileNameLength}s"
 			nextOffset, action, fileNameLength, fileNameBytes = unpack(
-				formatStr, data[nextOffset : nextOffset + calcsize(formatStr)]
+				formatStr,
+				data[nextOffset : nextOffset + calcsize(formatStr)],
 			)
 			fileName = fileNameBytes.decode("utf-16")
 			self.directoryChanged.notify(

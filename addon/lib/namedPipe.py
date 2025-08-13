@@ -227,8 +227,8 @@ class NamedPipeServer(NamedPipeBase):
 			self._ioThreadRef().waitForSingleObjectWithCallback(self._recvEvt, self._handleConnectCallback)
 		except OSError as e:
 			error = e.winerror
-			log.error(
-				f"Error while calling RegisterWaitForSingleObject for {self.pipeName}: {WinError(error)}"
+			log.exception(
+				f"Error while calling RegisterWaitForSingleObject for {self.pipeName}: {WinError(error)}",
 			)
 			self._ioDone(error, 0, byref(ol))
 
@@ -237,7 +237,10 @@ class NamedPipeServer(NamedPipeBase):
 		numberOfBytes = DWORD()
 		log.debug(f"Getting overlapped result for {self.pipeName} after wait for event")
 		if not windll.kernel32.GetOverlappedResult(
-			self._file, byref(self._connectOl), byref(numberOfBytes), False
+			self._file,
+			byref(self._connectOl),
+			byref(numberOfBytes),
+			False,
 		):
 			error = GetLastError()
 			log.debug(f"Error while getting overlapped result for {self.pipeName}: {WinError(error)}")
@@ -304,7 +307,6 @@ class NamedPipeServer(NamedPipeBase):
 	@_ioDone.setter
 	def _ioDone(self, value):
 		"""Hack, we don't want _ioDone to set itself to None."""
-		pass
 
 
 class NamedPipeClient(NamedPipeBase):

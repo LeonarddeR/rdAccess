@@ -1,6 +1,7 @@
 # RDAccess: Remote Desktop Accessibility for NVDA
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
+from __future__ import annotations
 
 import weakref
 from collections.abc import Iterable
@@ -17,13 +18,13 @@ if TYPE_CHECKING:
 
 
 class SettingsAccessorBase(AutoPropertyObject):
-	_driverRef: "weakref.ref[RemoteDriver]"
-	driver: "RemoteDriver"
+	_driverRef: weakref.ref[RemoteDriver]
+	driver: RemoteDriver
 	_settingNames: list[str]
 	cachePropertiesByDefault = True
 
 	@classmethod
-	def createFromSettings(cls, driver: "RemoteDriver", settings: Iterable[driverSetting.DriverSetting]):
+	def createFromSettings(cls, driver: RemoteDriver, settings: Iterable[driverSetting.DriverSetting]):
 		dct: dict[str, Any] = {
 			"__module__": __name__,
 		}
@@ -37,7 +38,7 @@ class SettingsAccessorBase(AutoPropertyObject):
 				driverSetting.BooleanDriverSetting | driverSetting.NumericDriverSetting,
 			):
 				dct[f"_get_{cls._getAvailableSettingsPropertyName(s.id)}"] = cls._makeGetAvailableSettings(
-					s.id
+					s.id,
 				)
 		log.debug("Constructed dictionary to generate new dynamic SettingsAccessor")
 		return type("SettingsAccessor", (SettingsAccessorBase,), dct)(driver, settingNames)
@@ -45,7 +46,7 @@ class SettingsAccessorBase(AutoPropertyObject):
 	def _get_driver(self):
 		return self._driverRef()
 
-	def __init__(self, driver: "RemoteDriver", settingNames: list[str]):
+	def __init__(self, driver: RemoteDriver, settingNames: list[str]):
 		log.debug(f"Initializing {self} for driver {driver}, settings {settingNames}")
 		self._driverRef = weakref.ref(driver)
 		self._settingNames = settingNames

@@ -95,16 +95,19 @@ def _getDiagnosticsReportDict() -> dict[str, typing.Any]:
 				rdPipe.COM_CLASS_FOLDER: dumpRegistryKey(winreg.HKEY_CURRENT_USER, rdPipe.COM_CLASS_FOLDER),
 				rdPipe.TS_ADD_INS_FOLDER: dumpRegistryKey(winreg.HKEY_CURRENT_USER, rdPipe.TS_ADD_INS_FOLDER),
 				rdPipe.CTX_RD_PIPE_FOLDER: dumpRegistryKey(
-					winreg.HKEY_CURRENT_USER, rdPipe.CTX_RD_PIPE_FOLDER
+					winreg.HKEY_CURRENT_USER,
+					rdPipe.CTX_RD_PIPE_FOLDER,
 				),
 				rdPipe.CTX_DVC_PLUGINS_FOLDER: dumpRegistryKey(
-					winreg.HKEY_CURRENT_USER, rdPipe.CTX_DVC_PLUGINS_FOLDER
+					winreg.HKEY_CURRENT_USER,
+					rdPipe.CTX_DVC_PLUGINS_FOLDER,
 				),
 			},
 			"localMachine": {
 				rdPipe.COM_CLASS_FOLDER: dumpRegistryKey(winreg.HKEY_LOCAL_MACHINE, rdPipe.COM_CLASS_FOLDER),
 				rdPipe.TS_ADD_INS_FOLDER: dumpRegistryKey(
-					winreg.HKEY_LOCAL_MACHINE, rdPipe.TS_ADD_INS_FOLDER
+					winreg.HKEY_LOCAL_MACHINE,
+					rdPipe.TS_ADD_INS_FOLDER,
 				),
 			},
 		},
@@ -120,11 +123,11 @@ def getDiagnosticsReport() -> str:
 
 
 def showDiagnosticsReport(_evt: wx.CommandEvent | None = None):
-	kwargs = dict(
-		message=getDiagnosticsReport(),
+	kwargs = {
+		"message": getDiagnosticsReport(),
 		# Translators: Title of the diagnostics report dialog.
-		title=_("RDAccess Diagnostics"),
-	)
+		"title": _("RDAccess Diagnostics"),
+	}
 	if _supportsBrowseableMessageButtons:
 		kwargs.update(
 			closeButton=True,

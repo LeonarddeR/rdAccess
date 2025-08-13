@@ -45,7 +45,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 			displayNameWithAccelerator=_("&Fallback synthesizer"),
 			availableInSettingsRing=True,
 			defaultVal=AUTOMATIC_PORT[0],
-		)
+		),
 	]
 
 	@classmethod

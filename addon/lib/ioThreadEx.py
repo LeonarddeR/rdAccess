@@ -74,7 +74,7 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 
 		if reference is None:
 			log.error(
-				f"Internal WaitOrTimerCallback called with param {param}, but no such wait object in store"
+				f"Internal WaitOrTimerCallback called with param {param}, but no such wait object in store",
 			)
 			return
 		function = reference()
@@ -82,7 +82,7 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 			log.debugWarning(
 				f"Not executing queued WaitOrTimerCallback {param}:{reference.funcName} "
 				f"with param {actualParam} "
-				"because reference died"
+				"because reference died",
 			)
 			return
 
@@ -98,9 +98,8 @@ class IoThreadEx(hwIo.ioThread.IoThread):
 
 	@staticmethod
 	def _postWaitOrTimerCallback(waitObject):
-		if not windll.kernel32.UnregisterWait(waitObject):
-			if GetLastError() != ERROR_IO_PENDING:
-				raise WinError()
+		if not windll.kernel32.UnregisterWait(waitObject) and GetLastError() != ERROR_IO_PENDING:
+			raise WinError()
 
 	def waitForSingleObjectWithCallback(
 		self,

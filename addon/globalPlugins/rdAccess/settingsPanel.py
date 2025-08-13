@@ -60,7 +60,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		# automatic recovery of remote speech when the connection was lost.
 		recoverRemoteSpeechText = _("&Automatically recover remote speech after connection loss")
 		self.recoverRemoteSpeechCheckbox = serverGroup.addItem(
-			wx.CheckBox(serverGroupBox, label=recoverRemoteSpeechText)
+			wx.CheckBox(serverGroupBox, label=recoverRemoteSpeechText),
 		)
 		self.recoverRemoteSpeechCheckbox.Value = configuration.getRecoverRemoteSpeech()
 
@@ -76,7 +76,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		# support for exchanging driver settings between the local and the remote system.
 		driverSettingsManagementText = _("&Allow remote system to control driver settings")
 		self.driverSettingsManagementCheckbox = clientGroup.addItem(
-			wx.CheckBox(clientGroupBox, label=driverSettingsManagementText)
+			wx.CheckBox(clientGroupBox, label=driverSettingsManagementText),
 		)
 		self.driverSettingsManagementCheckbox.Value = configuration.getDriverSettingsManagement()
 
@@ -84,7 +84,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		# persistent registration of RD Pipe to the Windows registry.
 		persistentRegistrationText = _("&Persist client support when exiting NVDA")
 		self.persistentRegistrationCheckbox = clientGroup.addItem(
-			wx.CheckBox(clientGroupBox, label=persistentRegistrationText)
+			wx.CheckBox(clientGroupBox, label=persistentRegistrationText),
 		)
 		self.persistentRegistrationCheckbox.Value = configuration.getPersistentRegistration()
 
@@ -92,7 +92,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		# registration of RD Pipe to the Windows registry for remote desktop support.
 		remoteDesktopSupportText = _("Enable default &Remote Desktop support")
 		self.remoteDesktopSupportCheckbox = clientGroup.addItem(
-			wx.CheckBox(clientGroupBox, label=remoteDesktopSupportText)
+			wx.CheckBox(clientGroupBox, label=remoteDesktopSupportText),
 		)
 		self.remoteDesktopSupportCheckbox.Value = configuration.getRemoteDesktopSupport()
 
@@ -140,7 +140,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		if evt:
 			evt.Skip()
 		isClient = self.operatingModeList.IsChecked(
-			self.operatingModes.index(configuration.OperatingMode.CLIENT)
+			self.operatingModes.index(configuration.OperatingMode.CLIENT),
 		)
 		self.driverSettingsManagementCheckbox.Enable(isClient)
 		self.persistentRegistrationCheckbox.Enable(isClient and config.isInstalledCopy())
@@ -150,7 +150,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		self.rdPipeLogLevelList.Enable(self.persistentRegistrationCheckbox.IsEnabled())
 		self.openRdPipeLogButton.Enable(isClient and rdPipe.logFileExists())
 		self.recoverRemoteSpeechCheckbox.Enable(
-			self.operatingModeList.IsChecked(self.operatingModes.index(configuration.OperatingMode.SERVER))
+			self.operatingModeList.IsChecked(self.operatingModes.index(configuration.OperatingMode.SERVER)),
 		)
 
 	def isValid(self):
@@ -159,7 +159,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 				# Translators: Message to report wrong configuration of operating mode.
 				_(
 					"You need to enable remote destkop accessibility support for at least "
-					"incoming or outgoing connections."
+					"incoming or outgoing connections.",
 				),
 				# Translators: The title of the message box
 				_("Error"),
@@ -174,13 +174,13 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 			functools.reduce(
 				operator.or_,
 				(self.operatingModes[i] for i in self.operatingModeList.CheckedItems),
-			)
+			),
 		)
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.RECOVER_REMOTE_SPEECH_SETTING_NAME] = (
 			self.recoverRemoteSpeechCheckbox.IsChecked()
 		)
 		isClient = self.operatingModeList.IsChecked(
-			self.operatingModes.index(configuration.OperatingMode.CLIENT)
+			self.operatingModes.index(configuration.OperatingMode.CLIENT),
 		)
 		config.conf[configuration.CONFIG_SECTION_NAME][
 			configuration.DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME
