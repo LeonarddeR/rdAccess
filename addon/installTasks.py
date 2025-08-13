@@ -29,7 +29,7 @@ def onUninstall():
 				install=False,
 				comServer=True,
 				rdp=True,
-				citrix=architecture == rdPipe.Architecture.X86,
+				citrix=architecture == rdPipe.Architecture.X86 and rdPipe.isCitrixSupported(),
 				architecture=architecture,
 			)
 		except subprocess.CalledProcessError:

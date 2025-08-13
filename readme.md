@@ -25,7 +25,12 @@ This enables a user experience where managing a remote system feels as seamless 
 
 ### Version 1.6
 
-* Document and improve Parallels RAS support.
+* Documented and improved Parallels RAS support.
+* The minimum compatible NVDA version is now 2025.1. Removed support for earlier versions.
+* Updated RdPipe dependency.
+* Added the ability to configure RdPipe log level.
+* Added a viewer for the RdPipe log, available from the settings panel.
+* Improved uninstall behavior (no longer raise errors or remove Citrix support when Citrix is not available).
 
 ### Version 1.5
 
