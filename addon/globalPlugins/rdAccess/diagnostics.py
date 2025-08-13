@@ -27,8 +27,6 @@ else:
 	rdPipe = addon.loadModule("lib.rdPipe")
 	wtsVirtualChannel = addon.loadModule("lib.wtsVirtualChannel")
 
-_supportsBrowseableMessageButtons = versionInfo.version_year >= 2025
-
 
 def dumpRegistryKey(
 	hive,
@@ -123,14 +121,10 @@ def getDiagnosticsReport() -> str:
 
 
 def showDiagnosticsReport(_evt: wx.CommandEvent | None = None):
-	kwargs = {
-		"message": getDiagnosticsReport(),
+	ui.browseableMessage(
+		message=getDiagnosticsReport(),
 		# Translators: Title of the diagnostics report dialog.
-		"title": _("RDAccess Diagnostics"),
-	}
-	if _supportsBrowseableMessageButtons:
-		kwargs.update(
-			closeButton=True,
-			copyButton=True,
-		)
-	ui.browseableMessage(**kwargs)
+		title=_("RDAccess Diagnostics"),
+		closeButton=True,
+		copyButton=True,
+	)
