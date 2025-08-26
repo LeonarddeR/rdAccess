@@ -19,9 +19,12 @@ This enables a user experience where managing a remote system feels as seamless 
 * Multiple active client sessions simultaneously
 * Remote desktop instantly available after NVDA start
 * Ability to control specific synthesizer and braille display settings without leaving the remote session
-* Ability to use speech and braille from the user session when accessing secure desktops
 
 ## Changelog
+
+### Version 1.7
+
+* Removed secure desktop support.
 
 ### Version 1.6
 
@@ -84,7 +87,6 @@ This list of checkboxes controls the operating mode of the add-on. Choose betwee
 
 * Incoming connections (Remote Desktop Server): Choose this option if the current instance of NVDA is running on a remote desktop server.
 * Outgoing connections (Remote Desktop Client): Choose this option if the current instance of NVDA is running on a remote desktop client that connects to one or more servers.
-* Secure Desktop pass-through: Choose this option if you want to use braille and speech from the user instance of NVDA when accessing the secure desktop. Note that for this to work, you need to make the RDAccess add-on available on the secure desktop copy of NVDA. For this, choose "Use currently saved settings during sign-in and on secure screens (requires administrator privileges)" in NVDA's general settings.
 
 To ensure a smooth start with the add-on, all options are enabled by default. However, you are encouraged to disable server or client mode as appropriate.
 
