@@ -16,8 +16,8 @@ from logHandler import log
 from utils.security import isRunningOnSecureDesktop, post_sessionLockStateChanged
 from winAPI.secureDesktop import post_secureDesktopStateChange
 
-from .. import inputTime, namedPipe, protocol, wtsVirtualChannel
-from ..detection import BackendType, bgScanRD
+from .. import inputTime, protocol, wtsVirtualChannel
+from ..detection import bgScanRD
 from .settingsAccessor import SettingsAccessorBase
 
 ERROR_INVALID_HANDLE = 0x6
@@ -29,14 +29,13 @@ MSG_XOFF = 0x13
 class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	name = "remote"
 	_settingsAccessor: SettingsAccessorBase | None = None
-	_isVirtualChannel: bool
 	_requiredAttributesOnInit: frozenset[protocol.AttributeT] = frozenset({
 		protocol.GenericAttribute.SUPPORTED_SETTINGS,
 	})
 
 	@classmethod
 	def check(cls) -> bool:
-		return any(cls._getAutoPorts())
+		return not isRunningOnSecureDesktop() and any(cls._getAutoPorts())
 
 	@classmethod
 	def _getAutoPorts(cls, usb=True, bluetooth=True) -> Iterable[bdDetect.DeviceMatch]:  # noqa: ARG003
@@ -67,33 +66,21 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		initialTime = time.perf_counter()
 		super().__init__()
 		self._connected = False
-		for portType, _portId, port, _portInfo in self._getTryPorts(port):  # noqa: B020
+		for _portType, _portId, port, _portInfo in self._getTryPorts(port):  # noqa: B020
 			for attr in self._requiredAttributesOnInit:
 				self._attributeValueProcessor.setAttributeRequestPending(attr)
 			try:
-				if portType == BackendType.VIRTUAL_CHANNEL:
-					self._isVirtualChannel = True
-					self._dev = wtsVirtualChannel.WTSVirtualChannel(
-						port,
-						onReceive=self._onReceive,
-						onReadError=self._onReadError,
-					)
-				elif portType == BackendType.NAMED_PIPE_CLIENT:
-					self._isVirtualChannel = False
-					self._dev = namedPipe.NamedPipeClient(
-						port,
-						onReceive=self._onReceive,
-						onReadError=self._onReadError,
-					)
+				self._dev = wtsVirtualChannel.WTSVirtualChannel(
+					port,
+					onReceive=self._onReceive,
+					onReadError=self._onReadError,
+				)
 			except OSError:
 				log.debugWarning("", exc_info=True)
 				continue
-			if portType == BackendType.VIRTUAL_CHANNEL:
-				# Wait for RdPipe at the other end to send a XON
-				if not self._safeWait(lambda: self._connected, self.timeout * 3):
-					continue
-			else:
-				self._connected = True
+			# Wait for RdPipe at the other end to send a XON
+			if not self._safeWait(lambda: self._connected, self.timeout * 3):
+				continue
 			handledAttributes = set[protocol.AttributeT]()
 			for attr in self._requiredAttributesOnInit:
 				if self._waitForAttributeUpdate(attr, initialTime):
@@ -111,14 +98,12 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			raise RuntimeError("No remote device found")
 
 		self.invalidateCache()
-		if not isRunningOnSecureDesktop():
-			post_sessionLockStateChanged.register(self._handlePossibleSessionDisconnect)
-			post_secureDesktopStateChange.register(self._handlePossibleSessionDisconnect)
+		post_sessionLockStateChanged.register(self._handlePossibleSessionDisconnect)
+		post_secureDesktopStateChange.register(self._handlePossibleSessionDisconnect)
 
 	def terminate(self):
-		if not isRunningOnSecureDesktop():
-			post_secureDesktopStateChange.unregister(self._handlePossibleSessionDisconnect)
-			post_sessionLockStateChanged.unregister(self._handlePossibleSessionDisconnect)
+		post_secureDesktopStateChange.unregister(self._handlePossibleSessionDisconnect)
+		post_sessionLockStateChanged.unregister(self._handlePossibleSessionDisconnect)
 		super().terminate()
 
 	def __getattribute__(self, name: str) -> Any:

@@ -18,14 +18,12 @@ _cachedConfig: ConfigT = {}
 class OperatingMode(DisplayStringIntFlag):
 	SERVER = 0x1
 	CLIENT = 0x2
-	SECURE_DESKTOP = 0x4
 
 	@property
 	def _displayStringLabels(self):
 		return {
 			OperatingMode.SERVER: _("Incoming connections (Remote Desktop Server)"),
 			OperatingMode.CLIENT: _("Outgoing connections (Remote Desktop Client)"),
-			OperatingMode.SECURE_DESKTOP: _("Secure Desktop pass through"),
 		}
 
 
