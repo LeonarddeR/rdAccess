@@ -28,9 +28,9 @@ class RemoteBrailleHandler(RemoteHandler[braille.BrailleDisplayDriver]):
 	_queuedWrite: list[int] | None = None
 	_queuedWriteLock: threading.Lock
 
-	def __init__(self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool = True):
+	def __init__(self, ioThread: IoThread, pipeName: str):
 		self._queuedWriteLock = threading.Lock()
-		super().__init__(ioThread, pipeName, isNamedPipeClient=isNamedPipeClient)
+		super().__init__(ioThread, pipeName)
 		braille.decide_enabled.register(self._handleBrailleHandlerEnabled)
 		braille.displayChanged.register(self._handleDriverChanged)
 		postBrailleViewerToolToggledAction.register(self._handleDisplayDimensionChanges)

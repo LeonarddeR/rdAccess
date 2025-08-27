@@ -28,9 +28,9 @@ else:
 class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 	driverType = protocol.DriverType.SPEECH
 
-	def __init__(self, ioThread: IoThread, pipeName: str, isNamedPipeClient: bool = True):
+	def __init__(self, ioThread: IoThread, pipeName: str):
 		self._indexesSpeaking = []
-		super().__init__(ioThread, pipeName, isNamedPipeClient=isNamedPipeClient)
+		super().__init__(ioThread, pipeName)
 		synthDriverHandler.synthIndexReached.register(self._onSynthIndexReached)
 		synthDriverHandler.synthDoneSpeaking.register(self._onSynthDoneSpeaking)
 		synthDriverHandler.synthChanged.register(self._handleDriverChanged)
