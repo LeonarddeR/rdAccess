@@ -135,7 +135,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		return
 
 	def _onReceive(self, message: bytes):
-		if self._isVirtualChannel and len(message) == 1:
+		if len(message) == 1:
 			command = message[0]
 			if command == MSG_XON:
 				self._connected = True
