@@ -32,7 +32,7 @@ MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS = 200
 DriverT = typing.TypeVar("DriverT", bound=Driver)
 
 
-class RemoteHandler(protocol.RemoteProtocolHandler[namedPipe.NamedPipeBase], typing.Generic[DriverT]):
+class RemoteHandler(protocol.RemoteProtocolHandler[namedPipe.NamedPipeClient], typing.Generic[DriverT]):
 	decide_remoteDisconnect: AccumulatingDecider
 	_isSecureDesktopHandler: bool = False
 	_remoteSessionhasFocus: bool | None = None
@@ -51,42 +51,25 @@ class RemoteHandler(protocol.RemoteProtocolHandler[namedPipe.NamedPipeBase], typ
 		self,
 		ioThread: IoThread,
 		pipeName: str,
-		isNamedPipeClient: bool = True,
 	):
-		if isNamedPipeClient:
-			self._dev = namedPipe.NamedPipeClient(
-				pipeName=pipeName,
-				onReceive=self._onReceive,
-				onReadError=self._onReadError,
-				ioThread=ioThread,
-			)
-		else:
-			self._dev = namedPipe.NamedPipeServer(
-				pipeName=pipeName,
-				onReceive=self._onReceive,
-				onConnected=self._onConnected,
-				ioThreadEx=ioThread,
-				stringSecurityDescriptor=namedPipe.SDDL_ALLOW_SYSTEM,
-			)
+		self._dev = namedPipe.NamedPipeClient(
+			pipeName=pipeName,
+			onReceive=self._onReceive,
+			onReadError=self._onReadError,
+			ioThread=ioThread,
+		)
 
 	def __init__(
 		self,
 		ioThread: IoThread,
 		pipeName: str,
-		isNamedPipeClient: bool = True,
 	):
-		self._isSecureDesktopHandler = not isNamedPipeClient
 		super().__init__()
-		self.initIo(ioThread, pipeName, isNamedPipeClient)
+		self.initIo(ioThread, pipeName)
 
-		if not self._isSecureDesktopHandler:
-			self._onConnected(True)
-		elif self._remoteSessionhasFocus is None:
-			self._remoteSessionhasFocus = False
+		self._onConnected(True)
 
 	def _onConnected(self, connected: bool = True):
-		if self._isSecureDesktopHandler:
-			self._remoteSessionhasFocus = connected
 		if connected:
 			self._handleDriverChanged(self._driver)
 		wx.CallAfter(self._handleNotifications, connected)

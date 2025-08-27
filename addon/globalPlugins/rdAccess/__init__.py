@@ -15,12 +15,11 @@ import config
 import globalPluginHandler
 import gui
 import wx
+from hwIo import ioThread
 from logHandler import log
 from utils.security import isRunningOnSecureDesktop, post_sessionLockStateChanged
-from winAPI.secureDesktop import post_secureDesktopStateChange
 
 from . import directoryChanges, handlers, settingsPanel
-from .secureDesktopHandling import SecureDesktopHandler, isAddonAvailableInSystemConfig
 from .synthDetect import SynthDetector
 
 addon: addonHandler.Addon = addonHandler.getCodeAddon()
@@ -29,14 +28,12 @@ addon: addonHandler.Addon = addonHandler.getCodeAddon()
 if typing.TYPE_CHECKING:
 	from ...lib import (
 		configuration,
-		ioThreadEx,
 		namedPipe,
 		protocol,
 		rdPipe,
 	)
 else:
 	configuration = addon.loadModule("lib.configuration")
-	ioThreadEx = addon.loadModule("lib.ioThreadEx")
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
@@ -44,12 +41,10 @@ else:
 
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	_synthDetector: SynthDetector | None = None
-	_ioThread: ioThreadEx.IoThreadEx | None = None
+	_ioThread: ioThread.IoThread | None = None
 
 	@classmethod
 	def _updateRegistryForRdPipe(cls, install: bool, rdp: bool, citrix: bool) -> bool:
-		if isRunningOnSecureDesktop():
-			return False
 		if citrix and not rdPipe.isCitrixSupported():
 			citrix = False
 		if not rdp and not citrix:
@@ -111,15 +106,9 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if not isRunningOnSecureDesktop():
 			post_sessionLockStateChanged.register(self._handleLockStateChanged)
 
-	def initializeOperatingModeCommonClient(self):
-		if isRunningOnSecureDesktop():
-			return
-		self._ioThread = ioThreadEx.IoThreadEx()
+	def initializeOperatingModeClient(self):
+		self._ioThread = ioThread.IoThread()
 		self._ioThread.start()
-
-	def initializeOperatingModeRdClient(self):
-		if isRunningOnSecureDesktop():
-			return
 		wx.CallAfter(self._registerRdPipeInRegistry)
 		self._handlers: dict[str, handlers.RemoteHandler] = {}
 		self._pipeWatcher = directoryChanges.DirectoryWatcher(
@@ -130,33 +119,17 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._pipeWatcher.start()
 		self._initializeExistingPipes()
 
-	def initializeOperatingModeSecureDesktop(self):
-		if isRunningOnSecureDesktop():
-			return
-		post_secureDesktopStateChange.register(self._handleSecureDesktop)
-		self._sdHandler: SecureDesktopHandler | None = None
-
 	def __init__(self):
 		super().__init__()
+		if isRunningOnSecureDesktop():
+			return
 		log.info(f"Initializing {addon.name} version {addon.version}")
 		configuration.initializeConfig()
 		configuredOperatingMode = configuration.getOperatingMode()
-		if (
-			configuredOperatingMode & configuration.OperatingMode.CLIENT
-			or configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
-		):
-			self.initializeOperatingModeCommonClient()
 		if configuredOperatingMode & configuration.OperatingMode.CLIENT:
-			self.initializeOperatingModeRdClient()
-		if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
-			self.initializeOperatingModeSecureDesktop()
-		if configuredOperatingMode & configuration.OperatingMode.SERVER or (
-			configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
-			and isRunningOnSecureDesktop()
-		):
+			self.initializeOperatingModeClient()
+		if configuredOperatingMode & configuration.OperatingMode.SERVER:
 			self.initializeOperatingModeServer()
-		if isRunningOnSecureDesktop():
-			return
 		config.post_configProfileSwitch.register(self._handlePostConfigProfileSwitch)
 		gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(
 			settingsPanel.RemoteDesktopSettingsPanel,
@@ -217,14 +190,11 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 				handler.terminate()
 
 	def terminateOperatingModeServer(self):
-		if not isRunningOnSecureDesktop():
-			post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
+		post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
 		if self._synthDetector:
 			self._synthDetector.terminate()
 
-	def terminateOperatingModeRdClient(self):
-		if isRunningOnSecureDesktop():
-			return
+	def terminateOperatingModeClient(self):
 		if self._pipeWatcher:
 			self._pipeWatcher.stop()
 			self._pipeWatcher = None
@@ -233,19 +203,9 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._handlers.clear()
 		if not configuration.getPersistentRegistration():
 			self._unregisterRdPipeFromRegistry()
-
-	def terminateOperatingModeCommonClient(self):
-		if isRunningOnSecureDesktop():
-			return
 		if self._ioThread:
 			self._ioThread.stop()
 			self._ioThread = None
-
-	def terminateOperatingModeSecureDesktop(self):
-		if isRunningOnSecureDesktop():
-			return
-		post_secureDesktopStateChange.unregister(self._handleSecureDesktop)
-		self._handleSecureDesktop(False)
 
 	@classmethod
 	def _unregisterRdPipeFromRegistry(cls) -> bool:
@@ -267,41 +227,25 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 					self._handlePostConfigProfileSwitch,
 				)
 			configuredOperatingMode = configuration.getOperatingMode()
-			if configuredOperatingMode & configuration.OperatingMode.SERVER or (
-				configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
-				and isRunningOnSecureDesktop()
-			):
+			if configuredOperatingMode & configuration.OperatingMode.SERVER:
 				self.terminateOperatingModeServer()
-			if configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP:
-				self.terminateOperatingModeSecureDesktop()
 			if configuredOperatingMode & configuration.OperatingMode.CLIENT:
-				self.terminateOperatingModeRdClient()
-			if (
-				configuredOperatingMode & configuration.OperatingMode.CLIENT
-				or configuredOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
-			):
-				self.terminateOperatingModeCommonClient()
+				self.terminateOperatingModeClient()
 		finally:
 			super().terminate()
 
-	def _handlePostConfigProfileSwitch(self):  # NOQA: C901
+	def _handlePostConfigProfileSwitch(self):
 		oldOperatingMode = configuration.getOperatingMode(True)
 		newOperatingMode = configuration.getOperatingMode(False)
 		oldClient = oldOperatingMode & configuration.OperatingMode.CLIENT
 		newClient = newOperatingMode & configuration.OperatingMode.CLIENT
 		oldServer = oldOperatingMode & configuration.OperatingMode.SERVER
 		newServer = newOperatingMode & configuration.OperatingMode.SERVER
-		oldSecureDesktop = oldOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
-		newSecureDesktop = newOperatingMode & configuration.OperatingMode.SECURE_DESKTOP
-		oldSecureDesktopOrServer = (oldSecureDesktop and isRunningOnSecureDesktop()) or oldServer
-		newSecureDesktopOrServer = (newSecureDesktop and isRunningOnSecureDesktop()) or newServer
-		oldSecureDesktopOrClient = (oldSecureDesktop and not isRunningOnSecureDesktop()) or oldClient
-		newSecureDesktopOrClient = (newSecureDesktop and not isRunningOnSecureDesktop()) or newClient
-		if oldSecureDesktopOrServer and not newSecureDesktopOrServer:
+		if oldServer and not newServer:
 			self.terminateOperatingModeServer()
-		elif not oldSecureDesktopOrServer and newSecureDesktopOrServer:
+		elif not oldServer and newServer:
 			self.initializeOperatingModeServer()
-		elif newSecureDesktopOrServer:
+		elif newServer:
 			oldRecoverRemoteSpeech = configuration.getRecoverRemoteSpeech(True)
 			newRecoverRemoteSpeech = configuration.getRecoverRemoteSpeech(False)
 			if oldRecoverRemoteSpeech is not newRecoverRemoteSpeech:
@@ -311,14 +255,10 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 				elif self._synthDetector:
 					self._synthDetector.terminate()
 					self._synthDetector = None
-		if oldSecureDesktop and not newSecureDesktop:
-			self.terminateOperatingModeSecureDesktop()
-		elif not oldSecureDesktop and newSecureDesktop:
-			self.initializeOperatingModeSecureDesktop()
 		if oldClient and not newClient:
-			self.terminateOperatingModeRdClient()
+			self.terminateOperatingModeClient()
 		elif not oldClient and newClient:
-			self.initializeOperatingModeRdClient()
+			self.initializeOperatingModeClient()
 		elif newClient:
 			oldDriverSettingsManagement = configuration.getDriverSettingsManagement(
 				True,
@@ -337,10 +277,6 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			newCitrix = configuration.getCitrixSupport(False)
 			if oldCitrix is not newCitrix:
 				self._updateRegistryForRdPipe(newCitrix, False, True)
-		if oldSecureDesktopOrClient and not newSecureDesktopOrClient:
-			self.terminateOperatingModeCommonClient()
-		elif not oldSecureDesktopOrClient and newSecureDesktopOrClient:
-			self.initializeOperatingModeCommonClient()
 		configuration.updateConfigCache()
 
 	def _handleLockStateChanged(self, isNowLocked):
@@ -376,24 +312,18 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		return False
 
 	def event_gainFocus(self, obj, nextHandler):
-		configuredOperatingMode = configuration.getOperatingMode()
-		if not isRunningOnSecureDesktop() and configuredOperatingMode & configuration.OperatingMode.CLIENT:
-			for handler in self._handlers.values():
-				try:
-					handler.event_gainFocus(obj)
-				except Exception:
-					log.error("Error calling event_gainFocus on handler", exc_info=True)
-					continue
-		if configuredOperatingMode & configuration.OperatingMode.SERVER:
-			self._triggerBackgroundDetectRescan()
+		if not isRunningOnSecureDesktop():
+			configuredOperatingMode = configuration.getOperatingMode()
+			if configuredOperatingMode & configuration.OperatingMode.CLIENT:
+				for handler in self._handlers.values():
+					try:
+						handler.event_gainFocus(obj)
+					except Exception:
+						log.error("Error calling event_gainFocus on handler", exc_info=True)
+						continue
+			if configuredOperatingMode & configuration.OperatingMode.SERVER:
+				self._triggerBackgroundDetectRescan()
 		nextHandler()
-
-	def _handleSecureDesktop(self, isSecureDesktop: bool):
-		if isSecureDesktop and isAddonAvailableInSystemConfig():
-			self._sdHandler = SecureDesktopHandler(self._ioThread)
-		elif self._sdHandler:
-			self._sdHandler.terminate()
-			self._sdHandler = None
 
 
 GlobalPlugin = RDGlobalPlugin
