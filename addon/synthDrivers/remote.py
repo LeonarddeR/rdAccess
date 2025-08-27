@@ -37,14 +37,14 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 	}
 	driverType = protocol.DriverType.SPEECH
 	synthRemoteDisconnected = Action()
-	fallbackSynth: str
+	fallbackSynth: str = AUTOMATIC_PORT[0]
 	_localSettings: typing.ClassVar = [
 		DriverSetting(
 			id="fallbackSynth",
 			# Translators: The name of a remote synthesizer setting to select the fallback synthesizer.
 			displayNameWithAccelerator=_("&Fallback synthesizer"),
 			availableInSettingsRing=True,
-			defaultVal=AUTOMATIC_PORT[0],
+			defaultVal=fallbackSynth,
 		),
 	]
 
