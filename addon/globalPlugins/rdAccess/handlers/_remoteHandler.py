@@ -12,7 +12,6 @@ import api
 import globalVars
 import nvwave
 import speech
-import tones
 import ui
 import wx
 from driverHandler import Driver
@@ -100,11 +99,7 @@ class RemoteHandler(protocol.RemoteProtocolHandler[namedPipe.NamedPipeClient], t
 		if notifications & configuration.ConnectionNotifications.SOUNDS:
 			wave = "connected" if connected else "disconnected"
 			wavePath = os.path.join(globalVars.appDir, "waves", f"{wave}.wav")
-			if os.path.isfile(wavePath):
-				nvwave.playWaveFile(wavePath)
-			else:
-				hz = 550 if connected else 137.5
-				tones.beep(hz, 100)
+			nvwave.playWaveFile(wavePath)
 
 	def event_gainFocus(self, _obj):
 		if self._isSecureDesktopHandler:
