@@ -15,8 +15,8 @@ from ctypes.wintypes import DWORD, HANDLE
 from enum import IntFlag
 from glob import iglob
 
+import buildVersion
 import winKernel
-from appModuleHandler import processEntry32W
 from hwIo.base import IoBase
 from hwIo.ioThread import IoThread
 from serial.win32 import (
@@ -24,6 +24,11 @@ from serial.win32 import (
 	INVALID_HANDLE_VALUE,
 	CreateFile,
 )
+
+if buildVersion.version_year >= 2026:
+	from winBindings.kernel32 import PROCESSENTRY32W
+else:
+	from appModuleHandler import processEntry32W as PROCESSENTRY32W
 
 PIPE_DIRECTORY = "\\\\.\\pipe\\"
 RD_PIPE_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
@@ -33,8 +38,8 @@ TH32CS_SNAPPROCESS = 0x00000002
 def getParentProcessId(processId: int) -> int | None:
 	FSnapshotHandle = windll.kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
 	try:
-		FProcessEntry32 = processEntry32W()
-		FProcessEntry32.dwSize = sizeof(processEntry32W)
+		FProcessEntry32 = PROCESSENTRY32W()
+		FProcessEntry32.dwSize = sizeof(PROCESSENTRY32W)
 		ContinueLoop = windll.kernel32.Process32FirstW(FSnapshotHandle, byref(FProcessEntry32))
 		while ContinueLoop:
 			if FProcessEntry32.th32ProcessID == processId:
