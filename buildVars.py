@@ -26,7 +26,7 @@ addon_info = {
 		"Citrix Workspace, Parallels RAS and VMware Horizon",
 	),
 	# version
-	"addon_version": "1.6.0",
+	"addon_version": "1.6.1",
 	# Author(s)
 	"addon_author": "Leonard de Ruijter <alderuijter@gmail.com>",
 	# URL for the add-on documentation support
