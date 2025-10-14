@@ -1,5 +1,5 @@
 # RDAccess: Remote Desktop Accessibility for NVDA
-# Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
+# Copyright 2023-2025 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
 from collections.abc import Callable
@@ -21,6 +21,7 @@ from ctypes.wintypes import (
 	BOOL,
 	DWORD,
 	HANDLE,
+	LPSTR,
 	LPWSTR,
 )
 
@@ -29,7 +30,7 @@ from hwIo.base import IoBase, _isDebug
 from hwIo.ioThread import IoThread
 from logHandler import log
 from serial.win32 import ERROR_IO_PENDING, INVALID_HANDLE_VALUE
-from winAPI import _wtsApi32 as wtsApi32
+from winAPI import _wtsApi32
 
 WTS_CHANNEL_OPTION_DYNAMIC = 0x00000001
 WTS_CHANNEL_OPTION_DYNAMIC_PRI_HIGH = 0x00000004
@@ -57,27 +58,46 @@ except (OSError, AttributeError):
 	WTSVirtualChannelOpenEx = windll.wtsapi32.WTSVirtualChannelOpenEx
 	WTSVirtualChannelQuery = windll.wtsapi32.WTSVirtualChannelQuery
 	WTSVirtualChannelClose = windll.wtsapi32.WTSVirtualChannelClose
+	WTSFreeMemory = windll.wtsapi32.WTSFreeMemory
+	WTSQuerySessionInformation = _wtsApi32.WTSQuerySessionInformation
 	GetSystemMetrics = windll.user32.GetSystemMetrics
 else:
 	WTSVirtualChannelOpenEx = vdp_rdpvcbridge.VDP_VirtualChannelOpenEx
 	WTSVirtualChannelQuery = vdp_rdpvcbridge.VDP_VirtualChannelQuery
-	# Slightly hacky but effective
-	wtsApi32.WTSFreeMemory = vdp_rdpvcbridge.VDP_FreeMemory
-	wtsApi32.WTSFreeMemory.argtypes = (
-		c_void_p,  # [in] PVOID pMemory
-	)
-	wtsApi32.WTSFreeMemory.restype = None
+	WTSFreeMemory = vdp_rdpvcbridge.VDP_FreeMemory
 	WTSVirtualChannelClose = vdp_rdpvcbridge.VDP_VirtualChannelClose
-	wtsApi32.WTSQuerySessionInformation = vdp_rdpvcbridge.VDP_QuerySessionInformationW
-	wtsApi32.WTSQuerySessionInformation.argtypes = (
+	WTSQuerySessionInformation = vdp_rdpvcbridge.VDP_QuerySessionInformationW
+	GetSystemMetrics = vdp_rdpvcbridge.VDP_GetSystemMetrics
+WTSVirtualChannelOpenEx.argtypes = (
+	DWORD,  # [in] DWORD SessionId
+	LPSTR,  # [in] LPSTR pVirtualName
+	DWORD,  # [in] DWORD Flags
+)
+WTSVirtualChannelOpenEx.restype = HANDLE  # On Failure, the return value is None
+WTSVirtualChannelQuery.argtypes = (
+	HANDLE,  # [in] HANDLE hChannelHandle
+	c_int,  # [in] WTS_VIRTUAL_CLASS WTSVirtualClass
+	POINTER(POINTER(HANDLE)),  # [out] * pBuffer,
+	POINTER(DWORD),  # [out] DWORD * pBytesReturned
+)
+WTSVirtualChannelQuery.restype = BOOL  # On Failure, the return value is zero
+WTSFreeMemory.argtypes = (
+	c_void_p,  # [in] PVOID pMemory
+)
+WTSFreeMemory.restype = None
+WTSVirtualChannelClose.argtypes = (
+	HANDLE,  # [in] HANDLE hChannelHandle
+)
+WTSVirtualChannelClose.restype = BOOL  # On Failure, the return value is zero
+if WTSQuerySessionInformation.argtypes is None:
+	WTSQuerySessionInformation.argtypes = (
 		HANDLE,  # [in] HANDLE hServer
 		DWORD,  # [ in] DWORD SessionId
 		c_int,  # [ in]  WTS_INFO_CLASS WTSInfoClass,
 		POINTER(LPWSTR),  # [out] LPWSTR * ppBuffer,
 		POINTER(DWORD),  # [out] DWORD * pBytesReturned
 	)
-	wtsApi32.WTSQuerySessionInformation.restype = BOOL  # On Failure, the return value is zero.
-	GetSystemMetrics = vdp_rdpvcbridge.VDP_GetSystemMetrics
+	WTSQuerySessionInformation.restype = BOOL  # On Failure, the return value is zero.
 
 
 def getRemoteSessionMetrics() -> bool:
@@ -96,11 +116,11 @@ class WTSVirtualChannel(IoBase):
 		rawOutput=False,
 	):
 		wtsHandle = WTSVirtualChannelOpenEx(
-			wtsApi32.WTS_CURRENT_SESSION,
+			_wtsApi32.WTS_CURRENT_SESSION,
 			create_string_buffer(channelName.encode("ascii")),
 			WTS_CHANNEL_OPTION_DYNAMIC | WTS_CHANNEL_OPTION_DYNAMIC_PRI_HIGH,
 		)
-		if wtsHandle == 0:
+		if wtsHandle is None:
 			raise WinError()
 		try:
 			fileHandlePtr = POINTER(HANDLE)()
@@ -124,7 +144,7 @@ class WTSVirtualChannel(IoBase):
 					winKernel.DUPLICATE_SAME_ACCESS,
 				)
 			finally:
-				wtsApi32.WTSFreeMemory(fileHandlePtr)
+				WTSFreeMemory(fileHandlePtr)
 		finally:
 			if not WTSVirtualChannelClose(wtsHandle):
 				raise WinError()
