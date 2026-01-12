@@ -57,7 +57,8 @@ class SynthDetector(AutoPropertyObject):
 
 	def _fallback(self):
 		fallback = (
-			config.conf[remoteSynthDriver._configSection]
+			config
+			.conf[remoteSynthDriver._configSection]
 			.get(remoteSynthDriver.name, {})
 			.get("fallbackSynth", AUTOMATIC_PORT[0])
 		)
