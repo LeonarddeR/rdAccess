@@ -197,8 +197,9 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		config.conf[configuration.CONFIG_SECTION_NAME][
 			configuration.CONNECTION_NOTIFICATIONS_SETTING_NAME
 		] = self.connectionNotificationsList.Selection
-		rdPipe.setRdPipeLogLevel(rdPipe.RdPipeLogLevel(self.rdPipeLogLevelList.Selection))
 		self.post_onSave.notify()
+		if self.rdPipeLogLevelList.IsEnabled():
+			rdPipe.setRdPipeLogLevel(rdPipe.RdPipeLogLevel(self.rdPipeLogLevelList.Selection))
 
 	def showRdPipeLogViewer(self, evt: wx.CommandEvent | None = None):
 		if evt:

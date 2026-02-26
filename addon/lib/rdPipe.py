@@ -179,7 +179,7 @@ def getRdPipeLogLevel() -> RdPipeLogLevel:
 
 
 def setRdPipeLogLevel(level: RdPipeLogLevel) -> None:
-	with winreg.OpenKey(
+	with winreg.CreateKeyEx(
 		winreg.HKEY_CURRENT_USER,
 		COM_CLASS_FOLDER,
 		0,
