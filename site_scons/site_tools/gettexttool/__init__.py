@@ -19,7 +19,7 @@ To properly configure get text, define the following variables:
 from SCons.Action import Action
 
 
-def exists(_env):
+def exists(env):
 	return True
 
 
@@ -44,10 +44,7 @@ def generate(env):
 	)
 
 	env["BUILDERS"]["gettextPotFile"] = env.Builder(
-		action=Action(
-			"xgettext " + XGETTEXT_COMMON_ARGS,
-			"Generating pot file $TARGET",
-		),
+		action=Action("xgettext " + XGETTEXT_COMMON_ARGS, "Generating pot file $TARGET"),
 		suffix=".pot",
 	)
 
