@@ -1,7 +1,12 @@
 # Build customizations
 # Change this file instead of sconstruct or manifest files, whenever possible.
 
-from site_scons.site_tools.NVDATool.typings import AddonInfo, BrailleTables, SymbolDictionaries, SpeechDictionaries
+from site_scons.site_tools.NVDATool.typings import (
+	AddonInfo,
+	BrailleTables,
+	SpeechDictionaries,
+	SymbolDictionaries,
+)
 
 # Since some strings in `addon_info` are translatable,
 # we need to include them in the .po files.
@@ -9,7 +14,6 @@ from site_scons.site_tools.NVDATool.typings import AddonInfo, BrailleTables, Sym
 # To avoid initializing translations in this module we simply import a "fake" `_` function
 # which returns whatever is given to it as an argument.
 from site_scons.site_tools.NVDATool.utils import _
-
 
 # Add-on information variables
 addon_info = AddonInfo(

@@ -32,7 +32,7 @@ MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS = 200
 DriverT = typing.TypeVar("DriverT", bound=Driver)
 
 
-class RemoteHandler(protocol.RemoteProtocolHandler[namedPipe.NamedPipeClient], typing.Generic[DriverT]):
+class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.NamedPipeClient]):
 	decide_remoteDisconnect: AccumulatingDecider
 	_isSecureDesktopHandler: bool = False
 	_remoteSessionhasFocus: bool | None = None

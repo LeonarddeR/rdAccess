@@ -6,18 +6,18 @@
 import os
 import os.path
 import sys
-from pathlib import Path
 from collections.abc import Iterable
+from pathlib import Path
 from typing import Final
+
+# Imports for type hints
+from SCons.Node import FS
 
 # While names imported below are available by default in every SConscript
 # Linters aren't aware about them.
 # To avoid PyRight `reportUndefinedVariable` errors about them they are imported explicitly.
 # When using other  Scons functions please add them to the line below.
-from SCons.Script import EnsurePythonVersion, Variables, BoolVariable, Environment, Copy
-
-# Imports for type hints
-from SCons.Node import FS
+from SCons.Script import BoolVariable, Copy, EnsurePythonVersion, Environment, Variables
 
 # Add-on localization exchange facility and the template requires Python 3.10.
 # For best practice, use Python 3.11 or later to align with NVDA development.
@@ -37,12 +37,12 @@ def validateVersionNumber(key: str, val: str, _):
 	versionNumber = val.split(".")
 	if len(versionNumber) < 3:
 		raise ValueError(f"{key} must have three parts (major.minor.patch)")
-	if not all([part.isnumeric() for part in versionNumber]):
+	if not all(part.isnumeric() for part in versionNumber):
 		raise ValueError(f"{key} (major.minor.patch) must be integers")
 
 
 def expandGlobs(patterns: Iterable[str], rootdir: Path = Path(".")) -> list[FS.Entry]:
-	return [env.Entry(e) for pattern in patterns for e in rootdir.glob(pattern.lstrip('/'))]
+	return [env.Entry(e) for pattern in patterns for e in rootdir.glob(pattern.lstrip("/"))]
 
 
 addonDir: Final = Path("addon/")
@@ -67,7 +67,7 @@ env.Append(
 if env["dev"]:
 	from datetime import date
 
-	versionTimestamp = date.today().strftime('%Y%m%d')
+	versionTimestamp = date.today().strftime("%Y%m%d")
 	version = f"{versionTimestamp}.0.0"
 	env["addon_info"]["addon_version"] = version
 	env["versionNumber"] = version
@@ -84,7 +84,7 @@ env.Append(**env["addon_info"])
 addonFile = env.File("${addon_name}-${addon_version}.nvda-addon")
 addon = env.NVDAAddon(addonFile, env.Dir(addonDir), excludePatterns=buildVars.excludedFiles)
 
-langDirs: list[FS.Dir] = [env.Dir(d) for d in env.Glob(localeDir/"*/") if d.isdir()]
+langDirs: list[FS.Dir] = [env.Dir(d) for d in env.Glob(localeDir / "*/") if d.isdir()]
 
 # Allow all NVDA's gettext po files to be compiled in source/locale, and manifest files to be generated
 moByLang: dict[str, FS.File] = {}
@@ -116,8 +116,9 @@ if (readmeFile := Path("readme.md")).is_file():
 	readmeTarget = env.Command(str(readmePath), str(readmeFile), Copy("$TARGET", "$SOURCE"))
 	env.Depends(addon, readmeTarget)
 
-for mdFile in env.Glob(docsDir/"*/*.md"):
-	# the title of the html file is translated based on the contents of something in the moFile for a language.
+for mdFile in env.Glob(docsDir / "*/*.md"):
+	# the title of the html file is translated
+	# based on the contents of something in the moFile for a language.
 	# Thus, we find the moFile for this language and depend on it if it exists.
 	lang = mdFile.dir.name
 	moFile = moByLang.get(lang)
@@ -143,7 +144,7 @@ env.Alias("mergePot", mergePot)
 env.Depends(mergePot, i18nFiles)
 
 # Generate Manifest path
-manifest = env.NVDAManifest(env.File(addonDir/"manifest.ini"), "manifest.ini.tpl")
+manifest = env.NVDAManifest(env.File(addonDir / "manifest.ini"), "manifest.ini.tpl")
 # Ensure manifest is rebuilt if buildVars is updated.
 env.Depends(manifest, "buildVars.py")
 

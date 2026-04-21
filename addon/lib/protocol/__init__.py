@@ -17,7 +17,6 @@ from fnmatch import fnmatch
 from functools import partial, update_wrapper, wraps
 from typing import (
 	Any,
-	Generic,
 	TypeVar,
 	cast,
 )
@@ -77,7 +76,7 @@ DefaultValueGetterT = Callable[[RemoteProtocolHandlerT, AttributeT], AttributeVa
 AttributeValueUpdateCallbackT = Callable[[RemoteProtocolHandlerT, AttributeT, AttributeValueT], None]
 
 
-class HandlerDecoratorBase(Generic[HandlerFuncT]):
+class HandlerDecoratorBase[HandlerFuncT: Callable]:
 	_func: HandlerFuncT
 
 	def __init__(self, func: HandlerFuncT):
@@ -109,7 +108,9 @@ def commandHandler(command: CommandT):
 	return partial(CommandHandler, command)
 
 
-class AttributeHandler(HandlerDecoratorBase, Generic[AttributeHandlerT]):
+class AttributeHandler[
+	AttributeHandlerT: (attributeFetcherT, AttributeReceiverUnboundT, WildCardAttributeReceiverUnboundT),
+](HandlerDecoratorBase):
 	_attribute: AttributeT = b""
 
 	@property
@@ -208,7 +209,9 @@ class CommandHandlerStore(HandlerRegistrar):
 		handler(payload)
 
 
-class AttributeHandlerStore(HandlerRegistrar[AttributeHandler], Generic[AttributeHandlerT]):
+class AttributeHandlerStore[
+	AttributeHandlerT: (attributeFetcherT, AttributeReceiverUnboundT, WildCardAttributeReceiverUnboundT),
+](HandlerRegistrar[AttributeHandler]):
 	def _getRawHandler(self, attribute: AttributeT) -> AttributeHandler:
 		handler = next((v for v in self.handlers if fnmatch(attribute, v._attribute)), None)
 		if handler is None:
@@ -301,7 +304,7 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
 IoTypeT = TypeVar("IoTypeT", bound=IoBase)
 
 
-class RemoteProtocolHandler(AutoPropertyObject, Generic[IoTypeT]):
+class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 	_dev: IoTypeT
 	driverType: DriverType
 	_receiveBuffer: bytes
