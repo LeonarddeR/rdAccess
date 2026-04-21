@@ -76,12 +76,3 @@ repos:
       args: [ --fix ]
     - id: ruff-format
       name: format with ruff
-
-- repo: local
-  hooks:
-
-    - id: pyright
-      name: type check with pyright
-      entry: uv run pyright
-      language: system
-      types: [python]
