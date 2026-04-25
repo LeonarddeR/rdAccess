@@ -2,8 +2,6 @@
 # https://pre-commit.ci/
 # Configuration for Continuous Integration service
 ci:
-  # Pyright does not seem to work in pre-commit CI
-  skip: [pyright]
   autoupdate_schedule: monthly
   autoupdate_commit_msg: "Pre-commit auto-update"
   autofix_commit_msg: "Pre-commit auto-fix"
