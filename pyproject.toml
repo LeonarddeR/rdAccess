@@ -34,7 +34,7 @@ dependencies = [
 	"mdx-gh-links==0.4",
 	# Lint
 	"uv==0.11.6",
-	"ruff==0.14.5",
+	"ruff==0.15.12",
 	"pre-commit==4.2.0"
 ]
 [project.urls]
@@ -98,7 +98,6 @@ select = [
 	"INT",  # flake8-gettext
 	"PERF",  # Perflint
 	"PIE",  # flake8-pie
-	"RUF",  # RUFF
 	"SIM",  # flake8-simplify
 	"UP",  # pyupgrade
 	"W",  # pycodestyle Warning
