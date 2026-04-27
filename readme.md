@@ -25,7 +25,7 @@ This enables a user experience where managing a remote system feels as seamless 
 ### Version 1.7
 
 * Removed secure desktop support.
-* Added a client option "Incoming speech pitch change percentage" to shift the pitch of speech rendered from a remote NVDA, making remote and local speech audibly distinguishable. Default 5%, range -100 to 100.
+* Added a client option "Incoming speech pitch change percentage" to shift the pitch of speech rendered from a remote NVDA, making remote and local speech audibly distinguishable.
 
 ### Version 1.6
 
@@ -143,7 +143,7 @@ Note that sounds are not available on NVDA versions older than 2025.1. Beeps wil
 
 This client option shifts the pitch of speech rendered locally when it originates from a remote NVDA, making remote and local speech audibly distinguishable.
 
-The value is a percentage between -100 and 100. Positive values raise pitch, negative values lower it. A value of 0 disables the shift. The default is 5.
+The value is a percentage between -100 and 100. Positive values raise pitch, negative values lower it. A value of 0 disables the shift. The default is 10.
 
 The shift is applied only when the local synthesizer supports pitch commands; synthesizers without pitch support are unaffected.
 

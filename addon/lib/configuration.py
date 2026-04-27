@@ -74,7 +74,7 @@ CONFIG_SPEC = {
 	RECOVER_REMOTE_SPEECH_SETTING_NAME: "boolean(default=true)",
 	DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME: "boolean(default=false)",
 	CONNECTION_NOTIFICATIONS_SETTING_NAME: "integer(default=1, min=0, max=3)",
-	INCOMING_SPEECH_PITCH_CHANGE_SETTING_NAME: "integer(default=5, min=-100, max=100)",
+	INCOMING_SPEECH_PITCH_CHANGE_SETTING_NAME: "integer(default=10, min=-100, max=100)",
 }
 
 
