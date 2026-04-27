@@ -139,6 +139,14 @@ You can choose between:
 
 Note that sounds are not available on NVDA versions older than 2025.1. Beeps will be used on older versions.
 
+### Incoming Speech Pitch Change Percentage
+
+This client option shifts the pitch of speech rendered locally when it originates from a remote NVDA, making remote and local speech audibly distinguishable.
+
+The value is a percentage between -100 and 100. Positive values raise pitch, negative values lower it. A value of 0 disables the shift. The default is 5.
+
+The shift is applied only when the local synthesizer supports pitch commands; synthesizers without pitch support are unaffected.
+
 ### Open diagnostics report
 
 This button opens a browsable message with JSON output containing several diagnostics that can possibly aid in debugging.
