@@ -25,6 +25,7 @@ This enables a user experience where managing a remote system feels as seamless 
 ### Version 1.7
 
 * Removed secure desktop support.
+* Added a client option "Incoming speech pitch change percentage" to shift the pitch of speech rendered from a remote NVDA, making remote and local speech audibly distinguishable. Default 5%, range -100 to 100.
 
 ### Version 1.6
 
