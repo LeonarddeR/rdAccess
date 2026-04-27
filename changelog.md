@@ -1,1 +1,1 @@
-Use this file to explain what has changed in your add-on since the previous release. This will be included automatically in the release description when used with GitHub actions.
+Added a client option "Incoming speech pitch change percentage" to shift the pitch of speech rendered from a remote NVDA, making remote and local speech audibly distinguishable.
