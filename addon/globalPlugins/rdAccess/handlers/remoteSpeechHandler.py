@@ -11,17 +11,18 @@ import synthDriverHandler
 import tones
 from hwIo.ioThread import IoThread
 from logHandler import log
-from speech.commands import IndexCommand
+from speech.commands import IndexCommand, PitchCommand
 from speech.types import SpeechSequence
 
 from ._remoteHandler import RemoteHandler
 
 if typing.TYPE_CHECKING:
-	from ....lib import protocol
+	from ....lib import configuration, protocol
 else:
 	import addonHandler
 
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
+	configuration = addon.loadModule("lib.configuration")
 	protocol = addon.loadModule("lib.protocol")
 
 
@@ -62,6 +63,9 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 		self._queueFunctionOnMainThread(self._speak, sequence)
 
 	def _speak(self, sequence: SpeechSequence):
+		pitchChange = configuration.getIncomingSpeechPitchChange(fromCache=True)
+		if pitchChange != 0 and PitchCommand in self._driver.supportedCommands:
+			sequence = [PitchCommand(offset=pitchChange), *sequence, PitchCommand()]
 		for item in sequence:
 			if isinstance(item, IndexCommand):
 				item.index += protocol.speech.SPEECH_INDEX_OFFSET
