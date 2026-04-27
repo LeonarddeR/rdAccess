@@ -65,6 +65,7 @@ CITRIX_SETTING_NAME = "enableCitrixSupport"
 RECOVER_REMOTE_SPEECH_SETTING_NAME = "recoverRemoteSpeech"
 DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME = "driverSettingsManagement"
 CONNECTION_NOTIFICATIONS_SETTING_NAME = "connectionNotifications"
+INCOMING_SPEECH_PITCH_CHANGE_SETTING_NAME = "incomingSpeechPitchChange"
 CONFIG_SPEC = {
 	OPERATING_MODE_SETTING_NAME: "integer(default=7, min=1, max=7)",
 	PERSISTENT_REGISTRATION_SETTING_NAME: "boolean(default=false)",
@@ -73,6 +74,7 @@ CONFIG_SPEC = {
 	RECOVER_REMOTE_SPEECH_SETTING_NAME: "boolean(default=true)",
 	DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME: "boolean(default=false)",
 	CONNECTION_NOTIFICATIONS_SETTING_NAME: "integer(default=1, min=0, max=3)",
+	INCOMING_SPEECH_PITCH_CHANGE_SETTING_NAME: "integer(default=5, min=-100, max=100)",
 }
 
 
@@ -109,6 +111,10 @@ def getDriverSettingsManagement(fromCache: bool = False) -> bool:
 
 def getConnectionNotifications(fromCache: bool = False) -> ConnectionNotifications:
 	return ConnectionNotifications(int(_getSetting(CONNECTION_NOTIFICATIONS_SETTING_NAME, fromCache)))
+
+
+def getIncomingSpeechPitchChange(fromCache: bool = False) -> int:
+	return int(_getSetting(INCOMING_SPEECH_PITCH_CHANGE_SETTING_NAME, fromCache))
 
 
 initialized: bool = False
