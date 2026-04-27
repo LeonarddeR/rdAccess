@@ -114,6 +114,17 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		)
 		self.connectionNotificationsList.Selection = configuration.getConnectionNotifications()
 
+		# Translators: The label for a spin control in RDAccess settings to set the
+		# pitch change percentage applied to incoming remote speech.
+		incomingSpeechPitchChangeLabelText = _("Incoming speech &pitch change percentage")
+		self.incomingSpeechPitchChangeSpinCtrl = clientGroup.addLabeledControl(
+			incomingSpeechPitchChangeLabelText,
+			nvdaControls.SelectOnFocusSpinCtrl,
+			min=-100,
+			max=100,
+			initial=configuration.getIncomingSpeechPitchChange(),
+		)
+
 		# Translators: The label for a combobox in RDAccess settings to control RdPIpe log level.
 		rdPipeLogLevelLabelText = _("&RdPipe log level")
 		rdPipeLogLevelChoices = [level.displayString for level in rdPipe.RdPipeLogLevel]
@@ -147,6 +158,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		self.remoteDesktopSupportCheckbox.Enable(isClient)
 		self.citrixSupportCheckbox.Enable(isClient and rdPipe.isCitrixSupported())
 		self.connectionNotificationsList.Enable(isClient)
+		self.incomingSpeechPitchChangeSpinCtrl.Enable(isClient)
 		self.rdPipeLogLevelList.Enable(self.persistentRegistrationCheckbox.IsEnabled())
 		self.openRdPipeLogButton.Enable(isClient and rdPipe.logFileExists())
 		self.recoverRemoteSpeechCheckbox.Enable(
@@ -197,6 +209,9 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		config.conf[configuration.CONFIG_SECTION_NAME][
 			configuration.CONNECTION_NOTIFICATIONS_SETTING_NAME
 		] = self.connectionNotificationsList.Selection
+		config.conf[configuration.CONFIG_SECTION_NAME][
+			configuration.INCOMING_SPEECH_PITCH_CHANGE_SETTING_NAME
+		] = self.incomingSpeechPitchChangeSpinCtrl.GetValue()
 		self.post_onSave.notify()
 		if self.rdPipeLogLevelList.IsEnabled():
 			rdPipe.setRdPipeLogLevel(rdPipe.RdPipeLogLevel(self.rdPipeLogLevelList.Selection))
