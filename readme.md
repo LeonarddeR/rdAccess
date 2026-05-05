@@ -22,6 +22,10 @@ This enables a user experience where managing a remote system feels as seamless 
 
 ## Changelog
 
+### Version 1.7.1
+
+* Hopefully fixed a bug in rd_pipe that caused the wrong virtual channel to be created.
+
 ### Version 1.7
 
 * Removed secure desktop support.
