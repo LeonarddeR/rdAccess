@@ -200,8 +200,25 @@ def attributeReceiver(
 
 
 class CommandHandlerStore(HandlerRegistrar):
+	_commandIndex: dict[CommandT, CommandHandlerT]
+
+	def __init__(self, *, _deprecationMessage: str | None = None):
+		super().__init__(_deprecationMessage=_deprecationMessage)
+		self._commandIndex = {}
+
+	def register(self, handler: CommandHandlerT):
+		super().register(handler)
+		self._commandIndex[handler._command] = handler
+
+	def unregister(self, handler):
+		result = super().unregister(handler)
+		if result:
+			# handler may be a weakref wrapper at this point; rebuild index from live handlers.
+			self._commandIndex = {h._command: h for h in self.handlers}
+		return result
+
 	def _getHandler(self, command: CommandT) -> CommandHandlerT:
-		handler = next((v for v in self.handlers if command == v._command), None)
+		handler = self._commandIndex.get(command)
 		if handler is None:
 			raise NotImplementedError(f"No command handler for command {command!r}")
 		return handler
@@ -215,8 +232,42 @@ class CommandHandlerStore(HandlerRegistrar):
 class AttributeHandlerStore[
 	AttributeHandlerT: (attributeFetcherT, AttributeReceiverUnboundT, WildCardAttributeReceiverUnboundT),
 ](HandlerRegistrar[AttributeHandler]):
+	_exactIndex: dict[AttributeT, AttributeHandler]
+	_wildcardHandlers: list[AttributeHandler]
+
+	def __init__(self, *, _deprecationMessage: str | None = None):
+		super().__init__(_deprecationMessage=_deprecationMessage)
+		self._exactIndex = {}
+		self._wildcardHandlers = []
+
+	def _rebuildIndex(self):
+		self._exactIndex = {}
+		self._wildcardHandlers = []
+		for h in self.handlers:
+			if h._isCatchAll:
+				self._wildcardHandlers.append(h)
+			else:
+				self._exactIndex[h._attribute] = h
+
+	def register(self, handler: AttributeHandler):
+		super().register(handler)
+		if handler._isCatchAll:
+			self._wildcardHandlers.append(handler)
+		else:
+			self._exactIndex[handler._attribute] = handler
+
+	def unregister(self, handler):
+		result = super().unregister(handler)
+		if result:
+			self._rebuildIndex()
+		return result
+
 	def _getRawHandler(self, attribute: AttributeT) -> AttributeHandler:
-		handler = next((v for v in self.handlers if fnmatch(attribute, v._attribute)), None)
+		# Exact match takes priority over wildcard patterns (e.g. a specific attribute beats setting_*)
+		handler = self._exactIndex.get(attribute)
+		if handler is not None:
+			return handler
+		handler = next((h for h in self._wildcardHandlers if fnmatch(attribute, h._attribute)), None)
 		if handler is None:
 			raise NotImplementedError(f"No attribute sender for attribute {attribute}")
 		return handler
