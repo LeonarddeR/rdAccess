@@ -265,7 +265,7 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
 	def hasNewValueSince(self, attribute: AttributeT, t: float) -> bool:
 		return t <= self._valueTimes[attribute]
 
-	def _getDefaultValue(self, attribute: AttributeT) -> Any:
+	def _getDefaultAttributeValue(self, attribute: AttributeT) -> Any:
 		handler = self._getRawHandler(attribute)
 		log.debug(
 			f"Getting default value for attribute {attribute!r} on {self!r} "
@@ -274,7 +274,7 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
 		getter = handler._defaultValueGetter.__get__(handler.__self__)
 		return getter(attribute)
 
-	def _invokeUpdateCallback(self, attribute: AttributeT, value: Any):
+	def _submitAttributeUpdateCallback(self, attribute: AttributeT, value: Any):
 		handler = self._getRawHandler(attribute)
 		if handler._updateCallback is not None:
 			callback = handler._updateCallback.__get__(handler.__self__)
@@ -284,7 +284,7 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
 	def getValue(self, attribute: AttributeT, fallBackToDefault: bool = False):
 		if fallBackToDefault and attribute not in self._values:
 			log.debug(f"No value for attribute {attribute!r} on {self!r}, falling back to default")
-			self._values[attribute] = self._getDefaultValue(attribute)
+			self._values[attribute] = self._getDefaultAttributeValue(attribute)
 		return self._values[attribute]
 
 	def clearValue(self, attribute):
@@ -293,7 +293,7 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
 	def setValue(self, attribute: AttributeT, value):
 		self._values[attribute] = value
 		self._valueTimes[attribute] = time.perf_counter()
-		self._invokeUpdateCallback(attribute, value)
+		self._submitAttributeUpdateCallback(attribute, value)
 
 	def __call__(self, attribute: AttributeT, rawValue: bytes):
 		log.debug(f"Getting handler on {self!r} to process attribute {attribute!r}")
@@ -386,17 +386,17 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 
 	@commandHandler(GenericCommand.ATTRIBUTE)
 	def _command_attribute(self, payload: bytes):
-		attribute, value = payload[1:].split(b"`", 1)
-		log.debug(f"Handling attribute {attribute!r} on {self!r}, value {value!r}")
-		if not value:
+		attribute, rawValue = payload[1:].split(ATTRIBUTE_SEPARATOR, 1)
+		log.debug(f"Handling attribute {attribute!r} on {self!r}, value {rawValue!r}")
+		if not rawValue:
 			log.debug(f"No value sent for attribute {attribute!r} on {self!r}, expecting a reply")
 			self._attributeSenderStore(attribute)
 		else:
 			log.debug(
-				f"Value of length {len(value)} sent for attribute {attribute!r} "
+				f"Value of length {len(rawValue)} sent for attribute {attribute!r} "
 				f"on {self!r}, direction incoming",
 			)
-			self._attributeValueProcessor(attribute, value)
+			self._attributeValueProcessor(attribute, rawValue)
 
 	@abstractmethod
 	def _incoming_setting(self, attribute: AttributeT, payLoad: bytes):
@@ -449,7 +449,7 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 		try:
 			return self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
 		except KeyError:
-			value = self._attributeValueProcessor._getDefaultValue(attribute)
+			value = self._attributeValueProcessor._getDefaultAttributeValue(attribute)
 			self.requestRemoteAttribute(attribute)
 			return value
 

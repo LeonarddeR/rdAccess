@@ -81,8 +81,8 @@ CONFIG_SPEC = {
 def _getSetting(setting: str, fromCache: bool) -> Any:
 	if not initialized:
 		initializeConfig()
-	section = _cachedConfig if fromCache else config.conf[CONFIG_SECTION_NAME]
-	return section[setting]
+	configSection = _cachedConfig if fromCache else config.conf[CONFIG_SECTION_NAME]
+	return configSection[setting]
 
 
 def getOperatingMode(fromCache: bool = False) -> OperatingMode:

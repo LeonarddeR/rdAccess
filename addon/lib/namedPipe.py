@@ -36,27 +36,26 @@ TH32CS_SNAPPROCESS = 0x00000002
 
 
 def getParentProcessId(processId: int) -> int | None:
-	FSnapshotHandle = windll.kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
+	snapshotHandle = windll.kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
 	try:
-		FProcessEntry32 = PROCESSENTRY32W()
-		FProcessEntry32.dwSize = sizeof(PROCESSENTRY32W)
-		ContinueLoop = windll.kernel32.Process32FirstW(FSnapshotHandle, byref(FProcessEntry32))
-		while ContinueLoop:
-			if FProcessEntry32.th32ProcessID == processId:
-				return FProcessEntry32.th32ParentProcessID
-			ContinueLoop = windll.kernel32.Process32NextW(FSnapshotHandle, byref(FProcessEntry32))
-		else:
-			return None
+		processEntry = PROCESSENTRY32W()
+		processEntry.dwSize = sizeof(PROCESSENTRY32W)
+		hasEntry = windll.kernel32.Process32FirstW(snapshotHandle, byref(processEntry))
+		while hasEntry:
+			if processEntry.th32ProcessID == processId:
+				return processEntry.th32ParentProcessID
+			hasEntry = windll.kernel32.Process32NextW(snapshotHandle, byref(processEntry))
+		return None
 	finally:
-		windll.kernel32.CloseHandle(FSnapshotHandle)
+		windll.kernel32.CloseHandle(snapshotHandle)
 
 
 def getNamedPipes() -> Iterator[str]:
-	yield from iglob(os.path.join(PIPE_DIRECTORY, "*"))
+	return iglob(os.path.join(PIPE_DIRECTORY, "*"))
 
 
 def getRdPipeNamedPipes() -> Iterator[str]:
-	yield from iglob(RD_PIPE_GLOB_PATTERN)
+	return iglob(RD_PIPE_GLOB_PATTERN)
 
 
 class PipeMode(IntFlag):
