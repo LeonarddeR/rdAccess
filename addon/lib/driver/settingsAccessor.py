@@ -21,6 +21,7 @@ class SettingsAccessorBase(AutoPropertyObject):
 	_driverRef: weakref.ref[RemoteDriver]
 	driver: RemoteDriver
 	_settingNames: list[str]
+	_publicNames: frozenset[str]
 	cachePropertiesByDefault = True
 
 	@classmethod
@@ -52,6 +53,7 @@ class SettingsAccessorBase(AutoPropertyObject):
 		self._settingNames = settingNames
 		for name in self._settingNames:
 			driver.requestRemoteAttribute(self._getSettingAttributeName(name))
+		self._publicNames = frozenset(n for n in dir(self) if not n.startswith("_"))
 
 	@classmethod
 	def _getSettingAttributeName(cls, setting: str) -> protocol.AttributeT:

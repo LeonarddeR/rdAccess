@@ -1,6 +1,7 @@
 # RDAccess: Remote Desktop Accessibility for NVDA
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
+from __future__ import annotations
 
 import sys
 import time
@@ -19,6 +20,10 @@ from winAPI.secureDesktop import post_secureDesktopStateChange
 from .. import inputTime, protocol, wtsVirtualChannel
 from ..detection import bgScanRD
 from .settingsAccessor import SettingsAccessorBase
+
+_AUTO_PROPERTY_OBJECT_NAMES: frozenset[str] = frozenset(
+	n for n in dir(AutoPropertyObject) if not n.startswith("_")
+)
 
 ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_NOT_CONNECTED = 0xE9
@@ -108,12 +113,10 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	def __getattribute__(self, name: str) -> Any:
 		getter = super().__getattribute__
-		if (name.startswith("_") and not name.startswith("_get_")) or name in (
-			n for n in dir(AutoPropertyObject) if not n.startswith("_")
-		):
+		if (name.startswith("_") and not name.startswith("_get_")) or name in _AUTO_PROPERTY_OBJECT_NAMES:
 			return getter(name)
 		accessor = getter("_settingsAccessor")
-		if accessor and name in dir(accessor):
+		if accessor and name in accessor._publicNames:
 			return getattr(accessor, name)
 		return getter(name)
 
