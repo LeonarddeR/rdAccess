@@ -114,13 +114,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		return self._unpickle(payLoad)
 
 	def _get_supportedCommands(self):
-		attribute = protocol.SpeechAttribute.SUPPORTED_COMMANDS
-		try:
-			value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
-		except KeyError:
-			value = self._attributeValueProcessor._getDefaultValue(attribute)
-			self.requestRemoteAttribute(attribute)
-		return value
+		return self._getRemoteAttributeValueWithFallback(protocol.SpeechAttribute.SUPPORTED_COMMANDS)
 
 	@protocol.attributeReceiver(protocol.SpeechAttribute.LANGUAGE, defaultValue=getLanguage())
 	def _incoming_language(self, payload: bytes) -> str | None:
@@ -128,13 +122,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		return self._unpickle(payload)
 
 	def _get_language(self):
-		attribute = protocol.SpeechAttribute.LANGUAGE
-		try:
-			value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
-		except KeyError:
-			value = self._attributeValueProcessor._getDefaultValue(attribute)
-			self.requestRemoteAttribute(attribute)
-		return value
+		return self._getRemoteAttributeValueWithFallback(protocol.SpeechAttribute.LANGUAGE)
 
 	@protocol.commandHandler(protocol.SpeechCommand.INDEX_REACHED)
 	def _command_indexReached(self, incomingPayload: bytes):

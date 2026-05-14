@@ -174,6 +174,13 @@ class AttributeReceiver(AttributeHandler[AttributeReceiverUnboundT | WildCardAtt
 		return func
 
 
+def _constantDefaultValueGetter(defaultValue: Any) -> DefaultValueGetterT:
+	def _defaultValueGetter(_self: RemoteProtocolHandler, _attribute: AttributeT):
+		return defaultValue
+
+	return _defaultValueGetter
+
+
 def attributeReceiver(
 	attribute: AttributeT,
 	defaultValue: Any = None,
@@ -183,11 +190,7 @@ def attributeReceiver(
 	if defaultValue is not None and defaultValueGetter is not None:
 		raise ValueError("Either defaultValue or defaultValueGetter is required, but not both")
 	if defaultValueGetter is None:
-
-		def _defaultValueGetter(_self: RemoteProtocolHandler, _attribute: AttributeT):
-			return defaultValue
-
-		defaultValueGetter = _defaultValueGetter
+		defaultValueGetter = _constantDefaultValueGetter(defaultValue)
 	return partial(
 		AttributeReceiver,
 		attribute,
@@ -442,6 +445,14 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 			timeout -= time.perf_counter() - curTime
 		return predicate()
 
+	def _getRemoteAttributeValueWithFallback(self, attribute: AttributeT):
+		try:
+			return self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
+		except KeyError:
+			value = self._attributeValueProcessor._getDefaultValue(attribute)
+			self.requestRemoteAttribute(attribute)
+			return value
+
 	def getRemoteAttribute(
 		self,
 		attribute: AttributeT,
@@ -510,13 +521,7 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 		return payload.decode()
 
 	def _get_nvdaVersion(self) -> str:
-		attribute = GenericAttribute.NVDA_VERSION
-		try:
-			value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
-		except KeyError:
-			value = self._attributeValueProcessor._getDefaultValue(attribute)
-			self.requestRemoteAttribute(attribute)
-		return value
+		return self._getRemoteAttributeValueWithFallback(GenericAttribute.NVDA_VERSION)
 
 	@attributeSender(GenericAttribute.RD_ACCESS_VERSION)
 	def _outgoing_rdAccessVersion(self) -> bytes:
@@ -527,10 +532,4 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 		return payload.decode()
 
 	def _get_rdAccessVersion(self) -> str:
-		attribute = GenericAttribute.RD_ACCESS_VERSION
-		try:
-			value = self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False)
-		except KeyError:
-			value = self._attributeValueProcessor._getDefaultValue(attribute)
-			self.requestRemoteAttribute(attribute)
-		return value
+		return self._getRemoteAttributeValueWithFallback(GenericAttribute.RD_ACCESS_VERSION)
