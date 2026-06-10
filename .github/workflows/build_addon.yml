@@ -45,6 +45,9 @@ jobs:
     - name: Code checks
       run: $env:SKIP = "no-commit-to-branch"; uv run prek run --all-files
 
+    - name: Run unit tests
+      run: uv run python -m unittest discover -s tests -t . -v
+
     - name: building addon
       run: uv run scons && uv run scons pot
 

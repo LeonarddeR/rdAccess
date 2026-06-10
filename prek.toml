@@ -106,5 +106,13 @@ hooks = [
     language = "system",
     types = ["python"],
     pass_filenames = false
+  },
+  {
+    id = "unittest",
+    name = "run unit tests",
+    entry = "uv run python -m unittest discover -s tests -t .",
+    language = "system",
+    types = ["python"],
+    pass_filenames = false
   }
 ]
