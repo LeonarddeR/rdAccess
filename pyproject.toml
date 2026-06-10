@@ -35,7 +35,12 @@ dependencies = [
 	# Lint
 	"uv==0.11.6",
 	"ruff==0.15.12",
-	"pre-commit==4.2.0"
+	"prek==0.4.4",
+	# Type checking (ty resolves NVDA imports against sibling ..\nvda\source;
+	# wxPython/pyserial supply the wx and serial.win32 modules NVDA bundles at runtime)
+	"ty==0.0.47",
+	"pyserial==3.5",
+	"wxpython==4.2.5",
 ]
 [project.urls]
 Repository = "https://github.com/LeonarddeR/RDAccess.git"
@@ -107,3 +112,13 @@ select = [
 # sconscripts contains many inbuilt functions not recognised by the lint,
 # so ignore F821.
 "sconstruct" = ["F821"]
+
+[tool.ty.environment]
+python-version = "3.13"
+# The add-on only runs on Windows; analyse the win32 code paths even on a Linux/macOS checkout.
+python-platform = "win32"
+# NVDA internals are not installable; resolve them against a sibling NVDA source checkout.
+extra-paths = ["../nvda/source"]
+
+[tool.ty.src]
+include = ["addon", "buildVars.py"]

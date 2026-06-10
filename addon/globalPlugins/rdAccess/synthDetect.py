@@ -36,6 +36,7 @@ class SynthDetector(AutoPropertyObject):
 
 	def _set_currentSynthesizer(self, synth):
 		curSynth = self._get_currentSynthesizer()
+		assert curSynth is not None
 		curSynth.cancel()
 		curSynth.terminate()
 		synthDriverHandler._curSynth = synth
@@ -48,6 +49,7 @@ class SynthDetector(AutoPropertyObject):
 	isRemoteSynthConfigured: bool
 
 	def _get_isRemoteSynthConfigured(self):
+		assert config.conf is not None
 		return config.conf[remoteSynthDriver._configSection]["synth"] == remoteSynthDriver.name
 
 	def _handleRemoteDisconnect(self, synth: remoteSynthDriver):
@@ -55,6 +57,7 @@ class SynthDetector(AutoPropertyObject):
 		queueHandler.queueFunction(queueHandler.eventQueue, self._fallback)
 
 	def _fallback(self):
+		assert config.conf is not None
 		fallback = (
 			config
 			.conf[remoteSynthDriver._configSection]

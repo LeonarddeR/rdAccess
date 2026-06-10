@@ -22,10 +22,15 @@ Toolchain: `uv` + SCons. Run from repo root.
 | Translation template | `uv run scons pot` |
 | Merge POT | `uv run scons mergePot` |
 | Dev (timestamped) build | `uv run scons dev=1` |
-| Lint + format | `uv run pre-commit run --all-files` (ruff configured in `pyproject.toml`) |
+| Lint + format + type check | `uv run prek run --all-files` (ruff + ty, configured in `prek.toml` / `pyproject.toml`) |
+| Type check only | `uv run ty check` |
 | Clean | `uv run scons -c` |
 
+Git hooks run via **prek** (Rust pre-commit alternative; config in `prek.toml`). Run `uv run prek install -f` once to wire the git hooks.
+
 There is no test suite. Validation is manual against NVDA on a real RDP/Citrix session.
+
+Type checking uses **ty** (`[tool.ty]` in `pyproject.toml`), scoped to `addon/` + `buildVars.py`. NVDA internals are resolved against a sibling `..\nvda\source` checkout, so type checking requires the NVDA source repo alongside this one (CI clones it). `wx` / `serial.win32` resolve from the `wxPython` / `pyserial` dev deps.
 
 Indentation is **tabs** (ruff `indent-style=tab`, `W191` ignored). Line length 110. `from __future__ import annotations` is enforced (`future-annotations = true`).
 

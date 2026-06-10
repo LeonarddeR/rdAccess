@@ -17,7 +17,7 @@ jobs:
     # Do not modify this repo name with your own one! (should remain the template)
     if: github.repository != 'nvaccess/addonTemplate'
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - name: Checkout repo
@@ -26,14 +26,24 @@ jobs:
       uses: astral-sh/setup-uv@v7
       with:
         enable-cache: true
+    - name: Install Gettext via MSYS2
+      id: msys2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: UCRT64
+        update: true
+        install: >-
+          gettext
+          mingw-w64-ucrt-x86_64-gettext-tools
+    - name: Add Gettext to PATH
+      run: Add-Content $env:GITHUB_PATH "${{ steps.msys2.outputs.msys2-location }}\ucrt64\bin"
+    - name: Checkout NVDA source for ty
+      run: git clone --depth 1 --no-recurse-submodules https://github.com/nvaccess/nvda.git ../nvda
     - name: Install dependencies
-      run: |
-        sudo apt-get update  -y
-        sudo apt-get install -y gettext
-        uv sync
+      run: uv sync
 
     - name: Code checks
-      run: export SKIP=no-commit-to-branch; uv run pre-commit run --all-files
+      run: $env:SKIP = "no-commit-to-branch"; uv run prek run --all-files
 
     - name: building addon
       run: uv run scons && uv run scons pot

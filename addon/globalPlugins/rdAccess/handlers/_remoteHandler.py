@@ -39,7 +39,7 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 	_driver: DriverT
 	_abstract__driver = True
 
-	def _get__driver(self) -> Driver:
+	def _get__driver(self) -> DriverT:
 		raise NotImplementedError
 
 	def __new__(cls, *args, **kwargs):
@@ -191,7 +191,9 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 		return self.decide_remoteDisconnect.decide(handler=self, error=error)
 
 	@abstractmethod
-	def _handleDriverChanged(self, driver: Driver):
+	# driver is positional-only: subclasses rename it (display/synth) to match the keyword
+	# used by the braille.displayChanged / synthChanged extension points they register with.
+	def _handleDriverChanged(self, driver: DriverT, /):
 		self._attributeSenderStore(
 			protocol.GenericAttribute.SUPPORTED_SETTINGS,
 			settings=driver.supportedSettings,

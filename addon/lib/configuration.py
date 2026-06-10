@@ -81,6 +81,7 @@ CONFIG_SPEC = {
 def _getSetting(setting: str, fromCache: bool) -> Any:
 	if not initialized:
 		initializeConfig()
+	assert config.conf is not None
 	configSection = _cachedConfig if fromCache else config.conf[CONFIG_SECTION_NAME]
 	return configSection[setting]
 
@@ -124,6 +125,7 @@ def initializeConfig():
 	global initialized
 	if initialized:
 		return
+	assert config.conf is not None
 	if CONFIG_SECTION_NAME not in config.conf:
 		config.conf[CONFIG_SECTION_NAME] = {}
 	config.conf[CONFIG_SECTION_NAME].spec.update(CONFIG_SPEC)

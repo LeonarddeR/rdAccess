@@ -44,12 +44,14 @@ class RemoteBrailleHandler(RemoteHandler[braille.BrailleDisplayDriver]):
 		super().terminate()
 
 	def _get__driver(self):
+		assert braille.handler is not None
 		return braille.handler.display
 
 	@protocol.attributeSender(protocol.BrailleAttribute.NUM_CELLS)
 	def _outgoing_numCells(self, numCells=None) -> bytes:
 		if numCells is None:
 			# Use the display size of the local braille handler
+			assert braille.handler is not None
 			numCells = braille.handler.displaySize
 		return intToByte(numCells)
 
@@ -57,6 +59,7 @@ class RemoteBrailleHandler(RemoteHandler[braille.BrailleDisplayDriver]):
 	def _outgoing_numCols(self, numCols=None) -> bytes:
 		if numCols is None:
 			# Use the display dimensions of the local braille handler
+			assert braille.handler is not None
 			numCols = braille.handler.displayDimensions.numCols
 		return intToByte(numCols)
 
@@ -64,6 +67,7 @@ class RemoteBrailleHandler(RemoteHandler[braille.BrailleDisplayDriver]):
 	def _outgoing_numRows(self, numRows=None) -> bytes:
 		if numRows is None:
 			# Use the display dimensions of the local braille handler
+			assert braille.handler is not None
 			numRows = braille.handler.displayDimensions.numRows
 		return intToByte(numRows)
 
@@ -74,12 +78,14 @@ class RemoteBrailleHandler(RemoteHandler[braille.BrailleDisplayDriver]):
 		if gestureMap:
 			export = gestureMap.export()
 			gestureMap = inputCore.GlobalGestureMap(export)
+			assert inputCore.manager is not None
 			gestureMap.update(inputCore.manager.userGestureMap.export())
 		return self._pickle(gestureMap)
 
 	@protocol.commandHandler(protocol.BrailleCommand.DISPLAY)
 	def _command_display(self, payload: bytes):
 		cells = list(payload)
+		assert braille.handler is not None
 		if braille.handler.displaySize > 0:
 			with self._queuedWriteLock:
 				self._queuedWrite = cells
@@ -93,6 +99,7 @@ class RemoteBrailleHandler(RemoteHandler[braille.BrailleDisplayDriver]):
 			data = self._queuedWrite
 			self._queuedWrite = None
 		if data:
+			assert braille.handler is not None
 			braille.handler._writeCells(data)
 
 	def _handleRemoteSessionGainFocus(self):
@@ -100,6 +107,7 @@ class RemoteBrailleHandler(RemoteHandler[braille.BrailleDisplayDriver]):
 		self._queueFunctionOnMainThread(self._performLocalWriteCells)
 
 	def _handleExecuteGesture(self, gesture):
+		assert braille.handler is not None
 		if (
 			isinstance(gesture, braille.BrailleDisplayGesture)
 			and not braille.handler.enabled
@@ -136,6 +144,7 @@ class RemoteBrailleHandler(RemoteHandler[braille.BrailleDisplayDriver]):
 		self._attributeSenderStore(protocol.BrailleAttribute.NUM_ROWS)
 
 	def _handleNotifications(self, connected: bool):
+		assert braille.handler is not None
 		if not braille.handler.enabled:
 			# There's no point in notifying of braille connections if the braille handler is disabled
 			return

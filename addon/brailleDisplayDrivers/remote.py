@@ -38,13 +38,17 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 		"""Hacky override that throws an instance at the underlying class method.
 		If we don't do this, the method can't acces the gesture map at the instance level.
 		"""
-		return typing.cast(classmethod, super()._getModifierGestures).__func__(self, model)
+		# Deliberately calls the underlying classmethod function with an instance instead of
+		# the class; ty can't model this reflection hack.
+		modifierGesturesFunc = typing.cast(classmethod, super()._getModifierGestures).__func__
+		return modifierGesturesFunc(self, model)  # ty: ignore[invalid-argument-type]
 
 	def _handleRemoteDisconnect(self):
 		# Raise an exception because handleDisplayUnavailable expects one
 		try:
 			raise RuntimeError("remote client disconnected")
 		except RuntimeError:
+			assert braille.handler is not None
 			braille.handler.handleDisplayUnavailable()
 
 	@protocol.attributeReceiver(protocol.BrailleAttribute.NUM_CELLS, defaultValue=0)
@@ -89,6 +93,7 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 	def _command_executeGesture(self, payload: bytes):
 		assert len(payload) > 0
 		gesture = self._unpickle(payload)
+		assert inputCore.manager is not None
 		try:
 			inputCore.manager.executeGesture(gesture)
 		except inputCore.NoInputGestureAction:

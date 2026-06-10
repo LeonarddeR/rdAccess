@@ -4,7 +4,7 @@
 
 from enum import Enum, IntEnum
 
-import speech
+import speech.manager
 
 SPEECH_INDEX_OFFSET = speech.manager.SpeechManager.MAX_INDEX + 1
 

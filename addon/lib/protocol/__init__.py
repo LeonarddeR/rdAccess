@@ -86,6 +86,11 @@ class HandlerDecoratorBase[HandlerFuncT: Callable]:
 	def __set_name__(self, owner, name):
 		log.debug(f"Decorated {name!r} on {owner!r} with {self!r}")
 
+	def __call__(self, *args, **kwargs):
+		# Concrete subclasses implement the actual dispatch; declaring it here lets the type
+		# checker treat instances as callable (used by update_wrapper and MethodType above).
+		raise NotImplementedError
+
 	def __get__(self, obj, objtype=None):
 		if obj is None:
 			return self
@@ -101,7 +106,8 @@ class CommandHandler(HandlerDecoratorBase[CommandHandlerT]):
 
 	def __call__(self, protocolHandler: RemoteProtocolHandler, payload: bytes):
 		log.debug(f"Calling {self!r} for command {self._command!r}")
-		return self._func(protocolHandler, payload)
+		# _func holds the unbound handler; the bound/unbound alias conflation confuses ty. See #59.
+		return self._func(protocolHandler, payload)  # ty: ignore[invalid-argument-type, too-many-positional-arguments]
 
 
 def commandHandler(command: CommandT):
@@ -208,7 +214,8 @@ class CommandHandlerStore(HandlerRegistrar):
 
 	def register(self, handler: CommandHandlerT):
 		super().register(handler)
-		self._commandIndex[handler._command] = handler
+		# Registered handlers are bound methods that forward _command to the descriptor. See #59.
+		self._commandIndex[handler._command] = handler  # ty: ignore[unresolved-attribute]
 
 	def unregister(self, handler):
 		result = super().unregister(handler)
@@ -273,7 +280,9 @@ class AttributeHandlerStore[
 		return handler
 
 	def _getHandler(self, attribute: AttributeT) -> AttributeHandlerT:
-		return cast(AttributeHandlerT, partial(self._getRawHandler(attribute), attribute))
+		# partial-binding the attribute onto the bound handler defeats ty's arg analysis. See #59.
+		boundHandler = partial(self._getRawHandler(attribute), attribute)  # ty: ignore[invalid-argument-type]
+		return cast(AttributeHandlerT, boundHandler)
 
 	def isAttributeSupported(self, attribute: AttributeT):
 		try:
@@ -317,20 +326,23 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
 		return t <= self._valueTimes[attribute]
 
 	def _getDefaultAttributeValue(self, attribute: AttributeT) -> Any:
+		# handler is a bound method that forwards _defaultValueGetter/__self__ to its
+		# AttributeReceiver descriptor; ty can't model this forwarding. See #59.
 		handler = self._getRawHandler(attribute)
 		log.debug(
 			f"Getting default value for attribute {attribute!r} on {self!r} "
-			f"using {handler._defaultValueGetter!r}",
+			f"using {handler._defaultValueGetter!r}",  # ty: ignore[unresolved-attribute]
 		)
-		getter = handler._defaultValueGetter.__get__(handler.__self__)
+		getter = handler._defaultValueGetter.__get__(handler.__self__)  # ty: ignore[unresolved-attribute]
 		return getter(attribute)
 
 	def _submitAttributeUpdateCallback(self, attribute: AttributeT, value: Any):
+		# See #59: bound-method attribute forwarding is invisible to ty.
 		handler = self._getRawHandler(attribute)
-		if handler._updateCallback is not None:
-			callback = handler._updateCallback.__get__(handler.__self__)
+		if handler._updateCallback is not None:  # ty: ignore[unresolved-attribute]
+			callback = handler._updateCallback.__get__(handler.__self__)  # ty: ignore[unresolved-attribute]
 			log.debug(f"Calling update callback {callback!r} for attribute {attribute!r}")
-			handler.__self__._bgExecutor.submit(callback, attribute, value)
+			handler.__self__._bgExecutor.submit(callback, attribute, value)  # ty: ignore[unresolved-attribute]
 
 	def getValue(self, attribute: AttributeT, fallBackToDefault: bool = False):
 		if fallBackToDefault and attribute not in self._values:
@@ -349,7 +361,8 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
 	def __call__(self, attribute: AttributeT, rawValue: bytes):
 		log.debug(f"Getting handler on {self!r} to process attribute {attribute!r}")
 		handler = self._getHandler(attribute)
-		value = handler(rawValue)
+		# handler is a partial that has already bound `attribute`; ty sees the unbound sig. See #59.
+		value = handler(rawValue)  # ty: ignore[missing-argument, invalid-argument-type]
 		log.debug(f"Handler on {self!r} returned value {value!r} for attribute {attribute!r}")
 		self.setAttributeRequestPending(attribute, False)
 		self.setValue(attribute, value)
