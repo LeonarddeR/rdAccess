@@ -28,7 +28,7 @@ Toolchain: `uv` + SCons. Run from repo root.
 
 Git hooks run via **prek** (Rust pre-commit alternative; config in `prek.toml`). Run `uv run prek install -f` once to wire the git hooks.
 
-There is no test suite. Validation is manual against NVDA on a real RDP/Citrix session.
+Unit tests live in `tests/` (stdlib unittest): `uv run python -m unittest discover -s tests -t .`. They run without NVDA by stubbing NVDA runtime modules in `sys.modules` (`tests/_stubs.py`) and reusing the real `baseObject`/`extensionPoints` from the sibling `..\nvda\source` checkout, which must therefore be present. Tests cover `addon/lib/protocol`; integration behavior (pipes, drivers, NVDA core) is still validated manually against NVDA on a real RDP/Citrix session. The suite also runs as a prek hook and as a CI step.
 
 Type checking uses **ty** (`[tool.ty]` in `pyproject.toml`), scoped to `addon/` + `buildVars.py`. NVDA internals are resolved against a sibling `..\nvda\source` checkout, so type checking requires the NVDA source repo alongside this one (CI clones it). `wx` / `serial.win32` resolve from the `wxPython` / `pyserial` dev deps.
 
