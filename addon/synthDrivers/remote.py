@@ -31,7 +31,7 @@ else:
 class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 	# Translators: Name for a remote braille display.
 	description = _("Remote speech")
-	supportedNotifications: typing.ClassVar = {
+	supportedNotifications = {
 		synthDriverHandler.synthIndexReached,
 		synthDriverHandler.synthDoneSpeaking,
 	}

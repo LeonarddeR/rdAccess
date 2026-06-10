@@ -31,8 +31,10 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 	title = _("Remote Desktop Accessibility")
 	post_onSave = Action()
 
-	def makeSettings(self, settingsSizer):
-		sizer_helper = guiHelper.BoxSizerHelper(self, sizer=settingsSizer)
+	def makeSettings(self, sizer: wx.BoxSizer):
+		# NVDA's BoxSizerHelper types its parent as wx.Dialog, but a SettingsPanel (a wx.Panel)
+		# is a valid parent - NVDA's own SettingsPanel.makeSettings passes self the same way.
+		sizer_helper = guiHelper.BoxSizerHelper(self, sizer=sizer)  # ty: ignore[invalid-argument-type]
 		# Translators: The label for a list of check boxes in RDAccess settings to set operating mode.
 		operatingModeText = _("&Enable remote desktop accessibility for")
 		operatingModeChoices = [i.displayString for i in configuration.OperatingMode]
@@ -53,7 +55,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		serverGroupText = _("Server")
 		serverGroupSizer = wx.StaticBoxSizer(wx.VERTICAL, self, label=serverGroupText)
 		serverGroupBox = serverGroupSizer.GetStaticBox()
-		serverGroup = guiHelper.BoxSizerHelper(self, sizer=serverGroupSizer)
+		serverGroup = guiHelper.BoxSizerHelper(self, sizer=serverGroupSizer)  # ty: ignore[invalid-argument-type]
 		sizer_helper.addItem(serverGroup)
 
 		# Translators: The label for a setting in RDAccess settings to enable
@@ -69,7 +71,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		clientGroupText = _("Client")
 		clientGroupSizer = wx.StaticBoxSizer(wx.VERTICAL, self, label=clientGroupText)
 		clientGroupBox = clientGroupSizer.GetStaticBox()
-		clientGroup = guiHelper.BoxSizerHelper(self, sizer=clientGroupSizer)
+		clientGroup = guiHelper.BoxSizerHelper(self, sizer=clientGroupSizer)  # ty: ignore[invalid-argument-type]
 		sizer_helper.addItem(clientGroup)
 
 		# Translators: The label for a setting in RDAccess settings to enable
@@ -182,6 +184,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		return super().isValid()
 
 	def onSave(self):
+		assert config.conf is not None
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME] = int(
 			functools.reduce(
 				operator.or_,

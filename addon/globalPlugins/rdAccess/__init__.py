@@ -175,6 +175,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			else:
 				raise RuntimeError(f"Unknown named pipe: {fileName}")
 			log.debug(f"Creating {HandlerClass.__name__} for {fileName!r}")
+			assert self._ioThread is not None
 			handler = HandlerClass(self._ioThread, fileName)
 			handler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
 			handler.event_gainFocus(api.getFocusObject())
@@ -291,6 +292,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	):
 		if rescanSpeech and self._synthDetector:
 			self._synthDetector.rescan(force)
+		assert braille.handler is not None
 		detector = braille.handler._detector
 		if rescanBraille and detector is not None:
 			detector.rescan(

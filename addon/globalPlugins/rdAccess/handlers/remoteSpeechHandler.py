@@ -43,7 +43,9 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 		super().terminate()
 
 	def _get__driver(self):
-		return synthDriverHandler.getSynth()
+		synth = synthDriverHandler.getSynth()
+		assert synth is not None
+		return synth
 
 	@protocol.attributeSender(protocol.SpeechAttribute.SUPPORTED_COMMANDS)
 	def _outgoing_supportedCommands(self, commands=None) -> bytes:
@@ -72,6 +74,7 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 				self._indexesSpeaking.append(item.index)
 		# Send speech to the current synth directly because we don't want unnecessary processing to happen.
 		# We need to change speech state accordingly.
+		assert speech.speech._speechState is not None
 		speech.speech._speechState.isPaused = False
 		speech.speech._speechState.beenCanceled = False
 		self._driver.speak(sequence)
@@ -83,6 +86,7 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 
 	def _cancel(self):
 		self._driver.cancel()
+		assert speech.speech._speechState is not None
 		speech.speech._speechState.beenCanceled = True
 		speech.speech._speechState.isPaused = False
 

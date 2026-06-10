@@ -88,12 +88,12 @@ if defaultArchitecture is Architecture.AMD64 and nvdaArchitecture is Architectur
 		"Sysnative",
 	)  # Virtual folder for reaching 64-bit exes from 32-bit apps
 else:
-	SYSTEM32_64 = os.path.join(SYSTEM_ROOT, "System32")  # type: ignore
+	SYSTEM32_64 = os.path.join(SYSTEM_ROOT, "System32")
 
 if defaultArchitecture is Architecture.AMD64:
 	SYSTEM32_32 = os.path.join(SYSTEM_ROOT, "SysWOW64")
 else:
-	SYSTEM32_32 = SYSTEM32_64  # type: ignore
+	SYSTEM32_32 = SYSTEM32_64
 
 
 def execRegsrv(params: list[str], architecture: Architecture = defaultArchitecture):

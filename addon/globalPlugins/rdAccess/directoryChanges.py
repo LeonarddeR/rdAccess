@@ -79,7 +79,7 @@ class DirectoryWatcher(IoThread):
 		self.queueAsApc(self._asyncWatch)
 		self._watching = True
 
-	def stop(self):
+	def stop(self, timeout: float | None = None):
 		if not self._watching:
 			return
 		self._watching = False
@@ -90,7 +90,7 @@ class DirectoryWatcher(IoThread):
 			):
 				raise WinError()
 		finally:
-			super().stop()
+			super().stop(timeout)
 
 	def __del__(self):
 		try:

@@ -89,7 +89,7 @@ WTSVirtualChannelClose.argtypes = (
 	HANDLE,  # [in] HANDLE hChannelHandle
 )
 WTSVirtualChannelClose.restype = BOOL  # On Failure, the return value is zero
-if WTSQuerySessionInformation.argtypes is None:
+if WTSQuerySessionInformation.argtypes is None:  # ty: ignore[unresolved-attribute]
 	WTSQuerySessionInformation.argtypes = (
 		HANDLE,  # [in] HANDLE hServer
 		DWORD,  # [ in] DWORD SessionId

@@ -1,0 +1,110 @@
+# Configuration file for `prek`, a git hook framework written in Rust.
+# See https://prek.j178.dev for more information.
+#:schema https://www.schemastore.org/prek.json
+
+default_language_version = { python = "python3.13" }
+
+[[repos]]
+repo = "meta"
+hooks = [
+  { id = "check-useless-excludes" },
+  { id = "check-hooks-apply" }
+]
+
+[[repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v6.0.0"
+hooks = [
+  {
+    id = "no-commit-to-branch",
+    args = [
+      "--branch",
+      "main",
+      "--branch",
+      "master"
+    ]
+  },
+  { id = "check-added-large-files" },
+  { id = "check-ast" },
+  { id = "check-case-conflict" },
+  { id = "check-merge-conflict" },
+  { id = "debug-statements" },
+  {
+    id = "trailing-whitespace",
+    types_or = [
+      "python",
+      "c",
+      "c++",
+      "batch",
+      "markdown",
+      "toml",
+      "yaml",
+      "powershell"
+    ]
+  },
+  {
+    id = "end-of-file-fixer",
+    types_or = [
+      "python",
+      "c",
+      "c++",
+      "batch",
+      "markdown",
+      "toml",
+      "yaml",
+      "powershell"
+    ]
+  },
+  {
+    id = "fix-byte-order-marker",
+    types_or = [
+      "python",
+      "c",
+      "c++",
+      "batch",
+      "markdown",
+      "toml",
+      "yaml",
+      "powershell"
+    ]
+  },
+  { id = "check-toml" },
+  { id = "check-yaml" },
+  { id = "check-vcs-permalinks" },
+  { id = "check-illegal-windows-names" }
+]
+
+[[repos]]
+repo = "https://github.com/asottile/add-trailing-comma"
+rev = "v4.0.0"
+hooks = [
+  { id = "add-trailing-comma" }
+]
+
+[[repos]]
+repo = "https://github.com/astral-sh/ruff-pre-commit"
+rev = "v0.15.12"
+hooks = [
+  {
+    id = "ruff",
+    name = "lint with ruff",
+    args = ["--fix"]
+  },
+  {
+    id = "ruff-format",
+    name = "format with ruff"
+  }
+]
+
+[[repos]]
+repo = "local"
+hooks = [
+  {
+    id = "ty",
+    name = "type check with ty",
+    entry = "uv run ty check",
+    language = "system",
+    types = ["python"],
+    pass_filenames = false
+  }
+]

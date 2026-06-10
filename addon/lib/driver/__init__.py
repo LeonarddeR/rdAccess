@@ -6,7 +6,7 @@ from __future__ import annotations
 import sys
 import time
 from abc import abstractmethod
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Sequence
 from typing import Any, ClassVar
 
 import bdDetect
@@ -161,7 +161,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	def _updateCallback_supportedSettings(
 		self,
 		_attribute: protocol.AttributeT,
-		settings: Iterable[DriverSetting],
+		settings: Sequence[DriverSetting],
 	):
 		log.debug(f"Initializing settings accessor for {len(settings)} settings")
 		self._settingsAccessor = SettingsAccessorBase.createFromSettings(self, settings) if settings else None
