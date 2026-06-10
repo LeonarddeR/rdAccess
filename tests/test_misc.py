@@ -8,7 +8,9 @@ _safeWait, _pickle, _unpickle, terminate, _queueFunctionOnMainThread.
 
 from __future__ import annotations
 
+import gc
 import unittest
+import weakref
 
 import queueHandler  # noqa: E402 — must follow tests import so stubs are installed
 from baseObject import AutoPropertyObject  # noqa: E402 — same reason
@@ -132,6 +134,23 @@ class TestTerminate(unittest.TestCase):
 		handler.terminate()
 		with self.assertRaises(KeyError):
 			handler._attributeValueProcessor.getValue(b"k", fallBackToDefault=False)
+
+
+class TestGarbageCollection(unittest.TestCase):
+	"""The handler stores hold only a weak reference to their owner (see #59).
+
+	Before the #59 refactor the handler registries kept strong references to bound
+	methods (a regression from #54), creating an instance↔store cycle. This test
+	documents the restored behavior: a terminated handler is collectable.
+	"""
+
+	def test_handler_collectable_after_terminate(self):
+		handler = FakeHandlerBase()
+		handler.terminate()
+		ref = weakref.ref(handler)
+		del handler
+		gc.collect()
+		self.assertIsNone(ref(), "Handler instance should be garbage collectable after terminate()")
 
 
 class TestQueueFunctionOnMainThread(unittest.TestCase):

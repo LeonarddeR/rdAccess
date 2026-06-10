@@ -112,6 +112,9 @@ select = [
 # sconscripts contains many inbuilt functions not recognised by the lint,
 # so ignore F821.
 "sconstruct" = ["F821"]
+# Test doubles must match the signatures of the NVDA APIs they stand in for,
+# so unused arguments are expected.
+"tests/**" = ["ARG002"]
 
 [tool.ty.environment]
 python-version = "3.13"

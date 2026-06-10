@@ -121,7 +121,9 @@ class TestCoalescedMessages(unittest.TestCase):
 		payload1 = b"first"
 		payload2 = b"second"
 		msg = buildMessage(protocol.DriverType.SPEECH, protocol.SpeechCommand.SPEAK, payload1) + buildMessage(
-			protocol.DriverType.SPEECH, protocol.SpeechCommand.SPEAK, payload2
+			protocol.DriverType.SPEECH,
+			protocol.SpeechCommand.SPEAK,
+			payload2,
 		)
 		self.handler._onReceive(msg)
 		self.assertEqual(self.handler.speak_payloads, [payload1, payload2])
@@ -138,7 +140,9 @@ class TestCoalescedMessages(unittest.TestCase):
 		payload1 = b"\xff\xfe"
 		payload2 = b"\x00"
 		msg = buildMessage(protocol.DriverType.SPEECH, protocol.SpeechCommand.SPEAK, payload1) + buildMessage(
-			protocol.DriverType.SPEECH, protocol.SpeechCommand.SPEAK, payload2
+			protocol.DriverType.SPEECH,
+			protocol.SpeechCommand.SPEAK,
+			payload2,
 		)
 		self.handler._onReceive(msg)
 		self.assertEqual(self.handler.speak_payloads[0], payload1)

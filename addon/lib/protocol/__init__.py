@@ -7,7 +7,7 @@ import inspect
 import pickle
 import sys
 import time
-import types
+import weakref
 from abc import abstractmethod
 from collections import defaultdict
 from collections.abc import Callable
@@ -17,7 +17,6 @@ from fnmatch import fnmatch
 from functools import partial, update_wrapper, wraps
 from typing import (
 	Any,
-	TypeVar,
 	cast,
 )
 
@@ -25,7 +24,6 @@ import addonHandler
 import queueHandler
 import versionInfo
 from baseObject import AutoPropertyObject
-from extensionPoints import HandlerRegistrar
 from hwIo.base import IoBase
 from logHandler import log
 
@@ -53,30 +51,28 @@ class GenericAttribute(bytes, Enum):
 	RD_ACCESS_VERSION = b"rdAccessVersion"
 
 
-RemoteProtocolHandlerT = TypeVar("RemoteProtocolHandlerT", bound="RemoteProtocolHandler")
-HandlerFuncT = TypeVar("HandlerFuncT", bound=Callable)
-AttributeValueT = TypeVar("AttributeValueT")
 CommandT = GenericCommand | SpeechCommand | BrailleCommand
-CommandHandlerUnboundT = Callable[[RemoteProtocolHandlerT, bytes], None]
-CommandHandlerT = Callable[[bytes], None]
 AttributeT = GenericAttribute | SpeechAttribute | BrailleAttribute | bytes
-attributeFetcherT = Callable[..., bytes]
-attributeSenderT = Callable[..., None]
-AttributeReceiverT = Callable[[bytes], AttributeValueT]
-AttributeReceiverUnboundT = Callable[[RemoteProtocolHandlerT, bytes], AttributeValueT]
-WildCardAttributeReceiverT = Callable[[AttributeT, bytes], AttributeValueT]
-WildCardAttributeReceiverUnboundT = Callable[[RemoteProtocolHandlerT, AttributeT, bytes], AttributeValueT]
-AttributeHandlerT = TypeVar(
-	"AttributeHandlerT",
-	attributeFetcherT,
-	AttributeReceiverUnboundT,
-	WildCardAttributeReceiverUnboundT,
-)
-DefaultValueGetterT = Callable[[RemoteProtocolHandlerT, AttributeT], AttributeValueT]
-AttributeValueUpdateCallbackT = Callable[[RemoteProtocolHandlerT, AttributeT, AttributeValueT], None]
+# Handler functions are stored unbound; the first parameter is the RemoteProtocolHandler instance.
+# It is typed as Any because typing it precisely would make subclass methods (whose self is the
+# subclass) unassignable due to parameter contravariance.
+CommandHandlerFuncT = Callable[[Any, bytes], None]
+# Attribute handler functions vary in arity: catch-all handlers receive the concrete attribute as an
+# extra argument and senders may take additional (keyword) arguments.
+AttributeFetcherT = Callable[..., bytes]
+AttributeReceiverFuncT = Callable[..., Any]
+DefaultValueGetterT = Callable[[Any, AttributeT], Any]
+AttributeValueUpdateCallbackT = Callable[[Any, AttributeT, Any], None]
 
 
 class HandlerDecoratorBase[HandlerFuncT: Callable]:
+	"""Decorator that marks a method as a protocol handler.
+
+	Instances live on the class and hold the decorated function unbound;
+	RemoteProtocolHandler.__new__ registers them on the per-instance handler stores,
+	which pass the owning instance explicitly on dispatch.
+	"""
+
 	_func: HandlerFuncT
 
 	def __init__(self, func: HandlerFuncT):
@@ -88,42 +84,34 @@ class HandlerDecoratorBase[HandlerFuncT: Callable]:
 
 	def __call__(self, *args, **kwargs):
 		# Concrete subclasses implement the actual dispatch; declaring it here lets the type
-		# checker treat instances as callable (used by update_wrapper and MethodType above).
+		# checker treat instances as callable (used by update_wrapper).
 		raise NotImplementedError
 
-	def __get__(self, obj, objtype=None):
-		if obj is None:
-			return self
-		return types.MethodType(self, obj)
 
-
-class CommandHandler(HandlerDecoratorBase[CommandHandlerT]):
+class CommandHandler(HandlerDecoratorBase[CommandHandlerFuncT]):
 	_command: CommandT
 
-	def __init__(self, command: CommandT, func: CommandHandlerT):
+	def __init__(self, command: CommandT, func: CommandHandlerFuncT):
 		super().__init__(func)
 		self._command = command
 
 	def __call__(self, protocolHandler: RemoteProtocolHandler, payload: bytes):
 		log.debug(f"Calling {self!r} for command {self._command!r}")
-		# _func holds the unbound handler; the bound/unbound alias conflation confuses ty. See #59.
-		return self._func(protocolHandler, payload)  # ty: ignore[invalid-argument-type, too-many-positional-arguments]
+		return self._func(protocolHandler, payload)
 
 
 def commandHandler(command: CommandT):
 	return partial(CommandHandler, command)
 
 
-class AttributeHandler[
-	AttributeHandlerT: (attributeFetcherT, AttributeReceiverUnboundT, WildCardAttributeReceiverUnboundT),
-](HandlerDecoratorBase):
+class AttributeHandler[AttributeHandlerFuncT: Callable](HandlerDecoratorBase[AttributeHandlerFuncT]):
 	_attribute: AttributeT = b""
 
 	@property
 	def _isCatchAll(self) -> bool:
 		return b"*" in self._attribute
 
-	def __init__(self, attribute: AttributeT, func: AttributeHandlerT):
+	def __init__(self, attribute: AttributeT, func: AttributeHandlerFuncT):
 		super().__init__(func)
 		self._attribute = attribute
 
@@ -140,7 +128,7 @@ class AttributeHandler[
 		return self._func(protocolHandler, *args, **kwargs)
 
 
-class AttributeSender(AttributeHandler[attributeFetcherT]):
+class AttributeSender(AttributeHandler[AttributeFetcherT]):
 	def __call__(
 		self,
 		protocolHandler: RemoteProtocolHandler,
@@ -156,15 +144,15 @@ def attributeSender(attribute: AttributeT):
 	return partial(AttributeSender, attribute)
 
 
-class AttributeReceiver(AttributeHandler[AttributeReceiverUnboundT | WildCardAttributeReceiverUnboundT]):
-	_defaultValueGetter: DefaultValueGetterT | None
+class AttributeReceiver(AttributeHandler[AttributeReceiverFuncT]):
+	_defaultValueGetter: DefaultValueGetterT
 	_updateCallback: AttributeValueUpdateCallbackT | None
 
 	def __init__(
 		self,
 		attribute: AttributeT,
-		func: AttributeReceiverUnboundT | WildCardAttributeReceiverUnboundT,
-		defaultValueGetter: DefaultValueGetterT | None,
+		func: AttributeReceiverFuncT,
+		defaultValueGetter: DefaultValueGetterT,
 		updateCallback: AttributeValueUpdateCallbackT | None,
 	):
 		super().__init__(attribute, func)
@@ -205,71 +193,60 @@ def attributeReceiver(
 	)
 
 
-class CommandHandlerStore(HandlerRegistrar):
-	_commandIndex: dict[CommandT, CommandHandlerT]
+class HandlerStoreBase:
+	"""Base for the per-instance handler registries on a RemoteProtocolHandler.
 
-	def __init__(self, *, _deprecationMessage: str | None = None):
-		super().__init__(_deprecationMessage=_deprecationMessage)
+	A store holds the class-level handler descriptors and a weak reference to its owning
+	protocol handler, which is passed to the descriptors explicitly on dispatch.
+	The reference is weak so a registry never keeps its owner alive.
+	"""
+
+	_owner: weakref.ref[RemoteProtocolHandler]
+
+	def __init__(self, owner: RemoteProtocolHandler):
+		self._owner = weakref.ref(owner)
+
+	def _getOwner(self) -> RemoteProtocolHandler:
+		owner = self._owner()
+		if owner is None:
+			raise NotImplementedError("The protocol handler that owns this store no longer exists")
+		return owner
+
+
+class CommandHandlerStore(HandlerStoreBase):
+	_commandIndex: dict[CommandT, CommandHandler]
+
+	def __init__(self, owner: RemoteProtocolHandler):
+		super().__init__(owner)
 		self._commandIndex = {}
 
-	def register(self, handler: CommandHandlerT):
-		super().register(handler)
-		# Registered handlers are bound methods that forward _command to the descriptor. See #59.
-		self._commandIndex[handler._command] = handler  # ty: ignore[unresolved-attribute]
-
-	def unregister(self, handler):
-		result = super().unregister(handler)
-		if result:
-			# handler may be a weakref wrapper at this point; rebuild index from live handlers.
-			self._commandIndex = {h._command: h for h in self.handlers}
-		return result
-
-	def _getHandler(self, command: CommandT) -> CommandHandlerT:
-		handler = self._commandIndex.get(command)
-		if handler is None:
-			raise NotImplementedError(f"No command handler for command {command!r}")
-		return handler
+	def register(self, handler: CommandHandler):
+		self._commandIndex[handler._command] = handler
 
 	def __call__(self, command: CommandT, payload: bytes):
 		log.debug(f"Getting handler on {self!r} to process command {command!r}")
-		handler = self._getHandler(command)
-		handler(payload)
+		handler = self._commandIndex.get(command)
+		if handler is None:
+			raise NotImplementedError(f"No command handler for command {command!r}")
+		handler(self._getOwner(), payload)
 
 
-class AttributeHandlerStore[
-	AttributeHandlerT: (attributeFetcherT, AttributeReceiverUnboundT, WildCardAttributeReceiverUnboundT),
-](HandlerRegistrar[AttributeHandler]):
-	_exactIndex: dict[AttributeT, AttributeHandler]
-	_wildcardHandlers: list[AttributeHandler]
+class AttributeHandlerStore[AttributeHandlerT: AttributeHandler](HandlerStoreBase):
+	_exactIndex: dict[AttributeT, AttributeHandlerT]
+	_wildcardHandlers: list[AttributeHandlerT]
 
-	def __init__(self, *, _deprecationMessage: str | None = None):
-		super().__init__(_deprecationMessage=_deprecationMessage)
+	def __init__(self, owner: RemoteProtocolHandler):
+		super().__init__(owner)
 		self._exactIndex = {}
 		self._wildcardHandlers = []
 
-	def _rebuildIndex(self):
-		self._exactIndex = {}
-		self._wildcardHandlers = []
-		for h in self.handlers:
-			if h._isCatchAll:
-				self._wildcardHandlers.append(h)
-			else:
-				self._exactIndex[h._attribute] = h
-
-	def register(self, handler: AttributeHandler):
-		super().register(handler)
+	def register(self, handler: AttributeHandlerT):
 		if handler._isCatchAll:
 			self._wildcardHandlers.append(handler)
 		else:
 			self._exactIndex[handler._attribute] = handler
 
-	def unregister(self, handler):
-		result = super().unregister(handler)
-		if result:
-			self._rebuildIndex()
-		return result
-
-	def _getRawHandler(self, attribute: AttributeT) -> AttributeHandler:
+	def _getRawHandler(self, attribute: AttributeT) -> AttributeHandlerT:
 		# Exact match takes priority over wildcard patterns (e.g. a specific attribute beats setting_*)
 		handler = self._exactIndex.get(attribute)
 		if handler is not None:
@@ -279,24 +256,19 @@ class AttributeHandlerStore[
 			raise NotImplementedError(f"No attribute sender for attribute {attribute}")
 		return handler
 
-	def _getHandler(self, attribute: AttributeT) -> AttributeHandlerT:
-		# partial-binding the attribute onto the bound handler defeats ty's arg analysis. See #59.
-		boundHandler = partial(self._getRawHandler(attribute), attribute)  # ty: ignore[invalid-argument-type]
-		return cast(AttributeHandlerT, boundHandler)
-
 	def isAttributeSupported(self, attribute: AttributeT):
 		try:
-			self._getHandler(attribute)
+			self._getRawHandler(attribute)
 			return True
 		except NotImplementedError:
 			return False
 
 
-class AttributeSenderStore(AttributeHandlerStore[attributeSenderT]):
+class AttributeSenderStore(AttributeHandlerStore[AttributeSender]):
 	def __call__(self, attribute: AttributeT, *args, **kwargs):
 		log.debug(f"Getting handler on {self!r} to process attribute {attribute!r}")
-		handler = self._getHandler(attribute)
-		handler(*args, **kwargs)
+		handler = self._getRawHandler(attribute)
+		handler(self._getOwner(), attribute, *args, **kwargs)
 
 
 class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
@@ -304,8 +276,8 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
 	_values: dict[AttributeT, Any]
 	_pendingAttributeRequests: defaultdict[AttributeT, bool]
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, owner: RemoteProtocolHandler):
+		super().__init__(owner)
 		self._values = {}
 		self._valueTimes = defaultdict(float)
 		self._pendingAttributeRequests = defaultdict(bool)
@@ -326,23 +298,19 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
 		return t <= self._valueTimes[attribute]
 
 	def _getDefaultAttributeValue(self, attribute: AttributeT) -> Any:
-		# handler is a bound method that forwards _defaultValueGetter/__self__ to its
-		# AttributeReceiver descriptor; ty can't model this forwarding. See #59.
 		handler = self._getRawHandler(attribute)
 		log.debug(
 			f"Getting default value for attribute {attribute!r} on {self!r} "
-			f"using {handler._defaultValueGetter!r}",  # ty: ignore[unresolved-attribute]
+			f"using {handler._defaultValueGetter!r}",
 		)
-		getter = handler._defaultValueGetter.__get__(handler.__self__)  # ty: ignore[unresolved-attribute]
-		return getter(attribute)
+		return handler._defaultValueGetter(self._getOwner(), attribute)
 
 	def _submitAttributeUpdateCallback(self, attribute: AttributeT, value: Any):
-		# See #59: bound-method attribute forwarding is invisible to ty.
 		handler = self._getRawHandler(attribute)
-		if handler._updateCallback is not None:  # ty: ignore[unresolved-attribute]
-			callback = handler._updateCallback.__get__(handler.__self__)  # ty: ignore[unresolved-attribute]
-			log.debug(f"Calling update callback {callback!r} for attribute {attribute!r}")
-			handler.__self__._bgExecutor.submit(callback, attribute, value)  # ty: ignore[unresolved-attribute]
+		if handler._updateCallback is not None:
+			log.debug(f"Calling update callback {handler._updateCallback!r} for attribute {attribute!r}")
+			owner = self._getOwner()
+			owner._bgExecutor.submit(handler._updateCallback, owner, attribute, value)
 
 	def getValue(self, attribute: AttributeT, fallBackToDefault: bool = False):
 		if fallBackToDefault and attribute not in self._values:
@@ -360,15 +328,11 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
 
 	def __call__(self, attribute: AttributeT, rawValue: bytes):
 		log.debug(f"Getting handler on {self!r} to process attribute {attribute!r}")
-		handler = self._getHandler(attribute)
-		# handler is a partial that has already bound `attribute`; ty sees the unbound sig. See #59.
-		value = handler(rawValue)  # ty: ignore[missing-argument, invalid-argument-type]
+		handler = self._getRawHandler(attribute)
+		value = handler(self._getOwner(), attribute, rawValue)
 		log.debug(f"Handler on {self!r} returned value {value!r} for attribute {attribute!r}")
 		self.setAttributeRequestPending(attribute, False)
 		self.setValue(attribute, value)
-
-
-IoTypeT = TypeVar("IoTypeT", bound=IoBase)
 
 
 class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
@@ -384,17 +348,17 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 
 	def __new__(cls, *args, **kwargs):
 		self = super().__new__(cls, *args, **kwargs)
-		self._commandHandlerStore = CommandHandlerStore()
-		self._attributeSenderStore = AttributeSenderStore()
-		self._attributeValueProcessor = AttributeValueProcessor()
+		self._commandHandlerStore = CommandHandlerStore(self)
+		self._attributeSenderStore = AttributeSenderStore(self)
+		self._attributeValueProcessor = AttributeValueProcessor(self)
 		handlers = inspect.getmembers(cls, predicate=lambda o: isinstance(o, HandlerDecoratorBase))
-		for k, v in handlers:
-			if isinstance(v, CommandHandler):
-				self._commandHandlerStore.register(getattr(self, k))
-			elif isinstance(v, AttributeSender):
-				self._attributeSenderStore.register(getattr(self, k))
-			elif isinstance(v, AttributeReceiver):
-				self._attributeValueProcessor.register(getattr(self, k))
+		for _name, handler in handlers:
+			if isinstance(handler, CommandHandler):
+				self._commandHandlerStore.register(handler)
+			elif isinstance(handler, AttributeSender):
+				self._attributeSenderStore.register(handler)
+			elif isinstance(handler, AttributeReceiver):
+				self._attributeValueProcessor.register(handler)
 		return self
 
 	def terminateIo(self):
