@@ -76,7 +76,8 @@ Initial stable release.
 ## Getting Started
 
 1. Install RDAccess on both a client and server copy of NVDA.
-1. The remote system should automatically start speaking using the local speech synthesizer. If not, in the NVDA instance on the server, select the remote speech synthesizer from NVDA's synthesizer selection dialog.
+1. The remote system should automatically start speaking using the local speech synthesizer.
+   If not, in the NVDA instance on the server, select the remote speech synthesizer from NVDA's synthesizer selection dialog.
 1. To use braille, enable automatic braille display detection using the braille display selection dialog.
 
 ## Configuration
@@ -88,22 +89,27 @@ This dialog contains the following settings:
 
 ### Enable Remote Desktop Accessibility for
 
-This list of checkboxes controls the operating mode of the add-on. Choose between:
+This list of checkboxes controls the operating mode of the add-on.
+Choose between:
 
 * Incoming connections (Remote Desktop Server): Choose this option if the current instance of NVDA is running on a remote desktop server.
 * Outgoing connections (Remote Desktop Client): Choose this option if the current instance of NVDA is running on a remote desktop client that connects to one or more servers.
 
-To ensure a smooth start with the add-on, all options are enabled by default. However, you are encouraged to disable server or client mode as appropriate.
+To ensure a smooth start with the add-on, all options are enabled by default.
+However, you are encouraged to disable server or client mode as appropriate.
 
 ### Automatically Recover Remote Speech after Connection Loss
 
-This option is only available in server mode. It ensures that the connection will automatically be re-established when the Remote Speech synthesizer is active and the connection is lost, similar to braille display auto-detection.
+This option is only available in server mode.
+It ensures that the connection will automatically be re-established when the Remote Speech synthesizer is active and the connection is lost, similar to braille display auto-detection.
 
-This option is enabled by default. It is strongly encouraged to leave this option enabled if the Remote Desktop server has no audio output.
+This option is enabled by default.
+It is strongly encouraged to leave this option enabled if the Remote Desktop server has no audio output.
 
 ### Allow Remote System to Control Driver Settings
 
-When enabled in the client, this option allows you to control driver settings (such as synthesizer voice and pitch) from the remote system. Changes made on the remote system will automatically reflect locally.
+When enabled in the client, this option allows you to control driver settings (such as synthesizer voice and pitch) from the remote system.
+Changes made on the remote system will automatically reflect locally.
 
 ### Persist Client Support When Exiting NVDA
 
@@ -113,7 +119,8 @@ To use the client portion of RDAccess, changes need to be made in the Windows Re
 The add-on ensures that these changes are made under the profile of the current user, requiring no administrative privileges.
 Therefore, NVDA can automatically apply the necessary changes when loaded and undo these changes when exiting NVDA, ensuring compatibility with portable versions of NVDA.
 
-This option is disabled by default. However, if you are running an installed copy and you are the only user of the system, it is advised to enable this option for smooth operation when connecting to a remote system after NVDA starts.
+This option is disabled by default.
+However, if you are running an installed copy and you are the only user of the system, it is advised to enable this option for smooth operation when connecting to a remote system after NVDA starts.
 
 ### Enable Default Remote Desktop Support
 
@@ -128,8 +135,10 @@ Changes made through this option will be automatically undone when exiting NVDA 
 
 This option is available only under the following conditions:
 
-* Citrix Workspace is installed. Note that the Windows Store version of the app is not supported due to limitations in the app itself.
-* It is possible to register RDAccess under the current user context. After installing the app, you have to start a remote session once to enable this.
+* Citrix Workspace is installed.
+  Note that the Windows Store version of the app is not supported due to limitations in the app itself.
+* It is possible to register RDAccess under the current user context.
+  After installing the app, you have to start a remote session once to enable this.
 
 ### Notify of connection changes with
 
@@ -141,13 +150,17 @@ You can choose between:
 * Sounds (NVDA 2025.1+)
 * Both messages and sounds
 
-Note that sounds are not available on NVDA versions older than 2025.1. Beeps will be used on older versions.
+Note that sounds are not available on NVDA versions older than 2025.1.
+Beeps will be used on older versions.
 
 ### Incoming Speech Pitch Change Percentage
 
 This client option shifts the pitch of speech rendered locally when it originates from a remote NVDA, making remote and local speech audibly distinguishable.
 
-The value is a percentage between -100 and 100. Positive values raise pitch, negative values lower it. A value of 0 disables the shift. The default is 10.
+The value is a percentage between -100 and 100.
+Positive values raise pitch, negative values lower it.
+A value of 0 disables the shift.
+The default is 10.
 
 The shift is applied only when the local synthesizer supports pitch commands; synthesizers without pitch support are unaffected.
 
@@ -163,14 +176,18 @@ There are important points to note when using RDAccess with the Citrix Workspace
 ### Client-Side Requirements
 
 1. The Windows Store variant of the app is *not* supported.
-1. After installing Citrix Workspace, you need to start a remote session once to let RDAccess register itself. This occurs because the application copies system settings to user settings during the initial session setup. Following this, RDAccess can register itself under the current user context.
+1. After installing Citrix Workspace, you need to start a remote session once to let RDAccess register itself.
+   This occurs because the application copies system settings to user settings during the initial session setup.
+   Following this, RDAccess can register itself under the current user context.
 
 ### Server-Side Requirement
 
 In Citrix Virtual Apps and Desktops 2109, Citrix enabled the so-called virtual channel allow list, restricting third-party virtual channels, including the channel required by RDAccess, by default.
 For more information, [see this Citrix blog post](https://www.citrix.com/blogs/2021/10/14/virtual-channel-allow-list-now-enabled-by-default/).
 
-Explicitly allowing the RdPipe channel required by RDAccess is not yet tested. For now, it is best to disable the allow list altogether. If your system administrator has concerns, feel free to [address the issue here][3].
+Explicitly allowing the RdPipe channel required by RDAccess is not yet tested.
+For now, it is best to disable the allow list altogether.
+If your system administrator has concerns, feel free to [address the issue here][3].
 
 ## Issues and Contributing
 
