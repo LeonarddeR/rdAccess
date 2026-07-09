@@ -145,3 +145,132 @@ def install():
 		MAX_INDEX = 9999
 
 	speechManager.SpeechManager = SpeechManager
+
+	_installSpeechCommandsStub(speech)
+	_installDriverSettingAndSynthVoiceStubs()
+	_installInputCoreStub()
+
+
+def _setStubIdentity(cls: type, module: str) -> None:
+	"""Set __module__ and __qualname__ on a class defined inside a function.
+
+	Classes defined here get __module__ == "tests._stubs" and __qualname__ containing
+	"install.<locals>." (or similar) by default; both must be corrected so pickled payloads in
+	tests carry the same module/qualname strings as real NVDA would produce. Pickle refuses to
+	pickle-by-reference a class whose __qualname__ contains "<locals>".
+	"""
+	cls.__module__ = module
+	cls.__qualname__ = cls.__name__
+
+
+def _installSpeechCommandsStub(speech: types.ModuleType) -> None:
+	speechCommands = _module("speech.commands")
+	speech.commands = speechCommands
+
+	class SpeechCommand:
+		pass
+
+	class IndexCommand(SpeechCommand):
+		def __init__(self, index: int):
+			self.index = index
+
+		def __eq__(self, other: Any) -> bool:
+			return type(self) is type(other) and self.index == other.index
+
+	class PitchCommand(SpeechCommand):
+		def __init__(self, offset: int = 0):
+			self.offset = offset
+
+		def __eq__(self, other: Any) -> bool:
+			return type(self) is type(other) and self.offset == other.offset
+
+	class NotASpeechCommand:
+		"""Exists in speech.commands but is not a SpeechCommand subclass; used to test that the
+		dynamic find_class rule for speech.commands rejects it.
+		"""
+
+	for cls in (SpeechCommand, IndexCommand, PitchCommand, NotASpeechCommand):
+		_setStubIdentity(cls, "speech.commands")
+
+	speechCommands.SpeechCommand = SpeechCommand
+	speechCommands.IndexCommand = IndexCommand
+	speechCommands.PitchCommand = PitchCommand
+	speechCommands.NotASpeechCommand = NotASpeechCommand
+
+
+def _installDriverSettingAndSynthVoiceStubs() -> None:
+	from baseObject import AutoPropertyObject
+
+	autoSettingsUtils = _module("autoSettingsUtils")
+	autoSettingsDriverSetting = _module("autoSettingsUtils.driverSetting")
+	autoSettingsUtils.driverSetting = autoSettingsDriverSetting
+	autoSettingsUtilsUtils = _module("autoSettingsUtils.utils")
+	autoSettingsUtils.utils = autoSettingsUtilsUtils
+
+	class StringParameterInfo:
+		def __init__(self, id: str, displayName: str):
+			self.id = id
+			self.displayName = displayName
+
+		def __eq__(self, other: Any) -> bool:
+			return type(self) is type(other) and self.id == other.id and self.displayName == other.displayName
+
+	class DriverSetting(AutoPropertyObject):
+		def __init__(
+			self,
+			id: str,
+			displayNameWithAccelerator: str,
+			availableInSettingsRing: bool = False,
+			defaultVal: Any = None,
+			displayName: str | None = None,
+			useConfig: bool = True,
+		):
+			self.id = id
+			self.displayNameWithAccelerator = displayNameWithAccelerator
+			self.displayName = displayName or displayNameWithAccelerator
+			self.availableInSettingsRing = availableInSettingsRing
+			self.defaultVal = defaultVal
+			self.useConfig = useConfig
+
+	class NumericDriverSetting(DriverSetting):
+		pass
+
+	class BooleanDriverSetting(DriverSetting):
+		pass
+
+	_setStubIdentity(StringParameterInfo, "autoSettingsUtils.utils")
+	for cls in (DriverSetting, NumericDriverSetting, BooleanDriverSetting):
+		_setStubIdentity(cls, "autoSettingsUtils.driverSetting")
+
+	autoSettingsUtilsUtils.StringParameterInfo = StringParameterInfo
+	autoSettingsDriverSetting.DriverSetting = DriverSetting
+	autoSettingsDriverSetting.NumericDriverSetting = NumericDriverSetting
+	autoSettingsDriverSetting.BooleanDriverSetting = BooleanDriverSetting
+
+	synthDriverHandler = _module("synthDriverHandler")
+
+	class VoiceInfo(StringParameterInfo):
+		def __init__(self, id: str, displayName: str, language: str | None = None):
+			self.language = language
+			super().__init__(id, displayName)
+
+	_setStubIdentity(VoiceInfo, "synthDriverHandler")
+	synthDriverHandler.VoiceInfo = VoiceInfo
+
+
+def _installInputCoreStub() -> None:
+	inputCore = _module("inputCore")
+
+	class GlobalGestureMap:
+		def __init__(self, entries: Any = None):
+			self._map: dict = {}
+			self.lastUpdateContainedError = False
+			self.fileName: str | None = None
+			if entries:
+				self.update(entries)
+
+		def update(self, entries: Any):
+			self._map.update(entries)
+
+	_setStubIdentity(GlobalGestureMap, "inputCore")
+	inputCore.GlobalGestureMap = GlobalGestureMap

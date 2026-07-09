@@ -11,30 +11,12 @@ from __future__ import annotations
 import gc
 import unittest
 import weakref
+from unittest import mock
 
 import queueHandler  # noqa: E402 — must follow tests import so stubs are installed
-from baseObject import AutoPropertyObject  # noqa: E402 — same reason
+from autoSettingsUtils.driverSetting import DriverSetting  # noqa: E402 — same reason
 
 from tests._fakes import FakeHandlerBase  # bootstrap runs via tests/__init__ import
-
-# ---------------------------------------------------------------------------
-# Module-level helper required by test 5 (must be picklable by reference).
-# ---------------------------------------------------------------------------
-
-
-class _PickleProbe(AutoPropertyObject):
-	"""AutoPropertyObject whose invalidateCache sets a flag for inspection."""
-
-	cachePropertiesByDefault = True
-
-	def __init__(self):
-		super().__init__()
-		self.cacheInvalidated = False
-
-	def invalidateCache(self):
-		self.cacheInvalidated = True
-		super().invalidateCache()
-
 
 # ---------------------------------------------------------------------------
 # Tests
@@ -93,12 +75,18 @@ class TestPickleUnpickle(unittest.TestCase):
 		self.assertEqual(restored, original)
 
 	def test_unpickle_calls_invalidate_cache_on_auto_property_object(self):
-		"""_unpickle calls invalidateCache on AutoPropertyObject results."""
-		probe = _PickleProbe()
-		raw = self.handler._pickle(probe)
-		result = self.handler._unpickle(raw)
-		self.assertIsInstance(result, _PickleProbe)
-		self.assertTrue(result.cacheInvalidated)
+		"""_unpickle calls invalidateCache on AutoPropertyObject results.
+
+		DriverSetting is used as the probe (rather than an ad hoc AutoPropertyObject subclass)
+		because RestrictedUnpickler only resolves allowlisted classes; see
+		tests/test_restrictedUnpickling.py for the allowlist itself.
+		"""
+		original = DriverSetting("id1", "Setting 1")
+		raw = self.handler._pickle(original)
+		with mock.patch.object(DriverSetting, "invalidateCache") as invalidateCache:
+			result = self.handler._unpickle(raw)
+		self.assertIsInstance(result, DriverSetting)
+		invalidateCache.assert_called_once_with()
 
 	def test_unpickle_does_not_call_invalidate_cache_on_plain_objects(self):
 		"""_unpickle does not call invalidateCache on non-AutoPropertyObject results."""
