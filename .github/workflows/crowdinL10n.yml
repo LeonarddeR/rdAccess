@@ -32,7 +32,7 @@ jobs:
           Write-Host "Sleeping for $delaySeconds seconds..."
           Start-Sleep -Seconds $delaySeconds
       - name: Checkout add-on
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           submodules: true
       - name: Set up Python

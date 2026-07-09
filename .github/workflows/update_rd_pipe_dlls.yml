@@ -17,7 +17,7 @@ jobs:
       UPSTREAM: leonardder/rd_pipe-rs
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Resolve latest upstream release
         run: |
