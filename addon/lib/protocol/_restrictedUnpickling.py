@@ -7,7 +7,7 @@
 deserializes payloads that arrive over the DVC named pipe from a peer across the RDP trust
 boundary. This module confines unpickling to an allowlist of the classes that legitimately
 cross the wire, blocking the generic ``__reduce__``-based gadget class (``os.system``,
-``builtins.eval``, ``subprocess.*``, …) while staying wire-compatible with existing peers.
+``builtins.eval``, ``subprocess.*``, etc.) while staying wire-compatible with existing peers.
 """
 
 from __future__ import annotations
