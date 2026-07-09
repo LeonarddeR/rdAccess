@@ -92,6 +92,12 @@ class TestRestrictedUnpicklingRejections(unittest.TestCase):
 			self.handler._unpickle(payload)
 		errorRecords = [msg for level, msg in log.records if level == "error"]
 		self.assertTrue(errorRecords, "Expected a log.error call recording the rejected global")
+		# os.system's actual module is platform-specific (nt on Windows, posixpath on Unix)
+		module_name = os.system.__module__
+		self.assertTrue(
+			any("system" in msg and module_name in msg for msg in errorRecords),
+			"Expected the rejection log to name the offending (module, name)",
+		)
 
 
 # ---------------------------------------------------------------------------
