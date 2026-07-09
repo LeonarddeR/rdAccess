@@ -2,9 +2,9 @@
 # Copyright 2026 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-"""Unit tests for RestrictedUnpickler, the pickle.Unpickler subclass used by
-RemoteProtocolHandler._unpickle (addon/lib/protocol/__init__.py) to allowlist the classes that
-legitimately cross the RDAccess wire, blocking generic __reduce__-based RCE gadgets.
+"""Unit tests for RestrictedUnpickler, the pickle.Unpickler subclass in
+addon/lib/protocol/_restrictedUnpickling.py used by RemoteProtocolHandler._unpickle to allowlist
+the classes that legitimately cross the RDAccess wire, blocking generic __reduce__-based RCE gadgets.
 """
 
 from __future__ import annotations
