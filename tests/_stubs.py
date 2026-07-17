@@ -299,5 +299,8 @@ def _installInputCoreStub() -> None:
 		def update(self, entries: Any):
 			self._map.update(entries)
 
+		def export(self) -> dict:
+			return {section: dict(scripts) for section, scripts in self._map.items()}
+
 	_setStubIdentity(GlobalGestureMap, "inputCore")
 	inputCore.GlobalGestureMap = GlobalGestureMap

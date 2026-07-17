@@ -1,0 +1,185 @@
+# RDAccess: Remote Desktop Accessibility for NVDA
+# Copyright 2026 Leonard de Ruijter <alderuijter@gmail.com>
+# License: GNU General Public License version 2.0
+
+"""JSON Lines serializer for protocol v2.
+
+The wire format follows NVDA core's ``_remoteClient.serializer``: one UTF-8 encoded
+JSON object per line with a mandatory ``type`` field. Speech sequences encode as
+``[ClassName, __dict__]`` pairs, byte-for-byte identical to NVDA Remote Access;
+conformance tests in ``tests/test_serializerConformance.py`` enforce this.
+
+RDAccess-specific attribute values (driver settings, parameter infos, gesture maps,
+speech command class sets) extend the same ``[ClassName, dict]`` convention and are
+decoded against explicit per-attribute allowlists.
+"""
+
+from __future__ import annotations
+
+import json
+from collections import OrderedDict
+from collections.abc import Callable
+from fnmatch import fnmatchcase
+from typing import Any
+
+import inputCore
+import speech.commands
+from autoSettingsUtils.driverSetting import BooleanDriverSetting, DriverSetting, NumericDriverSetting
+from autoSettingsUtils.utils import StringParameterInfo
+from baseObject import AutoPropertyObject
+from logHandler import log
+from synthDriverHandler import VoiceInfo
+
+from .braille import BrailleInputGesture
+from .messages import RdMessageType
+
+JSONDict = dict[str, Any]
+
+SEQUENCE_CLASSES = (
+	speech.commands.SynthCommand,
+	speech.commands.EndUtteranceCommand,
+)
+
+_SETTING_CLASSES: dict[str, type] = {
+	cls.__name__: cls for cls in (DriverSetting, NumericDriverSetting, BooleanDriverSetting)
+}
+_PARAMETER_INFO_CLASSES: dict[str, type] = {cls.__name__: cls for cls in (StringParameterInfo, VoiceInfo)}
+
+_GESTURE_FIELDS = ("source", "id", "routingIndex", "model", "dots", "space")
+
+
+def _isSubclassOrInstance(unknown: Any, possible: type | tuple[type, ...]) -> bool:
+	try:
+		return issubclass(unknown, possible)
+	except TypeError:
+		return isinstance(unknown, possible)
+
+
+class RdAccessJSONEncoder(json.JSONEncoder):
+	def default(self, o: Any) -> Any:
+		if _isSubclassOrInstance(o, SEQUENCE_CLASSES):
+			return [o.__class__.__name__, o.__dict__]
+		if isinstance(o, (DriverSetting, StringParameterInfo)):
+			return [
+				o.__class__.__name__,
+				{k: v for k, v in o.__dict__.items() if k != "_propertyCache"},
+			]
+		if isinstance(o, inputCore.GlobalGestureMap):
+			return [o.__class__.__name__, o.export()]
+		if isinstance(o, BrailleInputGesture):
+			return [BrailleInputGesture.__name__, {field: getattr(o, field) for field in _GESTURE_FIELDS}]
+		if isinstance(o, type) and issubclass(o, speech.commands.SpeechCommand):
+			return o.__name__
+		if isinstance(o, frozenset):
+			if all(isinstance(item, type) for item in o):
+				return sorted(item.__name__ for item in o)
+			return sorted(o)
+		return super().default(o)
+
+
+def _reconstruct(allowedClasses: dict[str, type], item: Any) -> Any:
+	if not isinstance(item, list) or len(item) != 2:
+		raise ValueError(f"Expected a [className, state] pair, got {item!r}")
+	name, state = item
+	cls: Any = allowedClasses.get(name)
+	if cls is None or not isinstance(state, dict):
+		raise ValueError(f"Cannot reconstruct {name!r} from {state!r}")
+	obj = cls.__new__(cls)
+	obj.__dict__.update(state)
+	if isinstance(obj, AutoPropertyObject):
+		obj.invalidateCache()
+	return obj
+
+
+def _asSequence(dct: JSONDict) -> JSONDict:
+	"""Object hook reconstructing speech commands in ``speak`` messages.
+
+	Behavioral clone of ``_remoteClient.serializer.asSequence``: unknown or disallowed
+	class names are logged and skipped, reconstruction bypasses ``__init__``.
+	"""
+	if not ("type" in dct and dct["type"] == RdMessageType.SPEAK.value and "sequence" in dct):
+		return dct
+	sequence = []
+	for item in dct["sequence"]:
+		if not isinstance(item, list):
+			sequence.append(item)
+			continue
+		name, values = item
+		cls = getattr(speech.commands, name, None)
+		if cls is None or not issubclass(cls, SEQUENCE_CLASSES):
+			log.warning(f"Unknown sequence type received: {name!r}")
+			continue
+		cls = cls.__new__(cls)
+		cls.__dict__.update(values)
+		sequence.append(cls)
+	dct["sequence"] = sequence
+	return dct
+
+
+def _decodeSupportedSettings(value: Any) -> list:
+	if not isinstance(value, list):
+		raise ValueError(f"Expected a list of settings, got {value!r}")
+	return [_reconstruct(_SETTING_CLASSES, item) for item in value]
+
+
+def _decodeAvailableValues(value: Any) -> OrderedDict:
+	if not isinstance(value, dict):
+		raise ValueError(f"Expected a mapping of parameter infos, got {value!r}")
+	return OrderedDict((key, _reconstruct(_PARAMETER_INFO_CLASSES, item)) for key, item in value.items())
+
+
+def _decodeSupportedCommands(value: Any) -> frozenset[type]:
+	commands = set()
+	for name in value:
+		cls = getattr(speech.commands, name, None)
+		if (
+			cls is None
+			or not isinstance(cls, type)
+			or cls.__module__ != speech.commands.__name__
+			or not issubclass(cls, speech.commands.SpeechCommand)
+		):
+			log.warning(f"Unknown speech command received: {name!r}")
+			continue
+		commands.add(cls)
+	return frozenset(commands)
+
+
+def _decodeGestureMap(value: Any) -> inputCore.GlobalGestureMap | None:
+	if value is None:
+		return None
+	if not isinstance(value, list) or len(value) != 2 or value[0] != inputCore.GlobalGestureMap.__name__:
+		raise ValueError(f"Cannot reconstruct a gesture map from {value!r}")
+	gestureMap = inputCore.GlobalGestureMap()
+	gestureMap.update(value[1])
+	return gestureMap
+
+
+ATTRIBUTE_DECODERS: tuple[tuple[str, Callable[[Any], Any]], ...] = (
+	("supportedSettings", _decodeSupportedSettings),
+	("supportedCommands", _decodeSupportedCommands),
+	("gestureMap", _decodeGestureMap),
+	("available*s", _decodeAvailableValues),
+)
+
+
+def decodeAttributeValue(attribute: str, value: Any) -> Any:
+	for pattern, decoder in ATTRIBUTE_DECODERS:
+		if fnmatchcase(attribute, pattern):
+			return decoder(value)
+	return value
+
+
+class RdJSONSerializer:
+	SEP: bytes = b"\n"
+
+	def serialize(self, type: str | None = None, **obj: Any) -> bytes:
+		if type is not None and isinstance(type, RdMessageType):
+			type = type.value
+		obj["type"] = type
+		return json.dumps(obj, cls=RdAccessJSONEncoder).encode("UTF-8") + self.SEP
+
+	def deserialize(self, data: bytes) -> JSONDict:
+		obj = json.loads(data, object_hook=_asSequence)
+		if isinstance(obj, dict) and obj.get("type") == RdMessageType.ATTRIBUTE_VALUE.value:
+			obj["value"] = decodeAttributeValue(obj.get("attribute", ""), obj.get("value"))
+		return obj
