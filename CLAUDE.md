@@ -55,11 +55,11 @@ Dual-stack: two wire formats coexist on each pipe, negotiated automatically per 
 
 **Negotiation**: both sides push a `protocolVersion` attribute at connect (client on pipe connect, server after XON). Receive side sniffs the first byte per message (`{` = JSON line, driverType byte = legacy frame; `_onReceive`). Send side stays legacy until the peer is known to be ≥ v2 (explicit version, or any received JSON line), then flips (`_sendJson`) and emits a one-shot `protocol_version` message with a `channel` field validated against the pipe's channel. Old peers never answer the version push, so `defaultValue=1` keeps everything legacy. Legacy removal is planned for a later release.
 
-`RemoteProtocolHandler` (in `protocol/__init__.py`) is the abstract base, used by both driver classes (server side) and handler classes (client side). All dispatch funnels through `_handleMessage(messageType, kwargs)`; sends go through `sendMessage(messageType, **payload)`. Three decorator-driven registries are populated at `__new__` time by introspecting the class:
+`RemoteProtocolHandler` (in `protocol/__init__.py`) is the abstract base, used by both driver classes (server side) and handler classes (client side). All dispatch funnels through `_handleMessage(messageType, kwargs)` → `_commandHandlerStore`; the built-in message types (`attribute_request`/`attribute_value`/`protocol_version`/`ping`) are ordinary `@commandHandler` methods on the base, so subclasses can override any message type through the same registry. Sends go through `sendMessage(messageType, **payload)`. Three decorator-driven registries are populated at `__new__` time by introspecting the class:
 
 * `@commandHandler(RdMessageType.X)` → `CommandHandlerStore` — dispatch incoming messages; handlers receive decoded kwargs.
 * `@attributeSender(attr)` → `AttributeSenderStore` — return the Python value when peer requests `attr`.
-* `@attributeReceiver(attr, defaultValue=…)` → `AttributeValueProcessor` — accept the decoded value when peer pushes `attr`; `.defaultValueGetter` and `.updateCallback` are settable via the returned descriptor.
+* `@attributeReceiver(attr, defaultValue=…)` → `AttributeValueProcessor` — accept the decoded value when peer pushes `attr`; `.defaultValueGetter` and `.updateCallback` are settable via the returned descriptor. When the decoded value needs no transformation, assign a bare `AttributeReceiver(attr, defaultValue=…)` as a class attribute instead of decorating an identity method.
 
 Attributes are `str`; wildcards are allowed (`*` matched via `fnmatch`) — `_incoming_setting` is the catch-all for `setting_*` attributes used to forward driver settings (voice, pitch, dot-firmness, etc.) bidirectionally.
 

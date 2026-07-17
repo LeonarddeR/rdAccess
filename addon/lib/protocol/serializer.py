@@ -30,10 +30,14 @@ from baseObject import AutoPropertyObject
 from logHandler import log
 from synthDriverHandler import VoiceInfo
 
-from .braille import GESTURE_FIELDS, BrailleInputGesture
-from .messages import RdMessageType
+from .braille import BrailleAttribute
+from .messages import GenericAttribute, RdMessageType
+from .speech import SpeechAttribute
 
 JSONDict = dict[str, Any]
+
+_SPEAK_TYPE = RdMessageType.SPEAK.value
+_ATTRIBUTE_VALUE_TYPE = RdMessageType.ATTRIBUTE_VALUE.value
 
 SEQUENCE_CLASSES = (
 	speech.commands.SynthCommand,
@@ -64,14 +68,10 @@ class RdAccessJSONEncoder(json.JSONEncoder):
 			]
 		if isinstance(o, inputCore.GlobalGestureMap):
 			return [o.__class__.__name__, o.export()]
-		if isinstance(o, BrailleInputGesture):
-			return [BrailleInputGesture.__name__, {field: getattr(o, field) for field in GESTURE_FIELDS}]
 		if isinstance(o, type) and issubclass(o, speech.commands.SpeechCommand):
 			return o.__name__
-		if isinstance(o, frozenset):
-			if all(isinstance(item, type) for item in o):
-				return sorted(item.__name__ for item in o)
-			return sorted(o)
+		if isinstance(o, frozenset) and all(isinstance(item, type) for item in o):
+			return sorted(item.__name__ for item in o)
 		return super().default(o)
 
 
@@ -95,7 +95,7 @@ def _asSequence(dct: JSONDict) -> JSONDict:
 	Behavioral clone of ``_remoteClient.serializer.asSequence``: unknown or disallowed
 	class names are logged and skipped, reconstruction bypasses ``__init__``.
 	"""
-	if not ("type" in dct and dct["type"] == RdMessageType.SPEAK.value and "sequence" in dct):
+	if not ("type" in dct and dct["type"] == _SPEAK_TYPE and "sequence" in dct):
 		return dct
 	sequence = []
 	for item in dct["sequence"]:
@@ -153,9 +153,9 @@ def _decodeGestureMap(value: Any) -> inputCore.GlobalGestureMap | None:
 
 
 ATTRIBUTE_DECODERS: tuple[tuple[str, Callable[[Any], Any]], ...] = (
-	("supportedSettings", _decodeSupportedSettings),
-	("supportedCommands", _decodeSupportedCommands),
-	("gestureMap", _decodeGestureMap),
+	(GenericAttribute.SUPPORTED_SETTINGS, _decodeSupportedSettings),
+	(SpeechAttribute.SUPPORTED_COMMANDS, _decodeSupportedCommands),
+	(BrailleAttribute.GESTURE_MAP, _decodeGestureMap),
 	("available*s", _decodeAvailableValues),
 )
 
@@ -167,17 +167,19 @@ def decodeAttributeValue(attribute: str, value: Any) -> Any:
 	return value
 
 
+_encoder = RdAccessJSONEncoder()
+_decoder = json.JSONDecoder(object_hook=_asSequence)
+
+
 class RdJSONSerializer:
 	SEP: bytes = b"\n"
 
 	def serialize(self, type: str | None = None, **obj: Any) -> bytes:
-		if type is not None and isinstance(type, RdMessageType):
-			type = type.value
 		obj["type"] = type
-		return json.dumps(obj, cls=RdAccessJSONEncoder).encode("UTF-8") + self.SEP
+		return _encoder.encode(obj).encode("UTF-8") + self.SEP
 
 	def deserialize(self, data: bytes) -> JSONDict:
-		obj = json.loads(data, object_hook=_asSequence)
-		if isinstance(obj, dict) and obj.get("type") == RdMessageType.ATTRIBUTE_VALUE.value:
+		obj = _decoder.decode(data.decode("UTF-8"))
+		if isinstance(obj, dict) and obj.get("type") == _ATTRIBUTE_VALUE_TYPE:
 			obj["value"] = decodeAttributeValue(obj.get("attribute", ""), obj.get("value"))
 		return obj

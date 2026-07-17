@@ -127,9 +127,7 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 			return {}
 		return getattr(self._driver, attribute)
 
-	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + "*")
-	def _incoming_setting(self, _attribute: protocol.AttributeT, value: typing.Any):
-		return value
+	_incoming_setting = protocol.AttributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + "*")
 
 	@_incoming_setting.updateCallback
 	def _setIncomingSettingOnDriver(self, attribute: protocol.AttributeT, value: typing.Any):
@@ -170,9 +168,10 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 		self.requestRemoteAttribute(attribute)
 		return False
 
-	@protocol.attributeReceiver(protocol.GenericAttribute.TIME_SINCE_INPUT, defaultValue=False)
-	def _incoming_timeSinceInput(self, value: int) -> int:
-		return value
+	_incoming_timeSinceInput = protocol.AttributeReceiver(
+		protocol.GenericAttribute.TIME_SINCE_INPUT,
+		defaultValue=False,
+	)
 
 	@_incoming_timeSinceInput.updateCallback
 	def _post_timeSinceInput(self, attribute: protocol.AttributeT, value: int):

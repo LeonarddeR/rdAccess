@@ -17,8 +17,10 @@ import addonHandler
 from logHandler import log
 from utils.displayString import DisplayStringIntEnum
 
-COM_CLS_CHANNEL_NAMES_VALUE_BRAILLE: Final[str] = "NVDA-BRAILLE"
-COM_CLS_CHANNEL_NAMES_VALUE_SPEECH: Final[str] = "NVDA-SPEECH"
+from .protocol.messages import CHANNEL_NAMES, DriverType
+
+COM_CLS_CHANNEL_NAMES_VALUE_BRAILLE: Final[str] = CHANNEL_NAMES[DriverType.BRAILLE]
+COM_CLS_CHANNEL_NAMES_VALUE_SPEECH: Final[str] = CHANNEL_NAMES[DriverType.SPEECH]
 COM_CLASS_FOLDER: Final[str] = r"SOFTWARE\Classes\CLSID\{D1F74DC7-9FDE-45BE-9251-FA72D4064DA3}"
 CTX_MODULES_FOLDER: Final[str] = r"SOFTWARE\Citrix\ICA Client\Engine\Configuration\Advanced\Modules"
 CTX_RD_PIPE_FOLDER: Final[str] = os.path.join(CTX_MODULES_FOLDER, "DVCPlugin_RdPipe")

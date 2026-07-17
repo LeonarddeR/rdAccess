@@ -23,27 +23,11 @@ from typing import Any
 from baseObject import AutoPropertyObject
 
 from ._restrictedUnpickling import restrictedLoads
-from .braille import GESTURE_FIELDS, BrailleCommand, BrailleInputGesture
-from .messages import DriverType, RdMessageType
+from .braille import GESTURE_FIELDS, BrailleAttribute, BrailleCommand, BrailleInputGesture
+from .messages import DriverType, GenericAttribute, RdMessageType
 from .speech import SpeechCommand
 
-__all__ = [
-	"ATTRIBUTE_SEPARATOR",
-	"MSG_XOFF",
-	"MSG_XON",
-	"DriverType",
-	"GenericCommand",
-	"decodeAttributeValue",
-	"decodeCommandPayload",
-	"encodeAttributeValue",
-	"encodeCommandPayload",
-	"packFrame",
-	"restrictedLoads",
-]
-
 ATTRIBUTE_SEPARATOR = b"`"
-MSG_XON = 0x11
-MSG_XOFF = 0x13
 
 
 class GenericCommand(IntEnum):
@@ -54,6 +38,13 @@ def dumps(obj: Any) -> bytes:
 	return pickle.dumps(obj, protocol=4)
 
 
+def loads(payload: bytes) -> Any:
+	value = restrictedLoads(payload)
+	if isinstance(value, AutoPropertyObject):
+		value.invalidateCache()
+	return value
+
+
 def packFrame(driverType: int, command: int, payload: bytes = b"") -> bytes:
 	return bytes((
 		driverType,
@@ -61,6 +52,17 @@ def packFrame(driverType: int, command: int, payload: bytes = b"") -> bytes:
 		*len(payload).to_bytes(length=2, byteorder=sys.byteorder, signed=False),
 		*payload,
 	))
+
+
+def parseFrame(message: bytes) -> tuple[int, bytes, bytes] | None:
+	"""Parse one frame; returns ``(command, payload, rest)``, or ``None`` when incomplete."""
+	if len(message) < 4:
+		return None
+	expectedLength = int.from_bytes(message[2:4], sys.byteorder)
+	endOfPayload = 4 + expectedLength
+	if len(message) < endOfPayload:
+		return None
+	return (message[1], message[4:endOfPayload], message[endOfPayload:])
 
 
 def _decodeKwargs(payload: bytes) -> dict[str, Any]:
@@ -134,32 +136,34 @@ def _intCodec(length: int) -> tuple[Callable[[Any], bytes], Callable[[bytes], in
 	)
 
 
-_ATTRIBUTE_BYTE_CODECS: tuple[tuple[str, Callable[[Any], bytes], Callable[[bytes], Any]], ...] = (
-	("nvdaVersion", lambda value: str(value).encode(), lambda payload: payload.decode()),
-	("rdAccessVersion", lambda value: str(value).encode(), lambda payload: payload.decode()),
-	("protocolVersion", *_intCodec(1)),
-	("timeSinceInput", *_intCodec(4)),
-	("numCells", *_intCodec(1)),
-	("numCols", *_intCodec(1)),
-	("numRows", *_intCodec(1)),
+_strCodec: tuple[Callable[[Any], bytes], Callable[[bytes], Any]] = (
+	lambda value: str(value).encode(),
+	lambda payload: payload.decode(),
 )
+
+_ATTRIBUTE_BYTE_CODECS: dict[str, tuple[Callable[[Any], bytes], Callable[[bytes], Any]]] = {
+	GenericAttribute.NVDA_VERSION: _strCodec,
+	GenericAttribute.RD_ACCESS_VERSION: _strCodec,
+	GenericAttribute.PROTOCOL_VERSION: _intCodec(1),
+	GenericAttribute.TIME_SINCE_INPUT: _intCodec(4),
+	BrailleAttribute.NUM_CELLS: _intCodec(1),
+	BrailleAttribute.NUM_COLS: _intCodec(1),
+	BrailleAttribute.NUM_ROWS: _intCodec(1),
+}
 
 
 def encodeAttributeValue(attribute: str, value: Any) -> bytes:
-	for name, encode, _decode in _ATTRIBUTE_BYTE_CODECS:
-		if attribute == name:
-			return encode(value)
+	codec = _ATTRIBUTE_BYTE_CODECS.get(attribute)
+	if codec is not None:
+		return codec[0](value)
 	return dumps(value)
 
 
 def decodeAttributeValue(attribute: str, payload: bytes) -> Any:
-	for name, _encode, decode in _ATTRIBUTE_BYTE_CODECS:
-		if attribute == name:
-			return decode(payload)
-	value = restrictedLoads(payload)
-	if isinstance(value, AutoPropertyObject):
-		value.invalidateCache()
-	return value
+	codec = _ATTRIBUTE_BYTE_CODECS.get(attribute)
+	if codec is not None:
+		return codec[1](payload)
+	return loads(payload)
 
 
 def encodeCommandPayload(

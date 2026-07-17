@@ -51,32 +51,24 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriv
 			assert braille.handler is not None
 			braille.handler.handleDisplayUnavailable()
 
-	@protocol.attributeReceiver(protocol.BrailleAttribute.NUM_CELLS, defaultValue=0)
-	def _incoming_numCells(self, value: int) -> int:
-		return value
+	_incoming_numCells = protocol.AttributeReceiver(protocol.BrailleAttribute.NUM_CELLS, defaultValue=0)
 
 	def _get_numCells(self) -> int:
 		if (value := self.numRows * self.numCols) == 0:
 			value = self._getRemoteAttributeValueWithFallback(protocol.BrailleAttribute.NUM_CELLS)
 		return value
 
-	@protocol.attributeReceiver(protocol.BrailleAttribute.NUM_ROWS, defaultValue=1)
-	def _incoming_numRows(self, value: int) -> int:
-		return value
+	_incoming_numRows = protocol.AttributeReceiver(protocol.BrailleAttribute.NUM_ROWS, defaultValue=1)
 
 	def _get_numRows(self) -> int:
 		return self._getRemoteAttributeValueWithFallback(protocol.BrailleAttribute.NUM_ROWS)
 
-	@protocol.attributeReceiver(protocol.BrailleAttribute.NUM_COLS, defaultValue=0)
-	def _incoming_numCols(self, value: int) -> int:
-		return value
+	_incoming_numCols = protocol.AttributeReceiver(protocol.BrailleAttribute.NUM_COLS, defaultValue=0)
 
 	def _get_numCols(self) -> int:
 		return self._getRemoteAttributeValueWithFallback(protocol.BrailleAttribute.NUM_COLS)
 
-	@protocol.attributeReceiver(protocol.BrailleAttribute.GESTURE_MAP)
-	def _incoming_gestureMapUpdate(self, value: inputCore.GlobalGestureMap) -> inputCore.GlobalGestureMap:
-		return value
+	_incoming_gestureMapUpdate = protocol.AttributeReceiver(protocol.BrailleAttribute.GESTURE_MAP)
 
 	@_incoming_gestureMapUpdate.defaultValueGetter
 	def _default_gestureMap(self, _attribute: protocol.AttributeT):

@@ -44,36 +44,39 @@ class _HandlerWithRecordingCommandHandler(FakeHandlerBase):
 # ---------------------------------------------------------------------------
 
 
-class TestWriteMessage(unittest.TestCase):
-	"""Test 1 & 2: basic writeMessage behaviour."""
+class TestLegacySendWireFormat(unittest.TestCase):
+	"""Tests 1 & 2: legacy wire bytes produced by sendMessage before the JSON switch."""
 
 	def setUp(self):
 		self.handler = FakeHandlerBase()
 		self.addCleanup(self.handler.terminate)
 
-	def test_write_message_speak_with_payload(self):
-		"""writeMessage produces the correct wire bytes for a non-empty payload."""
-		payload = b"abc"
-		self.handler.writeMessage(protocol.SpeechCommand.SPEAK, payload)
+	def test_send_message_speak_frame_layout(self):
+		"""A SPEAK message writes driverType, command byte, LE length field and payload."""
+		self.handler.sendMessage(protocol.RdMessageType.SPEAK, sequence=["abc"])
 
-		expected = b"S" + bytes([protocol.SpeechCommand.SPEAK]) + (3).to_bytes(2, sys.byteorder) + b"abc"
+		written = self.handler._dev.writes[0]
+		self.assertEqual(written[0:1], b"S")
+		self.assertEqual(written[1], protocol.SpeechCommand.SPEAK)
+		length_field = int.from_bytes(written[2:4], sys.byteorder)
+		self.assertEqual(length_field, len(written) - 4)
+
+	def test_send_message_matches_build_message(self):
+		"""sendMessage output is identical to the buildMessage helper over the encoded payload."""
+		sequence = ["abc"]
+		self.handler.sendMessage(protocol.RdMessageType.SPEAK, sequence=sequence)
+
+		command, payload = protocol.legacy.encodeCommandPayload(
+			protocol.DriverType.SPEECH,
+			protocol.RdMessageType.SPEAK,
+			{"sequence": sequence},
+		)
+		expected = buildMessage(protocol.DriverType.SPEECH, command, payload)
 		self.assertEqual(self.handler._dev.writes, [expected])
 
-	def test_write_message_matches_build_message(self):
-		"""writeMessage output is identical to buildMessage helper."""
-		payload = b"abc"
-		self.handler.writeMessage(protocol.SpeechCommand.SPEAK, payload)
-
-		expected = buildMessage(
-			protocol.DriverType.SPEECH,
-			protocol.SpeechCommand.SPEAK,
-			payload,
-		)
-		self.assertEqual(self.handler._dev.writes[0], expected)
-
-	def test_write_message_default_empty_payload(self):
-		"""writeMessage with no payload argument writes a zero-length field and no payload bytes."""
-		self.handler.writeMessage(protocol.SpeechCommand.CANCEL)
+	def test_send_message_empty_payload(self):
+		"""CANCEL writes a zero-length field and no payload bytes."""
+		self.handler.sendMessage(protocol.RdMessageType.CANCEL)
 
 		written = self.handler._dev.writes[0]
 		# Length field is bytes 2-3; must be zero

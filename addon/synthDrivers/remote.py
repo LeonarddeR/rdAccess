@@ -106,16 +106,18 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		except OSError:
 			log.warning("Error pausing speech", exc_info=True)
 
-	@protocol.attributeReceiver(protocol.SpeechAttribute.SUPPORTED_COMMANDS, defaultValue=frozenset())
-	def _incoming_supportedCommands(self, value: frozenset) -> frozenset:
-		return value
+	_incoming_supportedCommands = protocol.AttributeReceiver(
+		protocol.SpeechAttribute.SUPPORTED_COMMANDS,
+		defaultValue=frozenset(),
+	)
 
 	def _get_supportedCommands(self):
 		return self._getRemoteAttributeValueWithFallback(protocol.SpeechAttribute.SUPPORTED_COMMANDS)
 
-	@protocol.attributeReceiver(protocol.SpeechAttribute.LANGUAGE, defaultValue=getLanguage())
-	def _incoming_language(self, value: str | None) -> str | None:
-		return value
+	_incoming_language = protocol.AttributeReceiver(
+		protocol.SpeechAttribute.LANGUAGE,
+		defaultValue=getLanguage(),
+	)
 
 	def _get_language(self):
 		return self._getRemoteAttributeValueWithFallback(protocol.SpeechAttribute.LANGUAGE)

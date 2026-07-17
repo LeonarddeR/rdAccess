@@ -3,7 +3,7 @@
 # License: GNU General Public License version 2.0
 
 """Unit tests for RestrictedUnpickler, the pickle.Unpickler subclass in
-addon/lib/protocol/_restrictedUnpickling.py used by RemoteProtocolHandler._unpickle to allowlist
+addon/lib/protocol/_restrictedUnpickling.py used by lib.protocol.legacy to allowlist
 the classes that legitimately cross the RDAccess wire, blocking generic __reduce__-based RCE gadgets.
 """
 
@@ -18,12 +18,11 @@ from typing import Any
 from autoSettingsUtils.driverSetting import BooleanDriverSetting, DriverSetting, NumericDriverSetting
 from autoSettingsUtils.utils import StringParameterInfo
 from inputCore import GlobalGestureMap
+from lib.protocol import legacy
 from lib.protocol.braille import BrailleInputGesture
 from logHandler import log
 from speech.commands import IndexCommand, NotASpeechCommand, PitchCommand
 from synthDriverHandler import VoiceInfo
-
-from tests._fakes import FakeHandlerBase
 
 # ---------------------------------------------------------------------------
 # Helper: mimics a __reduce__-based RCE gadget, the classic pickle attack shape.
@@ -52,21 +51,17 @@ class _ReduceGadget:
 
 
 class TestRestrictedUnpicklingRejections(unittest.TestCase):
-	def setUp(self):
-		self.handler = FakeHandlerBase()
-		self.addCleanup(self.handler.terminate)
-
 	def test_rejects_os_system_reduce_gadget(self):
 		"""A payload whose __reduce__ references os.system must not be unpickled."""
 		payload = pickle.dumps(_ReduceGadget(os.system, ("echo pwned",)), protocol=4)
 		with self.assertRaises(pickle.UnpicklingError):
-			self.handler._unpickle(payload)
+			legacy.loads(payload)
 
 	def test_rejects_builtins_eval_reduce_gadget(self):
 		"""A payload whose __reduce__ references builtins.eval must not be unpickled."""
 		payload = pickle.dumps(_ReduceGadget(eval, ("1+1",)), protocol=4)
 		with self.assertRaises(pickle.UnpicklingError):
-			self.handler._unpickle(payload)
+			legacy.loads(payload)
 
 	def test_rejects_non_speechcommand_name_in_speech_commands_module(self):
 		"""The dynamic speech.commands rule must refuse names that exist in the module but are not
@@ -74,13 +69,13 @@ class TestRestrictedUnpicklingRejections(unittest.TestCase):
 		"""
 		payload = pickle.dumps(NotASpeechCommand, protocol=4)
 		with self.assertRaises(pickle.UnpicklingError):
-			self.handler._unpickle(payload)
+			legacy.loads(payload)
 
 	def test_rejects_arbitrary_unknown_class(self):
 		"""A class that never crosses the wire legitimately (and isn't in the allowlist) is refused."""
 		payload = pickle.dumps(collections.Counter, protocol=4)
 		with self.assertRaises(pickle.UnpicklingError):
-			self.handler._unpickle(payload)
+			legacy.loads(payload)
 
 	def test_rejection_is_logged_as_error(self):
 		"""Rejections are logged via log.error, since exceptions raised inside _bgExecutor futures
@@ -89,7 +84,7 @@ class TestRestrictedUnpicklingRejections(unittest.TestCase):
 		log.records.clear()
 		payload = pickle.dumps(_ReduceGadget(os.system, ("echo pwned",)), protocol=4)
 		with self.assertRaises(pickle.UnpicklingError):
-			self.handler._unpickle(payload)
+			legacy.loads(payload)
 		errorRecords = [msg for level, msg in log.records if level == "error"]
 		self.assertTrue(errorRecords, "Expected a log.error call recording the rejected global")
 		# os.system's actual module is platform-specific (nt on Windows, posixpath on Unix)
@@ -101,18 +96,14 @@ class TestRestrictedUnpicklingRejections(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Acceptance cases: round-trip _pickle -> _unpickle for everything that legitimately
+# Acceptance cases: round-trip legacy.dumps -> legacy.loads for everything that legitimately
 # crosses the wire (see the audit table in the implementation plan).
 # ---------------------------------------------------------------------------
 
 
 class TestRestrictedUnpicklingAcceptance(unittest.TestCase):
-	def setUp(self):
-		self.handler = FakeHandlerBase()
-		self.addCleanup(self.handler.terminate)
-
 	def _roundtrip(self, obj: Any) -> Any:
-		return self.handler._unpickle(self.handler._pickle(obj))
+		return legacy.loads(legacy.dumps(obj))
 
 	def test_roundtrips_speech_sequence(self):
 		original = ["hello", IndexCommand(1), PitchCommand(offset=5)]

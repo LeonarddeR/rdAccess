@@ -26,8 +26,6 @@ _AUTO_PROPERTY_OBJECT_NAMES: frozenset[str] = frozenset(
 
 ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_NOT_CONNECTED = 0xE9
-MSG_XON = protocol.MSG_XON
-MSG_XOFF = protocol.MSG_XOFF
 
 
 class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
@@ -139,11 +137,11 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	def _onReceive(self, message: bytes):
 		if len(message) == 1:
 			command = message[0]
-			if command == MSG_XON:
+			if command == protocol.MSG_XON:
 				self._connected = True
 				self.pushProtocolVersion()
 				return
-			elif command == MSG_XOFF:
+			elif command == protocol.MSG_XOFF:
 				log.debugWarning("MSG_XOFF message received, connection closed")
 				self._handleRemoteDisconnect()
 				return
@@ -179,13 +177,8 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			settings.extend(self.getRemoteAttribute(attribute))
 		return settings
 
-	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + "*")
-	def _incoming_setting(self, _attribute: protocol.AttributeT, value: Any):
-		return value
-
-	@protocol.attributeReceiver("available*s")
-	def _incoming_availableSettingValues(self, _attribute: protocol.AttributeT, value: Any):
-		return value
+	_incoming_setting = protocol.AttributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + "*")
+	_incoming_availableSettingValues = protocol.AttributeReceiver("available*s")
 
 	@protocol.attributeSender(protocol.GenericAttribute.TIME_SINCE_INPUT)
 	def _outgoing_timeSinceInput(self) -> int:

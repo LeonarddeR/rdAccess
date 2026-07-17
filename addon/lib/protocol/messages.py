@@ -15,6 +15,10 @@ from enum import IntEnum, StrEnum
 
 PROTOCOL_VERSION: int = 2
 
+# rd_pipe transport flow control bytes, sent outside any message framing.
+MSG_XON = 0x11
+MSG_XOFF = 0x13
+
 
 class DriverType(IntEnum):
 	SPEECH = ord(b"S")
@@ -25,6 +29,14 @@ CHANNEL_NAMES: dict[DriverType, str] = {
 	DriverType.SPEECH: "NVDA-SPEECH",
 	DriverType.BRAILLE: "NVDA-BRAILLE",
 }
+
+
+class GenericAttribute(StrEnum):
+	TIME_SINCE_INPUT = "timeSinceInput"
+	SUPPORTED_SETTINGS = "supportedSettings"
+	NVDA_VERSION = "nvdaVersion"
+	RD_ACCESS_VERSION = "rdAccessVersion"
+	PROTOCOL_VERSION = "protocolVersion"
 
 
 class RdMessageType(StrEnum):

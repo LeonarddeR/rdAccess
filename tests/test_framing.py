@@ -2,7 +2,7 @@
 # Copyright 2026 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-"""Unit tests for RemoteProtocolHandler wire-framing (_onReceive / writeMessage)."""
+"""Unit tests for RemoteProtocolHandler wire-framing (_onReceive)."""
 
 from __future__ import annotations
 
@@ -10,10 +10,9 @@ import contextlib
 import unittest
 
 from lib import protocol
-from lib.protocol import legacy
 from lib.protocol.messages import RdMessageType
 
-from tests._fakes import FakeHandlerBase, buildMessage
+from tests._fakes import FakeHandlerBase, buildMessage, speakFrame
 
 # ---------------------------------------------------------------------------
 # Concrete handler used by all framing tests.
@@ -40,15 +39,6 @@ class SpeakCapture(FakeHandlerBase):
 		self.cancel_calls += 1
 
 
-def _speakFrame(sequence: list) -> bytes:
-	command, payload = legacy.encodeCommandPayload(
-		protocol.DriverType.SPEECH,
-		RdMessageType.SPEAK,
-		{"sequence": sequence},
-	)
-	return buildMessage(protocol.DriverType.SPEECH, command, payload)
-
-
 def _speakJsonLine(sequence: list) -> bytes:
 	return protocol.RemoteProtocolHandler._serializer.serialize(
 		type=RdMessageType.SPEAK,
@@ -68,12 +58,12 @@ class TestCompleteMessage(unittest.TestCase):
 
 	def test_single_complete_message_dispatches_once(self):
 		sequence = ["hello world"]
-		self.handler._onReceive(_speakFrame(sequence))
+		self.handler._onReceive(speakFrame(sequence))
 		self.assertEqual(self.handler.speak_sequences, [sequence])
 
 	def test_single_complete_message_exact_payload_content(self):
 		sequence = ["\x00\x01\x02\x03", "second item"]
-		self.handler._onReceive(_speakFrame(sequence))
+		self.handler._onReceive(speakFrame(sequence))
 		self.assertEqual(len(self.handler.speak_sequences), 1)
 		self.assertEqual(self.handler.speak_sequences[0], sequence)
 
@@ -91,7 +81,7 @@ class TestPartialDelivery(unittest.TestCase):
 	def test_two_way_split_after_header(self):
 		"""header + first half of payload → no dispatch; second half → dispatch once."""
 		sequence = ["abcdefghij"]
-		msg = _speakFrame(sequence)
+		msg = speakFrame(sequence)
 		# Split at byte 9 (header is 4 bytes, split in the middle of payload)
 		split = 4 + 5
 		self.handler._onReceive(msg[:split])
@@ -106,7 +96,7 @@ class TestPartialDelivery(unittest.TestCase):
 	def test_three_way_split(self):
 		"""Three chunks spanning the payload → exactly one dispatch with full payload."""
 		sequence = ["0123456789abcdef"]
-		msg = _speakFrame(sequence)
+		msg = speakFrame(sequence)
 		# All split points are strictly after the 4-byte header.
 		split1 = 4 + 4
 		split2 = 4 + 10
@@ -120,7 +110,7 @@ class TestPartialDelivery(unittest.TestCase):
 	def test_split_one_byte_before_end(self):
 		"""All but the last payload byte in the first chunk."""
 		sequence = ["xyz"]
-		msg = _speakFrame(sequence)
+		msg = speakFrame(sequence)
 		split = len(msg) - 1
 		self.handler._onReceive(msg[:split])
 		self.assertEqual(self.handler.speak_sequences, [])
@@ -141,19 +131,19 @@ class TestCoalescedMessages(unittest.TestCase):
 	def test_two_complete_messages_both_dispatched(self):
 		sequence1 = ["first"]
 		sequence2 = ["second"]
-		self.handler._onReceive(_speakFrame(sequence1) + _speakFrame(sequence2))
+		self.handler._onReceive(speakFrame(sequence1) + speakFrame(sequence2))
 		self.assertEqual(self.handler.speak_sequences, [sequence1, sequence2])
 
 	def test_three_complete_messages_all_dispatched_in_order(self):
 		sequences = [["alpha"], ["beta"], ["gamma"]]
-		msg = b"".join(_speakFrame(s) for s in sequences)
+		msg = b"".join(speakFrame(s) for s in sequences)
 		self.handler._onReceive(msg)
 		self.assertEqual(self.handler.speak_sequences, sequences)
 
 	def test_coalesced_preserves_payload_content(self):
 		sequence1 = ["\xff\xfe"]
 		sequence2 = ["\x00"]
-		self.handler._onReceive(_speakFrame(sequence1) + _speakFrame(sequence2))
+		self.handler._onReceive(speakFrame(sequence1) + speakFrame(sequence2))
 		self.assertEqual(self.handler.speak_sequences[0], sequence1)
 		self.assertEqual(self.handler.speak_sequences[1], sequence2)
 
@@ -172,8 +162,8 @@ class TestCoalescedPartial(unittest.TestCase):
 	def test_complete_plus_partial_then_remainder(self):
 		sequence1 = ["complete"]
 		sequence2 = ["partial-message-payload"]
-		msg1 = _speakFrame(sequence1)
-		msg2 = _speakFrame(sequence2)
+		msg1 = speakFrame(sequence1)
+		msg2 = speakFrame(sequence2)
 		# Split msg2 after its header, in the middle of its payload.
 		split_in_msg2 = 4 + (len(msg2) - 4) // 2
 		self.handler._onReceive(msg1 + msg2[:split_in_msg2])
@@ -185,7 +175,7 @@ class TestCoalescedPartial(unittest.TestCase):
 	def test_two_complete_then_partial_then_rest(self):
 		"""Two complete messages, then a partial, then the rest of the partial."""
 		sequences = [["one"], ["two"], ["three-is-the-long-one"]]
-		msgs = [_speakFrame(s) for s in sequences]
+		msgs = [speakFrame(s) for s in sequences]
 		split = 4 + (len(msgs[2]) - 4) // 2
 		self.handler._onReceive(msgs[0] + msgs[1] + msgs[2][:split])
 		self.assertEqual(self.handler.speak_sequences, [sequences[0], sequences[1]])
@@ -234,7 +224,7 @@ class TestEmptyPayload(unittest.TestCase):
 	def test_empty_payload_then_nonempty(self):
 		"""Empty-payload message followed by a message with payload — both dispatched."""
 		msg1 = buildMessage(protocol.DriverType.SPEECH, protocol.SpeechCommand.CANCEL, b"")
-		msg2 = _speakFrame(["after"])
+		msg2 = speakFrame(["after"])
 		self.handler._onReceive(msg1 + msg2)
 		self.assertEqual(self.handler.cancel_calls, 1)
 		self.assertEqual(self.handler.speak_sequences, [["after"]])
@@ -261,11 +251,11 @@ class TestDualStackSniffing(unittest.TestCase):
 		self.assertEqual(self.handler._peerProtocolVersion, protocol.PROTOCOL_VERSION)
 
 	def test_legacy_frame_does_not_mark_peer_v2(self):
-		self.handler._onReceive(_speakFrame(["x"]))
+		self.handler._onReceive(speakFrame(["x"]))
 		self.assertEqual(self.handler._peerProtocolVersion, 1)
 
 	def test_interleaved_legacy_json_legacy_in_one_receive(self):
-		data = _speakFrame(["legacy-1"]) + _speakJsonLine(["json-2"]) + _speakFrame(["legacy-3"])
+		data = speakFrame(["legacy-1"]) + _speakJsonLine(["json-2"]) + speakFrame(["legacy-3"])
 		self.handler._onReceive(data)
 		self.assertEqual(self.handler.speak_sequences, [["legacy-1"], ["json-2"], ["legacy-3"]])
 
@@ -278,7 +268,7 @@ class TestDualStackSniffing(unittest.TestCase):
 		self.assertEqual(self.handler.speak_sequences, [["split json line"]])
 
 	def test_split_legacy_frame_followed_by_json(self):
-		frame = _speakFrame(["legacy part"])
+		frame = speakFrame(["legacy part"])
 		line = _speakJsonLine(["json after"])
 		split = 4 + (len(frame) - 4) // 2
 		self.handler._onReceive(frame[:split])
@@ -321,7 +311,10 @@ class TestProtocolVersionMessage(unittest.TestCase):
 		from logHandler import log
 
 		log.records.clear()
-		self.handler._handleProtocolVersionMessage(version=2, channel="NVDA-BRAILLE")
+		self.handler._handleMessage(
+			RdMessageType.PROTOCOL_VERSION,
+			{"version": 2, "channel": "NVDA-BRAILLE"},
+		)
 		self.assertEqual(self.handler._peerProtocolVersion, 1)
 		self.assertTrue(any("unexpected channel" in msg for _level, msg in log.records))
 

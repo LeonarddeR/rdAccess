@@ -9,22 +9,12 @@ from __future__ import annotations
 import unittest
 
 from lib import protocol
-from lib.protocol import legacy
 from lib.protocol.messages import RdMessageType
 
-from tests._fakes import FakeHandlerBase, buildMessage
+from tests._fakes import FakeHandlerBase, buildMessage, speakFrame
 
 # ATTRIBUTE_SEPARATOR is b"`" (0x60)
 _SEP = protocol.ATTRIBUTE_SEPARATOR
-
-
-def _speakFrame(sequence: list) -> bytes:
-	command, payload = legacy.encodeCommandPayload(
-		protocol.DriverType.SPEECH,
-		RdMessageType.SPEAK,
-		{"sequence": sequence},
-	)
-	return buildMessage(protocol.DriverType.SPEECH, command, payload)
 
 
 # ---------------------------------------------------------------------------
@@ -102,12 +92,12 @@ class TestCommandDispatchViaOnReceive(unittest.TestCase):
 
 	def test_speak_handler_called_once_with_correct_payload(self):
 		"""_onReceive routes SPEAK to the decorated handler with the decoded sequence."""
-		self.handler._onReceive(_speakFrame(["hello"]))
+		self.handler._onReceive(speakFrame(["hello"]))
 		self.assertEqual(self.handler.speak_calls, [["hello"]])
 
 	def test_speak_handler_called_once_not_multiple_times(self):
 		"""Each message produces exactly one handler invocation."""
-		self.handler._onReceive(_speakFrame(["world"]))
+		self.handler._onReceive(speakFrame(["world"]))
 		self.assertEqual(len(self.handler.speak_calls), 1)
 
 

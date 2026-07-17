@@ -14,8 +14,10 @@ from __future__ import annotations
 import pickle
 import sys
 import unittest
+from unittest import mock
 
 import speech.commands
+from autoSettingsUtils.driverSetting import DriverSetting
 from lib.protocol import legacy
 from lib.protocol.braille import BrailleCommand, BrailleInputGesture
 from lib.protocol.messages import RdMessageType
@@ -35,6 +37,33 @@ class FrameTests(unittest.TestCase):
 			legacy.packFrame(legacy.DriverType.SPEECH, SpeechCommand.SPEAK, payload),
 			buildMessage(legacy.DriverType.SPEECH, SpeechCommand.SPEAK, payload),
 		)
+
+
+class PickleHelperTests(unittest.TestCase):
+	"""Tests for legacy.dumps and legacy.loads."""
+
+	def test_roundtrip_plain_structure(self):
+		original = {"key": b"bytes_value", "name": "hello", "count": 42}
+		self.assertEqual(legacy.loads(legacy.dumps(original)), original)
+
+	def test_loads_calls_invalidate_cache_on_auto_property_object(self):
+		"""loads calls invalidateCache on AutoPropertyObject results.
+
+		DriverSetting is used as the probe (rather than an ad hoc AutoPropertyObject subclass)
+		because RestrictedUnpickler only resolves allowlisted classes; see
+		tests/test_restrictedUnpickling.py for the allowlist itself.
+		"""
+		raw = legacy.dumps(DriverSetting("id1", "Setting 1"))
+		with mock.patch.object(DriverSetting, "invalidateCache") as invalidateCache:
+			result = legacy.loads(raw)
+		self.assertIsInstance(result, DriverSetting)
+		invalidateCache.assert_called_once_with()
+
+	def test_loads_does_not_call_invalidate_cache_on_plain_objects(self):
+		"""loads does not call invalidateCache on non-AutoPropertyObject results."""
+		# dict has no invalidateCache; if loads tried to call it this would raise.
+		data = {"x": 1}
+		self.assertEqual(legacy.loads(legacy.dumps(data)), data)
 
 
 class SpeechCommandCodecTests(unittest.TestCase):
