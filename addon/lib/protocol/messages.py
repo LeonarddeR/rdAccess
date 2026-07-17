@@ -21,6 +21,12 @@ class DriverType(IntEnum):
 	BRAILLE = ord(b"B")
 
 
+CHANNEL_NAMES: dict[DriverType, str] = {
+	DriverType.SPEECH: "NVDA-SPEECH",
+	DriverType.BRAILLE: "NVDA-BRAILLE",
+}
+
+
 class RdMessageType(StrEnum):
 	# Mirrored from RemoteMessageType
 	PROTOCOL_VERSION = "protocol_version"

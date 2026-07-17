@@ -49,6 +49,13 @@ def _speakFrame(sequence: list) -> bytes:
 	return buildMessage(protocol.DriverType.SPEECH, command, payload)
 
 
+def _speakJsonLine(sequence: list) -> bytes:
+	return protocol.RemoteProtocolHandler._serializer.serialize(
+		type=RdMessageType.SPEAK,
+		sequence=sequence,
+	)
+
+
 # ---------------------------------------------------------------------------
 # 1. Complete message → handler invoked once with exact payload.
 # ---------------------------------------------------------------------------
@@ -231,6 +238,98 @@ class TestEmptyPayload(unittest.TestCase):
 		self.handler._onReceive(msg1 + msg2)
 		self.assertEqual(self.handler.cancel_calls, 1)
 		self.assertEqual(self.handler.speak_sequences, [["after"]])
+
+
+# ---------------------------------------------------------------------------
+# 7. Dual-stack sniffing: JSON lines and legacy frames on the same connection.
+# ---------------------------------------------------------------------------
+
+
+class TestDualStackSniffing(unittest.TestCase):
+	def setUp(self):
+		self.handler = SpeakCapture()
+		self.addCleanup(self.handler.terminate)
+
+	def test_json_line_dispatches(self):
+		sequence = ["json hello"]
+		self.handler._onReceive(_speakJsonLine(sequence))
+		self.assertEqual(self.handler.speak_sequences, [sequence])
+
+	def test_json_line_marks_peer_v2(self):
+		self.assertEqual(self.handler._peerProtocolVersion, 1)
+		self.handler._onReceive(_speakJsonLine(["x"]))
+		self.assertEqual(self.handler._peerProtocolVersion, protocol.PROTOCOL_VERSION)
+
+	def test_legacy_frame_does_not_mark_peer_v2(self):
+		self.handler._onReceive(_speakFrame(["x"]))
+		self.assertEqual(self.handler._peerProtocolVersion, 1)
+
+	def test_interleaved_legacy_json_legacy_in_one_receive(self):
+		data = _speakFrame(["legacy-1"]) + _speakJsonLine(["json-2"]) + _speakFrame(["legacy-3"])
+		self.handler._onReceive(data)
+		self.assertEqual(self.handler.speak_sequences, [["legacy-1"], ["json-2"], ["legacy-3"]])
+
+	def test_json_line_split_across_receives(self):
+		line = _speakJsonLine(["split json line"])
+		split = len(line) // 2
+		self.handler._onReceive(line[:split])
+		self.assertEqual(self.handler.speak_sequences, [])
+		self.handler._onReceive(line[split:])
+		self.assertEqual(self.handler.speak_sequences, [["split json line"]])
+
+	def test_split_legacy_frame_followed_by_json(self):
+		frame = _speakFrame(["legacy part"])
+		line = _speakJsonLine(["json after"])
+		split = 4 + (len(frame) - 4) // 2
+		self.handler._onReceive(frame[:split])
+		self.assertEqual(self.handler.speak_sequences, [])
+		self.handler._onReceive(frame[split:] + line)
+		self.assertEqual(self.handler.speak_sequences, [["legacy part"], ["json after"]])
+
+	def test_malformed_json_line_logged_not_raised(self):
+		self.handler._onReceive(b"{not valid json}\n")
+		self.assertEqual(self.handler.speak_sequences, [])
+
+	def test_unknown_json_message_type_dropped(self):
+		self.handler._onReceive(b'{"type": "no_such_type"}\n')
+		self.assertEqual(self.handler.speak_sequences, [])
+
+	def test_garbage_first_byte_still_raises(self):
+		with self.assertRaises(RuntimeError):
+			self.handler._onReceive(b"\x99garbage")
+
+
+class TestProtocolVersionMessage(unittest.TestCase):
+	def setUp(self):
+		self.handler = SpeakCapture()
+		self.addCleanup(self.handler.terminate)
+
+	def test_version_message_records_peer_version(self):
+		line = protocol.RemoteProtocolHandler._serializer.serialize(
+			type=RdMessageType.PROTOCOL_VERSION,
+			version=2,
+			channel="NVDA-SPEECH",
+		)
+		self.handler._onReceive(line)
+		self.assertEqual(self.handler._peerProtocolVersion, 2)
+
+	def test_channel_mismatch_rejected(self):
+		"""A braille channel handshake on a speech handler must not record anything.
+
+		The JSON line itself would mark the peer as v2, so the version must stay
+		untouched only through the explicit early return; assert on the log instead."""
+		from logHandler import log
+
+		log.records.clear()
+		self.handler._handleProtocolVersionMessage(version=2, channel="NVDA-BRAILLE")
+		self.assertEqual(self.handler._peerProtocolVersion, 1)
+		self.assertTrue(any("unexpected channel" in msg for _level, msg in log.records))
+
+	def test_ping_is_noop(self):
+		line = protocol.RemoteProtocolHandler._serializer.serialize(type=RdMessageType.PING)
+		self.handler._onReceive(line)
+		self.assertEqual(self.handler.speak_sequences, [])
+		self.assertEqual(self.handler._dev.writes, [])
 
 
 if __name__ == "__main__":

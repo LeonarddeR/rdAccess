@@ -28,7 +28,8 @@ from . import legacy
 from ._restrictedUnpickling import restrictedLoads
 from .braille import BrailleAttribute, BrailleCommand
 from .legacy import ATTRIBUTE_SEPARATOR, MSG_XOFF, MSG_XON, GenericCommand
-from .messages import PROTOCOL_VERSION, DriverType, RdMessageType
+from .messages import CHANNEL_NAMES, PROTOCOL_VERSION, DriverType, RdMessageType
+from .serializer import RdJSONSerializer
 from .speech import SpeechAttribute, SpeechCommand
 
 __all__ = [
@@ -361,6 +362,8 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 	timeout: float = 1.0
 	cachePropertiesByDefault = True
 	_bgExecutor: ThreadPoolExecutor
+	# Stateless, so shared by all handlers.
+	_serializer: RdJSONSerializer = RdJSONSerializer()
 
 	def __new__(cls, *args, **kwargs):
 		self = super().__new__(cls, *args, **kwargs)
@@ -403,34 +406,68 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 		if self._receiveBuffer:
 			message = self._receiveBuffer + message
 			self._receiveBuffer = b""
-		if not message[0] == self.driverType:
-			raise RuntimeError(f"Unexpected payload: {message}")
+		while message:
+			firstByte = message[0]
+			if firstByte == RdJSONSerializer.SEP[0]:
+				# Tolerate stray separators between JSON lines.
+				message = message[1:]
+			elif firstByte == ord("{"):
+				line, sep, message = message.partition(RdJSONSerializer.SEP)
+				if not sep:
+					self._receiveBuffer = line
+					return
+				self._bgExecutor.submit(self._handleJsonLine, line)
+			elif firstByte == self.driverType:
+				message = self._parseLegacyFrame(message)
+			else:
+				raise RuntimeError(f"Unexpected payload: {message}")
+
+	def _parseLegacyFrame(self, message: bytes) -> bytes:
+		"""Parse one legacy frame from ``message``, buffering partial frames.
+
+		Returns the remaining bytes after the frame, or ``b""`` when the frame is
+		incomplete and has been stashed in the receive buffer.
+		"""
+		if len(message) < 4:
+			self._receiveBuffer = message
+			return b""
 		command = message[1]
 		expectedLength = int.from_bytes(message[2:4], sys.byteorder)
-		payload = message[4:]
-		actualLength = len(payload)
-		remainder: bytes | None = None
-		if expectedLength != actualLength:
+		endOfPayload = 4 + expectedLength
+		if len(message) < endOfPayload:
 			log.debug(
 				f"Expected payload of length {expectedLength}, "
-				f"actual length of payload {payload!r} is {actualLength}",
+				f"received {len(message) - 4} payload bytes so far",
 			)
-			if expectedLength > actualLength:
-				self._receiveBuffer = message
-				return
-			else:
-				remainder = payload[expectedLength:]
-				payload = payload[:expectedLength]
-
-		try:
-			self._bgExecutor.submit(self._handleLegacyFrame, command, payload)
-		finally:
-			if remainder:
-				self._onReceive(remainder)
+			self._receiveBuffer = message
+			return b""
+		payload = message[4:endOfPayload]
+		self._bgExecutor.submit(self._handleLegacyFrame, command, payload)
+		return message[endOfPayload:]
 
 	def _handleLegacyFrame(self, command: int, payload: bytes):
 		messageType, kwargs = legacy.decodeCommandPayload(self.driverType, command, payload)
 		self._handleMessage(messageType, kwargs)
+
+	def _handleJsonLine(self, line: bytes):
+		try:
+			obj = self._serializer.deserialize(line)
+		except ValueError:
+			log.error(f"Error parsing incoming JSON line: {line!r}", exc_info=True)
+			return
+		if not isinstance(obj, dict):
+			log.error(f"Incoming JSON line is not an object: {line!r}")
+			return
+		# A peer that speaks JSON is at least version 2, whether or not its
+		# protocol_version message has arrived yet.
+		self._notePeerProtocolVersion(PROTOCOL_VERSION)
+		typeValue = obj.pop("type", None)
+		try:
+			messageType = RdMessageType(typeValue)
+		except ValueError:
+			log.warning(f"Unknown message type received: {typeValue!r}")
+			return
+		self._handleMessage(messageType, obj)
 
 	def _handleMessage(self, messageType: RdMessageType, kwargs: dict[str, Any]):
 		log.debug(f"Handling message of type {messageType!r} on {self!r}")
@@ -439,10 +476,41 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 				self._attributeSenderStore(kwargs["attribute"])
 			case RdMessageType.ATTRIBUTE_VALUE:
 				self._attributeValueProcessor(kwargs["attribute"], kwargs["value"])
+			case RdMessageType.PROTOCOL_VERSION:
+				self._handleProtocolVersionMessage(**kwargs)
 			case RdMessageType.PING:
 				pass
 			case _:
 				self._commandHandlerStore(messageType, **kwargs)
+
+	def _handleProtocolVersionMessage(self, version: int, channel: str | None = None):
+		if channel is not None and channel != CHANNEL_NAMES[self.driverType]:
+			log.error(f"Protocol version message for unexpected channel {channel!r} on {self!r}")
+			return
+		self._notePeerProtocolVersion(version)
+
+	def _notePeerProtocolVersion(self, version: int):
+		current = self._attributeValueProcessor.getValue(
+			GenericAttribute.PROTOCOL_VERSION,
+			fallBackToDefault=True,
+		)
+		if version > current:
+			self._attributeValueProcessor.setValue(GenericAttribute.PROTOCOL_VERSION, version)
+
+	@property
+	def _peerProtocolVersion(self) -> int:
+		return self._attributeValueProcessor.getValue(
+			GenericAttribute.PROTOCOL_VERSION,
+			fallBackToDefault=True,
+		)
+
+	@attributeSender(GenericAttribute.PROTOCOL_VERSION)
+	def _outgoing_protocolVersion(self) -> int:
+		return PROTOCOL_VERSION
+
+	@attributeReceiver(GenericAttribute.PROTOCOL_VERSION, defaultValue=1)
+	def _incoming_protocolVersion(self, value: int) -> int:
+		return value
 
 	@abstractmethod
 	def _incoming_setting(self, attribute: AttributeT, value: Any):
