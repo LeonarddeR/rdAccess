@@ -70,6 +70,7 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 
 	def _onConnected(self, connected: bool = True):
 		if connected:
+			self.pushProtocolVersion()
 			self._handleDriverChanged(self._driver)
 		wx.CallAfter(self._handleNotifications, connected)
 

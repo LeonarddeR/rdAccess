@@ -329,7 +329,10 @@ class TestProtocolVersionMessage(unittest.TestCase):
 		line = protocol.RemoteProtocolHandler._serializer.serialize(type=RdMessageType.PING)
 		self.handler._onReceive(line)
 		self.assertEqual(self.handler.speak_sequences, [])
-		self.assertEqual(self.handler._dev.writes, [])
+		# The ping itself is a no-op; the only permitted write is the one-shot
+		# protocol_version handshake triggered by implicitly detecting a v2 peer.
+		for written in self.handler._dev.writes:
+			self.assertIn(b'"type": "protocol_version"', written)
 
 
 if __name__ == "__main__":

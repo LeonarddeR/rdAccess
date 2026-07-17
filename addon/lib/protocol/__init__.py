@@ -364,6 +364,8 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 	_bgExecutor: ThreadPoolExecutor
 	# Stateless, so shared by all handlers.
 	_serializer: RdJSONSerializer = RdJSONSerializer()
+	_sendJson: bool = False
+	_jsonHandshakeSent: bool = False
 
 	def __new__(cls, *args, **kwargs):
 		self = super().__new__(cls, *args, **kwargs)
@@ -512,6 +514,27 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 	def _incoming_protocolVersion(self, value: int) -> int:
 		return value
 
+	@_incoming_protocolVersion.updateCallback
+	def _post_protocolVersion(self, _attribute: AttributeT, value: int):
+		self._handlePeerProtocolVersionChange(value)
+
+	def _handlePeerProtocolVersionChange(self, version: int):
+		if version < PROTOCOL_VERSION or self._sendJson:
+			return
+		log.debug(f"Peer speaks protocol version {version}, switching to JSON Lines on {self!r}")
+		self._sendJson = True
+		if not self._jsonHandshakeSent:
+			self._jsonHandshakeSent = True
+			self.sendMessage(
+				RdMessageType.PROTOCOL_VERSION,
+				version=PROTOCOL_VERSION,
+				channel=CHANNEL_NAMES[self.driverType],
+			)
+
+	def pushProtocolVersion(self):
+		"""Push our protocol version to the peer; call once when a connection is established."""
+		self._attributeSenderStore(GenericAttribute.PROTOCOL_VERSION)
+
 	@abstractmethod
 	def _incoming_setting(self, attribute: AttributeT, value: Any):
 		raise NotImplementedError
@@ -520,8 +543,11 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 		self._dev.write(legacy.packFrame(self.driverType, command, payload))
 
 	def sendMessage(self, messageType: RdMessageType, **payload: Any):
-		command, data = legacy.encodeCommandPayload(self.driverType, messageType, payload)
-		self.writeMessage(command, data)
+		if self._sendJson:
+			self._dev.write(self._serializer.serialize(type=messageType, **payload))
+		else:
+			command, data = legacy.encodeCommandPayload(self.driverType, messageType, payload)
+			self.writeMessage(command, data)
 
 	def setRemoteAttribute(self, attribute: AttributeT, value: Any):
 		log.debug(f"Setting remote attribute {attribute!r} to value {value!r}")

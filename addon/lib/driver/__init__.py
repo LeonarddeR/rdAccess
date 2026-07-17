@@ -141,6 +141,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			command = message[0]
 			if command == MSG_XON:
 				self._connected = True
+				self.pushProtocolVersion()
 				return
 			elif command == MSG_XOFF:
 				log.debugWarning("MSG_XOFF message received, connection closed")
