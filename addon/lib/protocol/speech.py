@@ -2,7 +2,7 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-from enum import Enum, IntEnum
+from enum import IntEnum, StrEnum
 
 import speech.manager
 
@@ -18,6 +18,6 @@ class SpeechCommand(IntEnum):
 	PLAY_WAVE_FILE = ord(b"W")
 
 
-class SpeechAttribute(bytes, Enum):
-	SUPPORTED_COMMANDS = b"supportedCommands"
-	LANGUAGE = b"language"
+class SpeechAttribute(StrEnum):
+	SUPPORTED_COMMANDS = "supportedCommands"
+	LANGUAGE = "language"

@@ -74,7 +74,7 @@ class FakeHandlerBase(protocol.RemoteProtocolHandler):
 	def _onReadError(self, error: int) -> bool:
 		return False
 
-	def _incoming_setting(self, attribute: protocol.AttributeT, payLoad: bytes):
+	def _incoming_setting(self, attribute: protocol.AttributeT, value: Any):
 		raise NotImplementedError
 
 

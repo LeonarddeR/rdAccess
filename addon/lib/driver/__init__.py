@@ -3,7 +3,6 @@
 # License: GNU General Public License version 2.0
 from __future__ import annotations
 
-import sys
 import time
 from abc import abstractmethod
 from collections.abc import Iterable, Iterator, Sequence
@@ -150,9 +149,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		super()._onReceive(message)
 
 	@protocol.attributeReceiver(protocol.GenericAttribute.SUPPORTED_SETTINGS, defaultValue=[])
-	def _incomingSupportedSettings(self, payLoad: bytes):
-		assert len(payLoad) > 0
-		settings = self._unpickle(payLoad)
+	def _incomingSupportedSettings(self, settings: Sequence[DriverSetting]):
 		for s in settings:
 			s.useConfig = False
 		return settings
@@ -181,18 +178,17 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			settings.extend(self.getRemoteAttribute(attribute))
 		return settings
 
-	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
-	def _incoming_setting(self, _attribute: protocol.AttributeT, payLoad: bytes):
-		assert len(payLoad) > 0
-		return self._unpickle(payLoad)
+	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + "*")
+	def _incoming_setting(self, _attribute: protocol.AttributeT, value: Any):
+		return value
 
-	@protocol.attributeReceiver(b"available*s")
-	def _incoming_availableSettingValues(self, _attribute: protocol.AttributeT, payLoad: bytes):
-		return self._unpickle(payLoad)
+	@protocol.attributeReceiver("available*s")
+	def _incoming_availableSettingValues(self, _attribute: protocol.AttributeT, value: Any):
+		return value
 
 	@protocol.attributeSender(protocol.GenericAttribute.TIME_SINCE_INPUT)
-	def _outgoing_timeSinceInput(self) -> bytes:
-		return inputTime.getTimeSinceInput().to_bytes(4, sys.byteorder, signed=False)
+	def _outgoing_timeSinceInput(self) -> int:
+		return inputTime.getTimeSinceInput()
 
 	def _handlePossibleSessionDisconnect(self):
 		if not self.check():

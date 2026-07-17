@@ -220,10 +220,10 @@ class TestBuiltInAttributeHandler(unittest.TestCase):
 		self.handler = FakeHandlerBase()
 		self.addCleanup(self.handler.terminate)
 
-	def _make_attribute_request(self, attribute: bytes) -> bytes:
+	def _make_attribute_request(self, attribute: str) -> bytes:
 		"""Build an ATTRIBUTE wire message that requests (empty value) the given attribute name."""
 		# payload layout: SEP + attributeName + SEP + rawValue(empty)
-		payload = _SEP + attribute + _SEP
+		payload = _SEP + attribute.encode("ASCII") + _SEP
 		return buildMessage(
 			protocol.DriverType.SPEECH,
 			protocol.GenericCommand.ATTRIBUTE,

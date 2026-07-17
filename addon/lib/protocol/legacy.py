@@ -20,6 +20,8 @@ from collections.abc import Callable
 from enum import IntEnum
 from typing import Any
 
+from baseObject import AutoPropertyObject
+
 from ._restrictedUnpickling import restrictedLoads
 from .braille import GESTURE_FIELDS, BrailleCommand, BrailleInputGesture
 from .messages import DriverType, RdMessageType
@@ -154,7 +156,10 @@ def decodeAttributeValue(attribute: str, payload: bytes) -> Any:
 	for name, _encode, decode in _ATTRIBUTE_BYTE_CODECS:
 		if attribute == name:
 			return decode(payload)
-	return restrictedLoads(payload)
+	value = restrictedLoads(payload)
+	if isinstance(value, AutoPropertyObject):
+		value.invalidateCache()
+	return value
 
 
 def encodeCommandPayload(

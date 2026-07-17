@@ -48,16 +48,16 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 		return synth
 
 	@protocol.attributeSender(protocol.SpeechAttribute.SUPPORTED_COMMANDS)
-	def _outgoing_supportedCommands(self, commands=None) -> bytes:
+	def _outgoing_supportedCommands(self, commands=None):
 		if commands is None:
 			commands = self._driver.supportedCommands
-		return self._pickle(commands)
+		return commands
 
 	@protocol.attributeSender(protocol.SpeechAttribute.LANGUAGE)
-	def _outgoing_language(self, language: str | None = None) -> bytes:
+	def _outgoing_language(self, language: str | None = None) -> str | None:
 		if language is None:
 			language = self._driver.language
-		return self._pickle(language)
+		return language
 
 	@protocol.commandHandler(protocol.SpeechCommand.SPEAK)
 	def _command_speak(self, payload: bytes):

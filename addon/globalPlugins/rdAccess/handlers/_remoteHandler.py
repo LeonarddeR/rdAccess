@@ -3,7 +3,6 @@
 # License: GNU General Public License version 2.0
 
 import os.path
-import sys
 import typing
 from abc import abstractmethod
 
@@ -114,38 +113,36 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 		self._remoteSessionhasFocus = None
 
 	@protocol.attributeSender(protocol.GenericAttribute.SUPPORTED_SETTINGS)
-	def _outgoing_supportedSettings(self, settings=None) -> bytes:
+	def _outgoing_supportedSettings(self, settings=None):
 		if not configuration.getDriverSettingsManagement():
-			return self._pickle([])
+			return []
 		if settings is None:
 			settings = self._driver.supportedSettings
-		return self._pickle(settings)
+		return settings
 
-	@protocol.attributeSender(b"available*s")
-	def _outgoing_availableSettingValues(self, attribute: protocol.AttributeT) -> bytes:
+	@protocol.attributeSender("available*s")
+	def _outgoing_availableSettingValues(self, attribute: protocol.AttributeT):
 		if not configuration.getDriverSettingsManagement():
-			return self._pickle({})
-		name = attribute.decode("ASCII")
-		return self._pickle(getattr(self._driver, name))
+			return {}
+		return getattr(self._driver, attribute)
 
-	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
-	def _incoming_setting(self, _attribute: protocol.AttributeT, payLoad: bytes):
-		assert len(payLoad) > 0
-		return self._unpickle(payLoad)
+	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + "*")
+	def _incoming_setting(self, _attribute: protocol.AttributeT, value: typing.Any):
+		return value
 
 	@_incoming_setting.updateCallback
 	def _setIncomingSettingOnDriver(self, attribute: protocol.AttributeT, value: typing.Any):
 		if not configuration.getDriverSettingsManagement():
 			return
-		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX) :].decode("ASCII")
+		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX) :]
 		setattr(self._driver, name, value)
 
-	@protocol.attributeSender(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
+	@protocol.attributeSender(protocol.SETTING_ATTRIBUTE_PREFIX + "*")
 	def _outgoing_setting(self, attribute: protocol.AttributeT):
 		if not configuration.getDriverSettingsManagement():
-			return self._pickle(None)
-		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX) :].decode("ASCII")
-		return self._pickle(getattr(self._driver, name))
+			return None
+		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX) :]
+		return getattr(self._driver, name)
 
 	_remoteProcessHasFocus: bool
 
@@ -173,9 +170,8 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 		return False
 
 	@protocol.attributeReceiver(protocol.GenericAttribute.TIME_SINCE_INPUT, defaultValue=False)
-	def _incoming_timeSinceInput(self, payload: bytes) -> int:
-		assert len(payload) == 4
-		return int.from_bytes(payload, byteorder=sys.byteorder, signed=False)
+	def _incoming_timeSinceInput(self, value: int) -> int:
+		return value
 
 	@_incoming_timeSinceInput.updateCallback
 	def _post_timeSinceInput(self, attribute: protocol.AttributeT, value: int):

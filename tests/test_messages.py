@@ -23,8 +23,8 @@ class _HandlerWithLanguageReceiver(FakeHandlerBase):
 	"""Adds a LANGUAGE attributeReceiver so attribute receipt can be tested."""
 
 	@protocol.attributeReceiver(protocol.SpeechAttribute.LANGUAGE, defaultValue="en")
-	def _incoming_language(self, payload: bytes) -> str:
-		return payload.decode()
+	def _incoming_language(self, value: str) -> str:
+		return value
 
 
 class _HandlerWithRecordingCommandHandler(FakeHandlerBase):
@@ -122,7 +122,7 @@ class TestSetRemoteAttribute(unittest.TestCase):
 
 	def test_set_remote_attribute_payload_format(self):
 		"""setRemoteAttribute writes ATTRIBUTE command with `attribute`value payload."""
-		self.handler.setRemoteAttribute(b"language", b"nl")
+		self.handler.setRemoteAttribute("language", "nl")
 
 		self.assertEqual(len(self.handler._dev.writes), 1)
 		written = self.handler._dev.writes[0]
@@ -134,7 +134,7 @@ class TestSetRemoteAttribute(unittest.TestCase):
 
 		# payload is everything after the 4-byte header
 		payload = written[4:]
-		expected_payload = b"`language`nl"
+		expected_payload = b"`language`" + protocol.legacy.encodeAttributeValue("language", "nl")
 		self.assertEqual(payload, expected_payload)
 
 
@@ -147,7 +147,7 @@ class TestRequestRemoteAttribute(unittest.TestCase):
 
 	def test_request_remote_attribute_payload_format(self):
 		"""requestRemoteAttribute writes ATTRIBUTE command with trailing separator and empty value."""
-		self.handler.requestRemoteAttribute(b"language")
+		self.handler.requestRemoteAttribute("language")
 
 		self.assertEqual(len(self.handler._dev.writes), 1)
 		written = self.handler._dev.writes[0]
@@ -162,18 +162,18 @@ class TestRequestRemoteAttribute(unittest.TestCase):
 
 	def test_request_remote_attribute_sets_pending(self):
 		"""requestRemoteAttribute marks the attribute request as pending."""
-		self.handler.requestRemoteAttribute(b"language")
+		self.handler.requestRemoteAttribute("language")
 
 		self.assertTrue(
-			self.handler._attributeValueProcessor.isAttributeRequestPending(b"language"),
+			self.handler._attributeValueProcessor.isAttributeRequestPending("language"),
 		)
 
 	def test_duplicate_request_suppressed(self):
 		"""Second requestRemoteAttribute for the same pending attribute does not write again."""
-		self.handler.requestRemoteAttribute(b"language")
+		self.handler.requestRemoteAttribute("language")
 		writes_after_first = len(self.handler._dev.writes)
 
-		self.handler.requestRemoteAttribute(b"language")
+		self.handler.requestRemoteAttribute("language")
 		writes_after_second = len(self.handler._dev.writes)
 
 		self.assertEqual(writes_after_first, writes_after_second)
@@ -192,7 +192,7 @@ class TestPendingClearedOnReceipt(unittest.TestCase):
 		self.handler.requestRemoteAttribute(attr)
 		self.assertTrue(self.handler._attributeValueProcessor.isAttributeRequestPending(attr))
 
-		self.handler._attributeValueProcessor(attr, b"nl")
+		self.handler._attributeValueProcessor(attr, "nl")
 
 		self.assertFalse(self.handler._attributeValueProcessor.isAttributeRequestPending(attr))
 
@@ -201,7 +201,7 @@ class TestPendingClearedOnReceipt(unittest.TestCase):
 		attr = protocol.SpeechAttribute.LANGUAGE
 		self.handler.requestRemoteAttribute(attr)
 
-		self.handler._attributeValueProcessor(attr, b"nl")
+		self.handler._attributeValueProcessor(attr, "nl")
 
 		value = self.handler._attributeValueProcessor.getValue(attr, fallBackToDefault=False)
 		self.assertEqual(value, "nl")
@@ -210,7 +210,7 @@ class TestPendingClearedOnReceipt(unittest.TestCase):
 		"""Attribute receipt without a prior request still stores the value and leaves pending=False."""
 		attr = protocol.SpeechAttribute.LANGUAGE
 		# No requestRemoteAttribute call — just a push from the remote side
-		self.handler._attributeValueProcessor(attr, b"en-GB")
+		self.handler._attributeValueProcessor(attr, "en-GB")
 
 		self.assertFalse(self.handler._attributeValueProcessor.isAttributeRequestPending(attr))
 		value = self.handler._attributeValueProcessor.getValue(attr, fallBackToDefault=False)
