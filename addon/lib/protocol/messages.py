@@ -11,9 +11,14 @@ Message type values marked as mirrored must stay identical to NVDA core's
 
 from __future__ import annotations
 
-from enum import StrEnum
+from enum import IntEnum, StrEnum
 
 PROTOCOL_VERSION: int = 2
+
+
+class DriverType(IntEnum):
+	SPEECH = ord(b"S")
+	BRAILLE = ord(b"B")
 
 
 class RdMessageType(StrEnum):

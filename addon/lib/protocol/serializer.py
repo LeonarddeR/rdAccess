@@ -30,7 +30,7 @@ from baseObject import AutoPropertyObject
 from logHandler import log
 from synthDriverHandler import VoiceInfo
 
-from .braille import BrailleInputGesture
+from .braille import GESTURE_FIELDS, BrailleInputGesture
 from .messages import RdMessageType
 
 JSONDict = dict[str, Any]
@@ -44,8 +44,6 @@ _SETTING_CLASSES: dict[str, type] = {
 	cls.__name__: cls for cls in (DriverSetting, NumericDriverSetting, BooleanDriverSetting)
 }
 _PARAMETER_INFO_CLASSES: dict[str, type] = {cls.__name__: cls for cls in (StringParameterInfo, VoiceInfo)}
-
-_GESTURE_FIELDS = ("source", "id", "routingIndex", "model", "dots", "space")
 
 
 def _isSubclassOrInstance(unknown: Any, possible: type | tuple[type, ...]) -> bool:
@@ -67,7 +65,7 @@ class RdAccessJSONEncoder(json.JSONEncoder):
 		if isinstance(o, inputCore.GlobalGestureMap):
 			return [o.__class__.__name__, o.export()]
 		if isinstance(o, BrailleInputGesture):
-			return [BrailleInputGesture.__name__, {field: getattr(o, field) for field in _GESTURE_FIELDS}]
+			return [BrailleInputGesture.__name__, {field: getattr(o, field) for field in GESTURE_FIELDS}]
 		if isinstance(o, type) and issubclass(o, speech.commands.SpeechCommand):
 			return o.__name__
 		if isinstance(o, frozenset):

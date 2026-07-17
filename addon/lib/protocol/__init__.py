@@ -12,7 +12,7 @@ from abc import abstractmethod
 from collections import defaultdict
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from enum import Enum, IntEnum
+from enum import Enum
 from fnmatch import fnmatch
 from functools import partial, update_wrapper, wraps
 from typing import (
@@ -27,22 +27,39 @@ from baseObject import AutoPropertyObject
 from hwIo.base import IoBase
 from logHandler import log
 
+from . import legacy
 from ._restrictedUnpickling import restrictedLoads
 from .braille import BrailleAttribute, BrailleCommand
+from .legacy import ATTRIBUTE_SEPARATOR, MSG_XOFF, MSG_XON, GenericCommand
+from .messages import PROTOCOL_VERSION, DriverType, RdMessageType
 from .speech import SpeechAttribute, SpeechCommand
 
+__all__ = [
+	"ATTRIBUTE_SEPARATOR",
+	"MSG_XOFF",
+	"MSG_XON",
+	"PROTOCOL_VERSION",
+	"SETTING_ATTRIBUTE_PREFIX",
+	"AttributeT",
+	"BrailleAttribute",
+	"BrailleCommand",
+	"CommandT",
+	"DriverType",
+	"GenericAttribute",
+	"GenericCommand",
+	"RdMessageType",
+	"RemoteProtocolHandler",
+	"SpeechAttribute",
+	"SpeechCommand",
+	"attributeReceiver",
+	"attributeSender",
+	"commandHandler",
+	"legacy",
+	"restrictedLoads",
+]
+
 addon: addonHandler.Addon = addonHandler.getCodeAddon()
-ATTRIBUTE_SEPARATOR = b"`"
 SETTING_ATTRIBUTE_PREFIX = b"setting_"
-
-
-class DriverType(IntEnum):
-	SPEECH = ord(b"S")
-	BRAILLE = ord(b"B")
-
-
-class GenericCommand(IntEnum):
-	ATTRIBUTE = ord(b"@")
 
 
 class GenericAttribute(bytes, Enum):
@@ -432,13 +449,7 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 		raise NotImplementedError
 
 	def writeMessage(self, command: CommandT, payload: bytes = b""):
-		data = bytes((
-			self.driverType,
-			command,
-			*len(payload).to_bytes(length=2, byteorder=sys.byteorder, signed=False),
-			*payload,
-		))
-		self._dev.write(data)
+		self._dev.write(legacy.packFrame(self.driverType, command, payload))
 
 	def setRemoteAttribute(self, attribute: AttributeT, value: bytes):
 		log.debug(f"Setting remote attribute {attribute!r} to raw value {value!r}")

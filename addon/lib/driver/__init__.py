@@ -27,8 +27,8 @@ _AUTO_PROPERTY_OBJECT_NAMES: frozenset[str] = frozenset(
 
 ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_NOT_CONNECTED = 0xE9
-MSG_XON = 0x11
-MSG_XOFF = 0x13
+MSG_XON = protocol.MSG_XON
+MSG_XOFF = protocol.MSG_XOFF
 
 
 class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
