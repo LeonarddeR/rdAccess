@@ -170,32 +170,59 @@ def _installSpeechCommandsStub(speech: types.ModuleType) -> None:
 	class SpeechCommand:
 		pass
 
-	class IndexCommand(SpeechCommand):
+	class SynthCommand(SpeechCommand):
+		pass
+
+	class IndexCommand(SynthCommand):
 		def __init__(self, index: int):
 			self.index = index
 
 		def __eq__(self, other: Any) -> bool:
 			return type(self) is type(other) and self.index == other.index
 
-	class PitchCommand(SpeechCommand):
+	class SynthParamCommand(SynthCommand):
+		pass
+
+	class BaseProsodyCommand(SynthParamCommand):
+		pass
+
+	class PitchCommand(BaseProsodyCommand):
 		def __init__(self, offset: int = 0):
 			self.offset = offset
 
 		def __eq__(self, other: Any) -> bool:
 			return type(self) is type(other) and self.offset == other.offset
 
+	class BreakCommand(SynthCommand):
+		def __init__(self, time: int = 0):
+			self.time = time
+
+		def __eq__(self, other: Any) -> bool:
+			return type(self) is type(other) and self.time == other.time
+
+	class EndUtteranceCommand(SpeechCommand):
+		def __eq__(self, other: Any) -> bool:
+			return type(self) is type(other)
+
 	class NotASpeechCommand:
 		"""Exists in speech.commands but is not a SpeechCommand subclass; used to test that the
 		dynamic find_class rule for speech.commands rejects it.
 		"""
 
-	for cls in (SpeechCommand, IndexCommand, PitchCommand, NotASpeechCommand):
+	stubClasses = (
+		SpeechCommand,
+		SynthCommand,
+		IndexCommand,
+		SynthParamCommand,
+		BaseProsodyCommand,
+		PitchCommand,
+		BreakCommand,
+		EndUtteranceCommand,
+		NotASpeechCommand,
+	)
+	for cls in stubClasses:
 		_setStubIdentity(cls, "speech.commands")
-
-	speechCommands.SpeechCommand = SpeechCommand
-	speechCommands.IndexCommand = IndexCommand
-	speechCommands.PitchCommand = PitchCommand
-	speechCommands.NotASpeechCommand = NotASpeechCommand
+		setattr(speechCommands, cls.__name__, cls)
 
 
 def _installDriverSettingAndSynthVoiceStubs() -> None:
