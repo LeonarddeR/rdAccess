@@ -27,6 +27,7 @@ from baseObject import AutoPropertyObject
 from hwIo.base import IoBase
 from logHandler import log
 
+from ._restrictedUnpickling import restrictedLoads
 from .braille import BrailleAttribute, BrailleCommand
 from .speech import SpeechAttribute, SpeechCommand
 
@@ -517,7 +518,7 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 		return pickle.dumps(obj, protocol=4)
 
 	def _unpickle(self, payload: bytes) -> Any:
-		res = pickle.loads(payload)
+		res = restrictedLoads(payload)
 		if isinstance(res, AutoPropertyObject):
 			res.invalidateCache()
 		return res
