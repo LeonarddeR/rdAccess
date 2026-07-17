@@ -28,15 +28,15 @@ class _HandlerWithLanguageReceiver(FakeHandlerBase):
 
 
 class _HandlerWithRecordingCommandHandler(FakeHandlerBase):
-	"""Adds a SPEAK commandHandler that records the payload it receives."""
+	"""Adds a SPEAK commandHandler that records the sequence it receives."""
 
 	def __init__(self):
 		super().__init__()
-		self.receivedPayloads: list[bytes] = []
+		self.receivedSequences: list[list] = []
 
-	@protocol.commandHandler(protocol.SpeechCommand.SPEAK)
-	def _handle_speak(self, payload: bytes):
-		self.receivedPayloads.append(payload)
+	@protocol.commandHandler(protocol.RdMessageType.SPEAK)
+	def _handle_speak(self, sequence: list):
+		self.receivedSequences.append(sequence)
 
 
 # ---------------------------------------------------------------------------
@@ -93,24 +93,24 @@ class TestLargePayloadRoundtrip(unittest.TestCase):
 		self.addCleanup(self.receiver.terminate)
 
 	def test_large_payload_length_field(self):
-		"""300-byte payload encodes its length correctly in the 2-byte field."""
-		payload = bytes(range(256)) + bytes(range(44))  # 300 bytes
-		self.sender.writeMessage(protocol.SpeechCommand.SPEAK, payload)
+		"""A payload larger than 255 bytes exercises both bytes of the length field."""
+		sequence = ["x" * 300]
+		self.sender.sendMessage(protocol.RdMessageType.SPEAK, sequence=sequence)
 
 		written = self.sender._dev.writes[0]
 		length_field = int.from_bytes(written[2:4], sys.byteorder)
-		self.assertEqual(length_field, 300)
+		self.assertEqual(length_field, len(written) - 4)
+		self.assertGreater(length_field, 255)
 
 	def test_large_payload_roundtrip_via_on_receive(self):
-		"""Feeding large written bytes into _onReceive dispatches the payload intact."""
-		payload = bytes(range(256)) + bytes(range(44))  # 300 bytes
-		self.sender.writeMessage(protocol.SpeechCommand.SPEAK, payload)
+		"""Feeding large written bytes into _onReceive dispatches the sequence intact."""
+		sequence = ["x" * 300]
+		self.sender.sendMessage(protocol.RdMessageType.SPEAK, sequence=sequence)
 
 		wire_bytes = self.sender._dev.writes[0]
 		self.receiver._onReceive(wire_bytes)
 
-		self.assertEqual(len(self.receiver.receivedPayloads), 1)
-		self.assertEqual(self.receiver.receivedPayloads[0], payload)
+		self.assertEqual(self.receiver.receivedSequences, [sequence])
 
 
 class TestSetRemoteAttribute(unittest.TestCase):

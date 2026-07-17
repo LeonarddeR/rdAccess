@@ -9,11 +9,22 @@ from __future__ import annotations
 import unittest
 
 from lib import protocol
+from lib.protocol import legacy
+from lib.protocol.messages import RdMessageType
 
 from tests._fakes import FakeHandlerBase, buildMessage
 
 # ATTRIBUTE_SEPARATOR is b"`" (0x60)
 _SEP = protocol.ATTRIBUTE_SEPARATOR
+
+
+def _speakFrame(sequence: list) -> bytes:
+	command, payload = legacy.encodeCommandPayload(
+		protocol.DriverType.SPEECH,
+		RdMessageType.SPEAK,
+		{"sequence": sequence},
+	)
+	return buildMessage(protocol.DriverType.SPEECH, command, payload)
 
 
 # ---------------------------------------------------------------------------
@@ -22,32 +33,32 @@ _SEP = protocol.ATTRIBUTE_SEPARATOR
 
 
 class _SpeakRecorder(FakeHandlerBase):
-	"""Records payloads delivered to the SPEAK command handler."""
+	"""Records sequences delivered to the SPEAK command handler."""
 
 	def __init__(self):
 		super().__init__()
-		self.speak_calls: list[bytes] = []
+		self.speak_calls: list[list] = []
 
-	@protocol.commandHandler(protocol.SpeechCommand.SPEAK)
-	def _command_speak(self, payload: bytes):
-		self.speak_calls.append(payload)
+	@protocol.commandHandler(RdMessageType.SPEAK)
+	def _command_speak(self, sequence: list):
+		self.speak_calls.append(sequence)
 
 
 class _MultiCommandRecorder(FakeHandlerBase):
-	"""Records payloads for SPEAK and CANCEL separately."""
+	"""Records dispatches for SPEAK and CANCEL separately."""
 
 	def __init__(self):
 		super().__init__()
-		self.speak_calls: list[bytes] = []
-		self.cancel_calls: list[bytes] = []
+		self.speak_calls: list[list] = []
+		self.cancel_calls: int = 0
 
-	@protocol.commandHandler(protocol.SpeechCommand.SPEAK)
-	def _command_speak(self, payload: bytes):
-		self.speak_calls.append(payload)
+	@protocol.commandHandler(RdMessageType.SPEAK)
+	def _command_speak(self, sequence: list):
+		self.speak_calls.append(sequence)
 
-	@protocol.commandHandler(protocol.SpeechCommand.CANCEL)
-	def _command_cancel(self, payload: bytes):
-		self.cancel_calls.append(payload)
+	@protocol.commandHandler(RdMessageType.CANCEL)
+	def _command_cancel(self):
+		self.cancel_calls += 1
 
 
 class _BaseWithCancel(FakeHandlerBase):
@@ -57,23 +68,23 @@ class _BaseWithCancel(FakeHandlerBase):
 		super().__init__()
 		self.log: list[str] = []
 
-	@protocol.commandHandler(protocol.SpeechCommand.CANCEL)
-	def _command_cancel(self, _payload: bytes):
+	@protocol.commandHandler(RdMessageType.CANCEL)
+	def _command_cancel(self):
 		self.log.append("base")
 
 
 class _SubOverridesCancel(_BaseWithCancel):
 	"""Subclass that re-decorates the same method name to record 'sub'."""
 
-	@protocol.commandHandler(protocol.SpeechCommand.CANCEL)
-	def _command_cancel(self, _payload: bytes):
+	@protocol.commandHandler(RdMessageType.CANCEL)
+	def _command_cancel(self):
 		self.log.append("sub")
 
 
 class _Sub2PlainOverride(_BaseWithCancel):
 	"""Subclass that shadows _command_cancel with a plain (undecorated) method."""
 
-	def _command_cancel(self, _payload: bytes):  # plain — not a CommandHandler descriptor
+	def _command_cancel(self):  # plain — not a CommandHandler descriptor
 		self.log.append("plain")
 
 
@@ -90,15 +101,13 @@ class TestCommandDispatchViaOnReceive(unittest.TestCase):
 		self.addCleanup(self.handler.terminate)
 
 	def test_speak_handler_called_once_with_correct_payload(self):
-		"""_onReceive routes SPEAK to the decorated handler with the full payload."""
-		msg = buildMessage(protocol.DriverType.SPEECH, protocol.SpeechCommand.SPEAK, b"hello")
-		self.handler._onReceive(msg)
-		self.assertEqual(self.handler.speak_calls, [b"hello"])
+		"""_onReceive routes SPEAK to the decorated handler with the decoded sequence."""
+		self.handler._onReceive(_speakFrame(["hello"]))
+		self.assertEqual(self.handler.speak_calls, [["hello"]])
 
 	def test_speak_handler_called_once_not_multiple_times(self):
 		"""Each message produces exactly one handler invocation."""
-		msg = buildMessage(protocol.DriverType.SPEECH, protocol.SpeechCommand.SPEAK, b"world")
-		self.handler._onReceive(msg)
+		self.handler._onReceive(_speakFrame(["world"]))
 		self.assertEqual(len(self.handler.speak_calls), 1)
 
 
@@ -110,46 +119,46 @@ class TestCommandDispatchViaStore(unittest.TestCase):
 		self.addCleanup(self.handler.terminate)
 
 	def test_direct_store_call_invokes_handler(self):
-		"""Calling the store directly with (command, payload) invokes the registered handler."""
-		self.handler._commandHandlerStore(protocol.SpeechCommand.SPEAK, b"x")
-		self.assertEqual(self.handler.speak_calls, [b"x"])
+		"""Calling the store directly with (messageType, **kwargs) invokes the registered handler."""
+		self.handler._commandHandlerStore(RdMessageType.SPEAK, sequence=["x"])
+		self.assertEqual(self.handler.speak_calls, [["x"]])
 
 
 class TestUnknownCommandRaisesNotImplementedError(unittest.TestCase):
-	"""Dispatching an unregistered command raises NotImplementedError from the store."""
+	"""Dispatching an unregistered message type raises NotImplementedError from the store."""
 
 	def setUp(self):
 		self.handler = _SpeakRecorder()
 		self.addCleanup(self.handler.terminate)
 
 	def test_unregistered_command_raises(self):
-		"""BEEP has no handler in _SpeakRecorder; the store must raise NotImplementedError."""
+		"""TONE has no handler in _SpeakRecorder; the store must raise NotImplementedError."""
 		with self.assertRaises(NotImplementedError):
-			self.handler._commandHandlerStore(protocol.SpeechCommand.BEEP, b"")
+			self.handler._commandHandlerStore(RdMessageType.TONE, hz=440.0)
 
 
 class TestMultipleCommandsRouteCorrectly(unittest.TestCase):
-	"""Multiple decorated handlers each receive only their own command."""
+	"""Multiple decorated handlers each receive only their own message type."""
 
 	def setUp(self):
 		self.handler = _MultiCommandRecorder()
 		self.addCleanup(self.handler.terminate)
 
 	def test_speak_routes_to_speak_handler(self):
-		self.handler._commandHandlerStore(protocol.SpeechCommand.SPEAK, b"speak-payload")
-		self.assertEqual(self.handler.speak_calls, [b"speak-payload"])
-		self.assertEqual(self.handler.cancel_calls, [])
+		self.handler._commandHandlerStore(RdMessageType.SPEAK, sequence=["speak-payload"])
+		self.assertEqual(self.handler.speak_calls, [["speak-payload"]])
+		self.assertEqual(self.handler.cancel_calls, 0)
 
 	def test_cancel_routes_to_cancel_handler(self):
-		self.handler._commandHandlerStore(protocol.SpeechCommand.CANCEL, b"cancel-payload")
-		self.assertEqual(self.handler.cancel_calls, [b"cancel-payload"])
+		self.handler._commandHandlerStore(RdMessageType.CANCEL)
+		self.assertEqual(self.handler.cancel_calls, 1)
 		self.assertEqual(self.handler.speak_calls, [])
 
 	def test_both_handlers_independent(self):
-		self.handler._commandHandlerStore(protocol.SpeechCommand.SPEAK, b"s")
-		self.handler._commandHandlerStore(protocol.SpeechCommand.CANCEL, b"c")
-		self.assertEqual(self.handler.speak_calls, [b"s"])
-		self.assertEqual(self.handler.cancel_calls, [b"c"])
+		self.handler._commandHandlerStore(RdMessageType.SPEAK, sequence=["s"])
+		self.handler._commandHandlerStore(RdMessageType.CANCEL)
+		self.assertEqual(self.handler.speak_calls, [["s"]])
+		self.assertEqual(self.handler.cancel_calls, 1)
 
 
 class TestSubclassDecoratorOverride(unittest.TestCase):
@@ -158,19 +167,19 @@ class TestSubclassDecoratorOverride(unittest.TestCase):
 	def test_sub_handler_recorded_not_base(self):
 		sub = _SubOverridesCancel()
 		self.addCleanup(sub.terminate)
-		sub._commandHandlerStore(protocol.SpeechCommand.CANCEL, b"")
+		sub._commandHandlerStore(RdMessageType.CANCEL)
 		self.assertEqual(sub.log, ["sub"])
 
 	def test_base_handler_still_records_base(self):
 		base = _BaseWithCancel()
 		self.addCleanup(base.terminate)
-		base._commandHandlerStore(protocol.SpeechCommand.CANCEL, b"")
+		base._commandHandlerStore(RdMessageType.CANCEL)
 		self.assertEqual(base.log, ["base"])
 
 	def test_sub_does_not_record_base(self):
 		sub = _SubOverridesCancel()
 		self.addCleanup(sub.terminate)
-		sub._commandHandlerStore(protocol.SpeechCommand.CANCEL, b"")
+		sub._commandHandlerStore(RdMessageType.CANCEL)
 		self.assertNotIn("base", sub.log)
 
 
@@ -184,7 +193,7 @@ class TestPlainOverrideUnregistersCommand(unittest.TestCase):
 		handler = _Sub2PlainOverride()
 		self.addCleanup(handler.terminate)
 		with self.assertRaises(NotImplementedError):
-			handler._commandHandlerStore(protocol.SpeechCommand.CANCEL, b"")
+			handler._commandHandlerStore(RdMessageType.CANCEL)
 
 
 class TestInstanceIsolation(unittest.TestCase):
@@ -197,20 +206,20 @@ class TestInstanceIsolation(unittest.TestCase):
 		self.addCleanup(self.b.terminate)
 
 	def test_dispatch_to_a_does_not_affect_b(self):
-		self.a._commandHandlerStore(protocol.SpeechCommand.SPEAK, b"for-a")
-		self.assertEqual(self.a.speak_calls, [b"for-a"])
+		self.a._commandHandlerStore(RdMessageType.SPEAK, sequence=["for-a"])
+		self.assertEqual(self.a.speak_calls, [["for-a"]])
 		self.assertEqual(self.b.speak_calls, [])
 
 	def test_dispatch_to_b_does_not_affect_a(self):
-		self.b._commandHandlerStore(protocol.SpeechCommand.SPEAK, b"for-b")
-		self.assertEqual(self.b.speak_calls, [b"for-b"])
+		self.b._commandHandlerStore(RdMessageType.SPEAK, sequence=["for-b"])
+		self.assertEqual(self.b.speak_calls, [["for-b"]])
 		self.assertEqual(self.a.speak_calls, [])
 
 
 class TestBuiltInAttributeHandler(unittest.TestCase):
-	"""GenericCommand.ATTRIBUTE is registered on every subclass.
+	"""ATTRIBUTE frames are normalized into attribute request/value messages.
 
-	When a peer requests NVDA_VERSION (empty rawValue), _command_attribute calls
+	When a peer requests NVDA_VERSION (empty rawValue), _handleMessage calls
 	_attributeSenderStore which invokes _outgoing_nvdaVersion, which writes the
 	version bytes back through FakeIo.  The stubbed versionInfo.version_detailed
 	is '2026.1.0-test'.
@@ -231,9 +240,9 @@ class TestBuiltInAttributeHandler(unittest.TestCase):
 		)
 
 	def test_attribute_handler_registered(self):
-		"""ATTRIBUTE command must be dispatchable without NotImplementedError."""
+		"""ATTRIBUTE frames must be dispatchable without NotImplementedError."""
 		msg = self._make_attribute_request(protocol.GenericAttribute.NVDA_VERSION)
-		# If the handler is missing this raises; we just verify it doesn't.
+		# If the handling is missing this raises; we just verify it doesn't.
 		self.handler._onReceive(msg)
 
 	def test_nvda_version_request_writes_reply(self):

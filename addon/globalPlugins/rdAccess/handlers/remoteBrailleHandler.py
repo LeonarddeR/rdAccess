@@ -85,9 +85,8 @@ class RemoteBrailleHandler(RemoteHandler[braille.BrailleDisplayDriver]):
 			gestureMap.update(inputCore.manager.userGestureMap.export())
 		return gestureMap
 
-	@protocol.commandHandler(protocol.BrailleCommand.DISPLAY)
-	def _command_display(self, payload: bytes):
-		cells = list(payload)
+	@protocol.commandHandler(protocol.RdMessageType.DISPLAY)
+	def _command_display(self, cells: list[int]):
 		assert braille.handler is not None
 		if braille.handler.displaySize > 0:
 			with self._queuedWriteLock:
@@ -125,9 +124,8 @@ class RemoteBrailleHandler(RemoteHandler[braille.BrailleDisplayDriver]):
 			if isinstance(gesture, brailleInput.BrailleInputGesture):
 				kwargs["dots"] = gesture.dots
 				kwargs["space"] = gesture.space
-			newGesture = protocol.braille.BrailleInputGesture(**kwargs)
 			try:
-				self.writeMessage(protocol.BrailleCommand.EXECUTE_GESTURE, self._pickle(newGesture))
+				self.sendMessage(protocol.RdMessageType.BRAILLE_INPUT, **kwargs)
 				return False
 			except OSError:
 				log.warning("Error calling _handleExecuteGesture", exc_info=True)

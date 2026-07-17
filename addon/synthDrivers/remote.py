@@ -3,7 +3,6 @@
 # License: GNU General Public License version 2.0
 
 import os.path
-import sys
 import typing
 from collections import OrderedDict
 
@@ -16,7 +15,6 @@ from autoSettingsUtils.driverSetting import DriverSetting
 from autoSettingsUtils.utils import StringParameterInfo
 from braille import AUTOMATIC_PORT
 from extensionPoints import Action
-from hwIo import boolToByte
 from languageHandler import getLanguage
 from logHandler import log
 
@@ -68,9 +66,9 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		super().terminate()
 
 	def handle_decideBeep(self, **kwargs) -> bool:
-		log.debug(f"Sending BEEP command: {kwargs}")
+		log.debug(f"Sending TONE command: {kwargs}")
 		try:
-			self.writeMessage(protocol.SpeechCommand.BEEP, self._pickle(kwargs))
+			self.sendMessage(protocol.RdMessageType.TONE, **kwargs)
 		except OSError:
 			log.warning("Error calling handle_decideBeep", exc_info=True)
 			return True
@@ -78,9 +76,9 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 
 	def handle_decidePlayWaveFile(self, **kwargs) -> bool:
 		kwargs["fileName"] = os.path.relpath(kwargs["fileName"], globalVars.appDir)
-		log.debug(f"Sending PLAY_WAVE_FILE command: {kwargs}")
+		log.debug(f"Sending WAVE command: {kwargs}")
 		try:
-			self.writeMessage(protocol.SpeechCommand.PLAY_WAVE_FILE, self._pickle(kwargs))
+			self.sendMessage(protocol.RdMessageType.WAVE, **kwargs)
 		except OSError:
 			log.warning("Error calling handle_decidePlayWaveFile", exc_info=True)
 			return True
@@ -91,20 +89,20 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 
 	def speak(self, speechSequence):
 		try:
-			self.writeMessage(protocol.SpeechCommand.SPEAK, self._pickle(speechSequence))
+			self.sendMessage(protocol.RdMessageType.SPEAK, sequence=speechSequence)
 		except OSError:
 			log.error("Error speaking", exc_info=True)
 			self._handleRemoteDisconnect()
 
 	def cancel(self):
 		try:
-			self.writeMessage(protocol.SpeechCommand.CANCEL)
+			self.sendMessage(protocol.RdMessageType.CANCEL)
 		except OSError:
 			log.warning("Error cancelling speech", exc_info=True)
 
 	def pause(self, switch):
 		try:
-			self.writeMessage(protocol.SpeechCommand.PAUSE, boolToByte(switch))
+			self.sendMessage(protocol.RdMessageType.PAUSE_SPEECH, switch=switch)
 		except OSError:
 			log.warning("Error pausing speech", exc_info=True)
 
@@ -122,14 +120,11 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 	def _get_language(self):
 		return self._getRemoteAttributeValueWithFallback(protocol.SpeechAttribute.LANGUAGE)
 
-	@protocol.commandHandler(protocol.SpeechCommand.INDEX_REACHED)
-	def _command_indexReached(self, incomingPayload: bytes):
-		assert len(incomingPayload) == 2
-		index = int.from_bytes(incomingPayload, sys.byteorder)
+	@protocol.commandHandler(protocol.RdMessageType.INDEX)
+	def _command_indexReached(self, index: int):
 		if index:
 			synthDriverHandler.synthIndexReached.notify(synth=self, index=index)
 		else:
-			assert index == 0
 			synthDriverHandler.synthDoneSpeaking.notify(synth=self)
 
 	def _handleRemoteDriverChange(self):

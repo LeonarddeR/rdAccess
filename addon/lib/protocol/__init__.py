@@ -15,10 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 from enum import StrEnum
 from fnmatch import fnmatch
 from functools import partial, update_wrapper, wraps
-from typing import (
-	Any,
-	cast,
-)
+from typing import Any
 
 import addonHandler
 import queueHandler
@@ -75,7 +72,7 @@ AttributeT = str
 # Handler functions are stored unbound; the first parameter is the RemoteProtocolHandler instance.
 # It is typed as Any because typing it precisely would make subclass methods (whose self is the
 # subclass) unassignable due to parameter contravariance.
-CommandHandlerFuncT = Callable[[Any, bytes], None]
+CommandHandlerFuncT = Callable[..., None]
 # Attribute handler functions vary in arity: catch-all handlers receive the concrete attribute as an
 # extra argument and senders may take additional (keyword) arguments.
 AttributeFetcherT = Callable[..., Any]
@@ -108,19 +105,19 @@ class HandlerDecoratorBase[HandlerFuncT: Callable]:
 
 
 class CommandHandler(HandlerDecoratorBase[CommandHandlerFuncT]):
-	_command: CommandT
+	_messageType: RdMessageType
 
-	def __init__(self, command: CommandT, func: CommandHandlerFuncT):
+	def __init__(self, messageType: RdMessageType, func: CommandHandlerFuncT):
 		super().__init__(func)
-		self._command = command
+		self._messageType = messageType
 
-	def __call__(self, protocolHandler: RemoteProtocolHandler, payload: bytes):
-		log.debug(f"Calling {self!r} for command {self._command!r}")
-		return self._func(protocolHandler, payload)
+	def __call__(self, protocolHandler: RemoteProtocolHandler, **kwargs):
+		log.debug(f"Calling {self!r} for message type {self._messageType!r}")
+		return self._func(protocolHandler, **kwargs)
 
 
-def commandHandler(command: CommandT):
-	return partial(CommandHandler, command)
+def commandHandler(messageType: RdMessageType):
+	return partial(CommandHandler, messageType)
 
 
 class AttributeHandler[AttributeHandlerFuncT: Callable](HandlerDecoratorBase[AttributeHandlerFuncT]):
@@ -233,21 +230,21 @@ class HandlerStoreBase:
 
 
 class CommandHandlerStore(HandlerStoreBase):
-	_commandIndex: dict[CommandT, CommandHandler]
+	_commandIndex: dict[RdMessageType, CommandHandler]
 
 	def __init__(self, owner: RemoteProtocolHandler):
 		super().__init__(owner)
 		self._commandIndex = {}
 
 	def register(self, handler: CommandHandler):
-		self._commandIndex[handler._command] = handler
+		self._commandIndex[handler._messageType] = handler
 
-	def __call__(self, command: CommandT, payload: bytes):
-		log.debug(f"Getting handler on {self!r} to process command {command!r}")
-		handler = self._commandIndex.get(command)
+	def __call__(self, messageType: RdMessageType, **kwargs):
+		log.debug(f"Getting handler on {self!r} to process message type {messageType!r}")
+		handler = self._commandIndex.get(messageType)
 		if handler is None:
-			raise NotImplementedError(f"No command handler for command {command!r}")
-		handler(self._getOwner(), payload)
+			raise NotImplementedError(f"No command handler for message type {messageType!r}")
+		handler(self._getOwner(), **kwargs)
 
 
 class AttributeHandlerStore[AttributeHandlerT: AttributeHandler](HandlerStoreBase):
@@ -408,7 +405,7 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 			self._receiveBuffer = b""
 		if not message[0] == self.driverType:
 			raise RuntimeError(f"Unexpected payload: {message}")
-		command = cast(CommandT, message[1])
+		command = message[1]
 		expectedLength = int.from_bytes(message[2:4], sys.byteorder)
 		payload = message[4:]
 		actualLength = len(payload)
@@ -426,25 +423,26 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 				payload = payload[:expectedLength]
 
 		try:
-			self._bgExecutor.submit(self._commandHandlerStore, command, payload)
+			self._bgExecutor.submit(self._handleLegacyFrame, command, payload)
 		finally:
 			if remainder:
 				self._onReceive(remainder)
 
-	@commandHandler(GenericCommand.ATTRIBUTE)
-	def _command_attribute(self, payload: bytes):
-		messageType, kwargs = legacy.decodeCommandPayload(
-			self.driverType,
-			GenericCommand.ATTRIBUTE,
-			payload,
-		)
-		attribute = kwargs["attribute"]
-		if messageType is RdMessageType.ATTRIBUTE_REQUEST:
-			log.debug(f"No value sent for attribute {attribute!r} on {self!r}, expecting a reply")
-			self._attributeSenderStore(attribute)
-		else:
-			log.debug(f"Value sent for attribute {attribute!r} on {self!r}, direction incoming")
-			self._attributeValueProcessor(attribute, kwargs["value"])
+	def _handleLegacyFrame(self, command: int, payload: bytes):
+		messageType, kwargs = legacy.decodeCommandPayload(self.driverType, command, payload)
+		self._handleMessage(messageType, kwargs)
+
+	def _handleMessage(self, messageType: RdMessageType, kwargs: dict[str, Any]):
+		log.debug(f"Handling message of type {messageType!r} on {self!r}")
+		match messageType:
+			case RdMessageType.ATTRIBUTE_REQUEST:
+				self._attributeSenderStore(kwargs["attribute"])
+			case RdMessageType.ATTRIBUTE_VALUE:
+				self._attributeValueProcessor(kwargs["attribute"], kwargs["value"])
+			case RdMessageType.PING:
+				pass
+			case _:
+				self._commandHandlerStore(messageType, **kwargs)
 
 	@abstractmethod
 	def _incoming_setting(self, attribute: AttributeT, value: Any):
@@ -453,14 +451,13 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 	def writeMessage(self, command: CommandT | int, payload: bytes = b""):
 		self._dev.write(legacy.packFrame(self.driverType, command, payload))
 
+	def sendMessage(self, messageType: RdMessageType, **payload: Any):
+		command, data = legacy.encodeCommandPayload(self.driverType, messageType, payload)
+		self.writeMessage(command, data)
+
 	def setRemoteAttribute(self, attribute: AttributeT, value: Any):
 		log.debug(f"Setting remote attribute {attribute!r} to value {value!r}")
-		command, payload = legacy.encodeCommandPayload(
-			self.driverType,
-			RdMessageType.ATTRIBUTE_VALUE,
-			{"attribute": attribute, "value": value},
-		)
-		return self.writeMessage(command, payload)
+		self.sendMessage(RdMessageType.ATTRIBUTE_VALUE, attribute=attribute, value=value)
 
 	def requestRemoteAttribute(self, attribute: AttributeT):
 		if self._attributeValueProcessor.isAttributeRequestPending(attribute):
@@ -468,12 +465,7 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 			return
 		log.debug(f"Requesting remote attribute {attribute!r}")
 		self._attributeValueProcessor.setAttributeRequestPending(attribute)
-		command, payload = legacy.encodeCommandPayload(
-			self.driverType,
-			RdMessageType.ATTRIBUTE_REQUEST,
-			{"attribute": attribute},
-		)
-		self.writeMessage(command, payload)
+		self.sendMessage(RdMessageType.ATTRIBUTE_REQUEST, attribute=attribute)
 
 	def _safeWait(self, predicate: Callable[[], bool], timeout: float | None = None):
 		if timeout is None:
