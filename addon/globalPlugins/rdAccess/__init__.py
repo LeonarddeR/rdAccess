@@ -14,10 +14,12 @@ import braille
 import config
 import globalPluginHandler
 import gui
+import synthDriverHandler
 import wx
 from hwIo import ioThread
 from logHandler import log
 from utils.security import isRunningOnSecureDesktop, post_sessionLockStateChanged
+from winAPI.secureDesktop import post_secureDesktopStateChange
 
 from . import directoryChanges, handlers, settingsPanel
 from .synthDetect import SynthDetector
@@ -28,12 +30,14 @@ addon: addonHandler.Addon = addonHandler.getCodeAddon()
 if typing.TYPE_CHECKING:
 	from ...lib import (
 		configuration,
+		driver,
 		namedPipe,
 		protocol,
 		rdPipe,
 	)
 else:
 	configuration = addon.loadModule("lib.configuration")
+	driver = addon.loadModule("lib.driver")
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
@@ -105,6 +109,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		)
 		if not isRunningOnSecureDesktop():
 			post_sessionLockStateChanged.register(self._handleLockStateChanged)
+			post_secureDesktopStateChange.register(self._handlePossibleServerDisconnect)
 
 	def initializeOperatingModeClient(self):
 		self._ioThread = ioThread.IoThread()
@@ -191,6 +196,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 				handler.terminate()
 
 	def terminateOperatingModeServer(self):
+		post_secureDesktopStateChange.unregister(self._handlePossibleServerDisconnect)
 		post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
 		if self._synthDetector:
 			self._synthDetector.terminate()
@@ -281,8 +287,20 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		configuration.updateConfigCache()
 
 	def _handleLockStateChanged(self, isNowLocked):
+		self._handlePossibleServerDisconnect()
 		if not isNowLocked:
 			self._triggerBackgroundDetectRescan(force=True)
+
+	def _handlePossibleServerDisconnect(self, **kwargs):  # noqa: ARG002
+		for remoteDriver in self._getActiveRemoteServerDrivers():
+			remoteDriver._handlePossibleSessionDisconnect()
+
+	def _getActiveRemoteServerDrivers(self) -> typing.Iterator[driver.RemoteDriver]:
+		if braille.handler is not None and isinstance(braille.handler.display, driver.RemoteDriver):
+			yield braille.handler.display
+		synth = synthDriverHandler.getSynth()
+		if isinstance(synth, driver.RemoteDriver):
+			yield synth
 
 	def _triggerBackgroundDetectRescan(
 		self,

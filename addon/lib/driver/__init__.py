@@ -10,11 +10,11 @@ from typing import Any, ClassVar
 
 import bdDetect
 import driverHandler
+import queueHandler
 from autoSettingsUtils.driverSetting import DriverSetting
 from baseObject import AutoPropertyObject
 from logHandler import log
-from utils.security import isRunningOnSecureDesktop, post_sessionLockStateChanged
-from winAPI.secureDesktop import post_secureDesktopStateChange
+from utils.security import isRunningOnSecureDesktop
 
 from .. import inputTime, protocol, wtsVirtualChannel
 from ..detection import bgScanRD
@@ -100,13 +100,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			raise RuntimeError("No remote device found")
 
 		self.invalidateCache()
-		post_sessionLockStateChanged.register(self._handlePossibleSessionDisconnect)
-		post_secureDesktopStateChange.register(self._handlePossibleSessionDisconnect)
-
-	def terminate(self):
-		post_secureDesktopStateChange.unregister(self._handlePossibleSessionDisconnect)
-		post_sessionLockStateChanged.unregister(self._handlePossibleSessionDisconnect)
-		super().terminate()
+		self._sessionDisconnectQueued = False
 
 	def __getattribute__(self, name: str) -> Any:
 		getter = super().__getattribute__
@@ -185,5 +179,12 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		return inputTime.getTimeSinceInput()
 
 	def _handlePossibleSessionDisconnect(self):
+		if self._sessionDisconnectQueued:
+			return
+		self._sessionDisconnectQueued = True
+		queueHandler.queueFunction(queueHandler.eventQueue, self._handlePossibleSessionDisconnectDeferred)
+
+	def _handlePossibleSessionDisconnectDeferred(self):
+		self._sessionDisconnectQueued = False
 		if not self.check():
 			self._handleRemoteDisconnect()
