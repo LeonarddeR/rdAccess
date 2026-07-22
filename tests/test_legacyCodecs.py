@@ -1,6 +1,6 @@
 # RDAccess: Remote Desktop Accessibility for NVDA
 # Copyright 2026 Leonard de Ruijter <alderuijter@gmail.com>
-# License: GNU General Public License version 2.0
+# License: GNU General Public License version 2.0 or later
 
 """Tests for the legacy (protocol v1) byte codecs in ``lib.protocol.legacy``.
 

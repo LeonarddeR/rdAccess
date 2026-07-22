@@ -1,6 +1,6 @@
 # RDAccess: Remote Desktop Accessibility for NVDA
 # Copyright 2023-2026 Leonard de Ruijter <alderuijter@gmail.com>
-# License: GNU General Public License version 2.0
+# License: GNU General Public License version 2.0 or later
 """Allowlist-restricted unpickling for payloads received over the RDAccess wire.
 
 ``pickle.loads`` on untrusted data is an arbitrary-code-execution primitive, and RDAccess

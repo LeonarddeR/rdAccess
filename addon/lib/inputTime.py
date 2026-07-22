@@ -1,6 +1,6 @@
 # RDAccess: Remote Desktop Accessibility for NVDA
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
-# License: GNU General Public License version 2.0
+# License: GNU General Public License version 2.0 or later
 
 from ctypes import Structure, WinError, byref, sizeof, windll
 from ctypes.wintypes import DWORD, UINT

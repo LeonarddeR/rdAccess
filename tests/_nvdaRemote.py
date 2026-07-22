@@ -1,6 +1,6 @@
 # RDAccess: Remote Desktop Accessibility for NVDA
 # Copyright 2026 Leonard de Ruijter <alderuijter@gmail.com>
-# License: GNU General Public License version 2.0
+# License: GNU General Public License version 2.0 or later
 
 """Loads NVDA core's Remote Access protocol modules from the sibling NVDA source checkout.
 

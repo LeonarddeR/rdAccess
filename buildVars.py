@@ -51,7 +51,7 @@ addon_info = AddonInfo(
 	# Do not change unless you know what you are doing!
 	addon_updateChannel=None,
 	# Add-on license such as GPL 2
-	addon_license="GPL 2",
+	addon_license="GPL 2.0 or later",
 	# URL for the license document the ad-on is licensed under
 	addon_licenseURL=None,
 )

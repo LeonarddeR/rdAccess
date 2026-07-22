@@ -1,6 +1,6 @@
 # RDAccess: Remote Desktop Accessibility for NVDA
 # Copyright 2026 Leonard de Ruijter <alderuijter@gmail.com>
-# License: GNU General Public License version 2.0
+# License: GNU General Public License version 2.0 or later
 
 """Version-gated access to the braille symbols that moved when the ``braille`` module became a
 package in NVDA 2026.3, plus helpers that read and write a gesture's cell index across that split.
