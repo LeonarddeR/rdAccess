@@ -32,16 +32,16 @@ class RemoteBrailleHandler(RemoteHandler[nvdaCompat.BrailleDisplayDriver]):
 	def __init__(self, ioThread: IoThread, pipeName: str):
 		self._queuedWriteLock = threading.Lock()
 		super().__init__(ioThread, pipeName)
-		nvdaCompat.decide_enabled.register(self._handleBrailleHandlerEnabled)
-		nvdaCompat.displayChanged.register(self._handleDriverChanged)
+		nvdaCompat.braille_decide_enabled.register(self._handleBrailleHandlerEnabled)
+		nvdaCompat.braille_displayChanged.register(self._handleDriverChanged)
 		postBrailleViewerToolToggledAction.register(self._handleDisplayDimensionChanges)
 		inputCore.decide_executeGesture.register(self._handleExecuteGesture)
 
 	def terminate(self):
 		inputCore.decide_executeGesture.unregister(self._handleExecuteGesture)
 		postBrailleViewerToolToggledAction.unregister(self._handleDisplayDimensionChanges)
-		nvdaCompat.displayChanged.unregister(self._handleDriverChanged)
-		nvdaCompat.decide_enabled.unregister(self._handleBrailleHandlerEnabled)
+		nvdaCompat.braille_displayChanged.unregister(self._handleDriverChanged)
+		nvdaCompat.braille_decide_enabled.unregister(self._handleBrailleHandlerEnabled)
 		super().terminate()
 
 	def _get__driver(self):

@@ -19,12 +19,13 @@ from logHandler import log
 
 if typing.TYPE_CHECKING:
 	from ..lib import driver, protocol
-	from ..lib.nvdaCompat import AUTOMATIC_PORT
+	from ..lib.nvdaCompat import BRAILLE_AUTOMATIC_PORT as AUTOMATIC_PORT
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	driver = addon.loadModule("lib.driver")
 	protocol = addon.loadModule("lib.protocol")
-	AUTOMATIC_PORT = addon.loadModule("lib.nvdaCompat").AUTOMATIC_PORT
+	nvdaCompat = addon.loadModule("lib.nvdaCompat")
+	AUTOMATIC_PORT = nvdaCompat.BRAILLE_AUTOMATIC_PORT
 
 
 class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):

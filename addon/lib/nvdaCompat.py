@@ -9,6 +9,9 @@ On NVDA 2026.3 and later the symbols live in the ``braille.display``, ``braille.
 ``braille.extensions`` submodules, and ``BrailleDisplayGesture`` exposes ``cellIndexes`` (a list)
 in place of the deprecated single-valued ``routingIndex``. On 2026.1/2026.2 they are still reached
 through the ``braille`` facade and ``routingIndex``.
+
+Symbols that do not already name braille are re-exported with a ``braille``/``BRAILLE`` prefix so
+they read unambiguously through the ``nvdaCompat`` namespace.
 """
 
 from __future__ import annotations
@@ -18,25 +21,23 @@ import buildVersion
 _BRAILLE_IS_PACKAGE = (buildVersion.version_year, buildVersion.version_major) >= (2026, 3)
 
 if _BRAILLE_IS_PACKAGE:
-	from braille.constants import AUTOMATIC_PORT
+	from braille.constants import AUTOMATIC_PORT as BRAILLE_AUTOMATIC_PORT
 	from braille.display.driver import BrailleDisplayDriver
 	from braille.display.gesture import BrailleDisplayGesture
-	from braille.extensions import decide_enabled, displayChanged
+	from braille.extensions import decide_enabled as braille_decide_enabled
+	from braille.extensions import displayChanged as braille_displayChanged
 else:
-	from braille import (
-		AUTOMATIC_PORT,
-		BrailleDisplayDriver,
-		BrailleDisplayGesture,
-		decide_enabled,
-		displayChanged,
-	)
+	from braille import AUTOMATIC_PORT as BRAILLE_AUTOMATIC_PORT
+	from braille import BrailleDisplayDriver, BrailleDisplayGesture
+	from braille import decide_enabled as braille_decide_enabled
+	from braille import displayChanged as braille_displayChanged
 
 __all__ = (
-	"AUTOMATIC_PORT",
+	"BRAILLE_AUTOMATIC_PORT",
 	"BrailleDisplayDriver",
 	"BrailleDisplayGesture",
-	"decide_enabled",
-	"displayChanged",
+	"braille_decide_enabled",
+	"braille_displayChanged",
 	"getRoutingIndex",
 	"applyRoutingIndex",
 )

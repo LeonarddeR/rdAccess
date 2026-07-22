@@ -16,11 +16,12 @@ from synthDrivers.remote import remoteSynthDriver
 
 if typing.TYPE_CHECKING:
 	from ...lib import detection
-	from ...lib.nvdaCompat import AUTOMATIC_PORT
+	from ...lib.nvdaCompat import BRAILLE_AUTOMATIC_PORT as AUTOMATIC_PORT
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	detection = addon.loadModule("lib.detection")
-	AUTOMATIC_PORT = addon.loadModule("lib.nvdaCompat").AUTOMATIC_PORT
+	nvdaCompat = addon.loadModule("lib.nvdaCompat")
+	AUTOMATIC_PORT = nvdaCompat.BRAILLE_AUTOMATIC_PORT
 
 
 class SynthDetector(AutoPropertyObject):
