@@ -17,8 +17,7 @@ import speech.commands
 from lib.protocol import serializer as rdSerializer
 from lib.protocol.messages import RdMessageType
 
-from ._nvdaRemote import protocol as nvdaRemoteProtocol
-from ._nvdaRemote import serializer as nvdaRemoteSerializer
+from ._nvdaRemote import protocol as nvdaRemoteProtocol, serializer as nvdaRemoteSerializer
 
 
 class MessageTypeConformanceTests(unittest.TestCase):

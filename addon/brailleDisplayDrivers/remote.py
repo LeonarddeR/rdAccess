@@ -10,15 +10,16 @@ import inputCore
 from logHandler import log
 
 if typing.TYPE_CHECKING:
-	from ..lib import detection, driver, protocol
+	from ..lib import detection, driver, nvdaCompat, protocol
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	detection = addon.loadModule("lib.detection")
 	driver = addon.loadModule("lib.driver")
+	nvdaCompat = addon.loadModule("lib.nvdaCompat")
 	protocol = addon.loadModule("lib.protocol")
 
 
-class RemoteBrailleDisplayDriver(driver.RemoteDriver, braille.BrailleDisplayDriver):
+class RemoteBrailleDisplayDriver(driver.RemoteDriver, nvdaCompat.BrailleDisplayDriver):
 	# Translators: Name for a remote braille display.
 	description = _("Remote Braille")
 	isThreadSafe = True

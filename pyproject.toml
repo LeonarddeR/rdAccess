@@ -117,6 +117,9 @@ select = [
 # so unused arguments are expected.
 "tests/**" = ["ARG002"]
 
+[tool.ruff.lint.isort]
+combine-as-imports = true
+
 [tool.ty.environment]
 python-version = "3.13"
 # The add-on only runs on Windows; analyse the win32 code paths even on a Linux/macOS checkout.
