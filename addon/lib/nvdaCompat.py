@@ -24,13 +24,18 @@ if _BRAILLE_IS_PACKAGE:
 	from braille.constants import AUTOMATIC_PORT as BRAILLE_AUTOMATIC_PORT
 	from braille.display.driver import BrailleDisplayDriver
 	from braille.display.gesture import BrailleDisplayGesture
-	from braille.extensions import decide_enabled as braille_decide_enabled
-	from braille.extensions import displayChanged as braille_displayChanged
+	from braille.extensions import (
+		decide_enabled as braille_decide_enabled,
+		displayChanged as braille_displayChanged,
+	)
 else:
-	from braille import AUTOMATIC_PORT as BRAILLE_AUTOMATIC_PORT
-	from braille import BrailleDisplayDriver, BrailleDisplayGesture
-	from braille import decide_enabled as braille_decide_enabled
-	from braille import displayChanged as braille_displayChanged
+	from braille import (
+		AUTOMATIC_PORT as BRAILLE_AUTOMATIC_PORT,
+		BrailleDisplayDriver,
+		BrailleDisplayGesture,
+		decide_enabled as braille_decide_enabled,
+		displayChanged as braille_displayChanged,
+	)
 
 __all__ = (
 	"BRAILLE_AUTOMATIC_PORT",

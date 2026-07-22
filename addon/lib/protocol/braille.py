@@ -6,8 +6,7 @@ from enum import IntEnum, StrEnum
 
 import brailleInput
 
-from ..nvdaCompat import BrailleDisplayGesture as _BrailleDisplayGesture
-from ..nvdaCompat import applyRoutingIndex
+from ..nvdaCompat import BrailleDisplayGesture as _BrailleDisplayGesture, applyRoutingIndex
 
 
 class BrailleCommand(IntEnum):
