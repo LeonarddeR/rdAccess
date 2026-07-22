@@ -9,7 +9,7 @@ import braille
 import brailleInput
 import inputCore
 from brailleViewer import postBrailleViewerToolToggledAction
-from hwIo import IoThread, intToByte
+from hwIo import IoThread
 from logHandler import log
 
 from ._remoteHandler import RemoteHandler
@@ -49,31 +49,34 @@ class RemoteBrailleHandler(RemoteHandler[nvdaCompat.BrailleDisplayDriver]):
 		return braille.handler.display
 
 	@protocol.attributeSender(protocol.BrailleAttribute.NUM_CELLS)
-	def _outgoing_numCells(self, numCells=None) -> bytes:
+	def _outgoing_numCells(self, numCells=None) -> int:
 		if numCells is None:
 			# Use the display size of the local braille handler
 			assert braille.handler is not None
 			numCells = braille.handler.displaySize
-		return intToByte(numCells)
+		return numCells
 
 	@protocol.attributeSender(protocol.BrailleAttribute.NUM_COLS)
-	def _outgoing_numCols(self, numCols=None) -> bytes:
+	def _outgoing_numCols(self, numCols=None) -> int:
 		if numCols is None:
 			# Use the display dimensions of the local braille handler
 			assert braille.handler is not None
 			numCols = braille.handler.displayDimensions.numCols
-		return intToByte(numCols)
+		return numCols
 
 	@protocol.attributeSender(protocol.BrailleAttribute.NUM_ROWS)
-	def _outgoing_numRows(self, numRows=None) -> bytes:
+	def _outgoing_numRows(self, numRows=None) -> int:
 		if numRows is None:
 			# Use the display dimensions of the local braille handler
 			assert braille.handler is not None
 			numRows = braille.handler.displayDimensions.numRows
-		return intToByte(numRows)
+		return numRows
 
 	@protocol.attributeSender(protocol.BrailleAttribute.GESTURE_MAP)
-	def _outgoing_gestureMap(self, gestureMap: inputCore.GlobalGestureMap | None = None) -> bytes:
+	def _outgoing_gestureMap(
+		self,
+		gestureMap: inputCore.GlobalGestureMap | None = None,
+	) -> inputCore.GlobalGestureMap | None:
 		if gestureMap is None:
 			gestureMap = self._driver.gestureMap
 		if gestureMap:
@@ -81,11 +84,10 @@ class RemoteBrailleHandler(RemoteHandler[nvdaCompat.BrailleDisplayDriver]):
 			gestureMap = inputCore.GlobalGestureMap(export)
 			assert inputCore.manager is not None
 			gestureMap.update(inputCore.manager.userGestureMap.export())
-		return self._pickle(gestureMap)
+		return gestureMap
 
-	@protocol.commandHandler(protocol.BrailleCommand.DISPLAY)
-	def _command_display(self, payload: bytes):
-		cells = list(payload)
+	@protocol.commandHandler(protocol.RdMessageType.DISPLAY)
+	def _command_display(self, cells: list[int]):
 		assert braille.handler is not None
 		if braille.handler.displaySize > 0:
 			with self._queuedWriteLock:
@@ -123,9 +125,8 @@ class RemoteBrailleHandler(RemoteHandler[nvdaCompat.BrailleDisplayDriver]):
 			if isinstance(gesture, brailleInput.BrailleInputGesture):
 				kwargs["dots"] = gesture.dots
 				kwargs["space"] = gesture.space
-			newGesture = protocol.braille.BrailleInputGesture(**kwargs)
 			try:
-				self.writeMessage(protocol.BrailleCommand.EXECUTE_GESTURE, self._pickle(newGesture))
+				self.sendMessage(protocol.RdMessageType.BRAILLE_INPUT, **kwargs)
 				return False
 			except OSError:
 				log.warning("Error calling _handleExecuteGesture", exc_info=True)

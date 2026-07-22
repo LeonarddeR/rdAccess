@@ -3,7 +3,7 @@
 # License: GNU General Public License version 2.0
 
 """Unit tests for utility behaviour of RemoteProtocolHandler:
-_safeWait, _pickle, _unpickle, terminate, _queueFunctionOnMainThread.
+_safeWait, terminate, _queueFunctionOnMainThread.
 """
 
 from __future__ import annotations
@@ -11,10 +11,8 @@ from __future__ import annotations
 import gc
 import unittest
 import weakref
-from unittest import mock
 
 import queueHandler  # noqa: E402 — must follow tests import so stubs are installed
-from autoSettingsUtils.driverSetting import DriverSetting  # noqa: E402 — same reason
 
 from tests._fakes import FakeHandlerBase  # bootstrap runs via tests/__init__ import
 
@@ -58,43 +56,6 @@ class TestSafeWait(unittest.TestCase):
 		result = self.handler._safeWait(_predicate, timeout=1.0)
 		self.assertTrue(result)
 		self.assertGreaterEqual(len(calls), 2)
-
-
-class TestPickleUnpickle(unittest.TestCase):
-	"""Tests for RemoteProtocolHandler._pickle and _unpickle."""
-
-	def setUp(self):
-		self.handler = FakeHandlerBase()
-		self.addCleanup(self.handler.terminate)
-
-	def test_roundtrip_plain_structure(self):
-		"""_unpickle(_pickle(obj)) reproduces the original plain structure."""
-		original = {"key": b"bytes_value", "name": "hello", "count": 42}
-		raw = self.handler._pickle(original)
-		restored = self.handler._unpickle(raw)
-		self.assertEqual(restored, original)
-
-	def test_unpickle_calls_invalidate_cache_on_auto_property_object(self):
-		"""_unpickle calls invalidateCache on AutoPropertyObject results.
-
-		DriverSetting is used as the probe (rather than an ad hoc AutoPropertyObject subclass)
-		because RestrictedUnpickler only resolves allowlisted classes; see
-		tests/test_restrictedUnpickling.py for the allowlist itself.
-		"""
-		original = DriverSetting("id1", "Setting 1")
-		raw = self.handler._pickle(original)
-		with mock.patch.object(DriverSetting, "invalidateCache") as invalidateCache:
-			result = self.handler._unpickle(raw)
-		self.assertIsInstance(result, DriverSetting)
-		invalidateCache.assert_called_once_with()
-
-	def test_unpickle_does_not_call_invalidate_cache_on_plain_objects(self):
-		"""_unpickle does not call invalidateCache on non-AutoPropertyObject results."""
-		# dict has no invalidateCache; if _unpickle tried to call it this would raise.
-		data = {"x": 1}
-		raw = self.handler._pickle(data)
-		result = self.handler._unpickle(raw)
-		self.assertEqual(result, data)
 
 
 class TestTerminate(unittest.TestCase):

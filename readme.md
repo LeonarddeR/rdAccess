@@ -22,8 +22,9 @@ This enables a user experience where managing a remote system feels as seamless 
 
 ## Changelog
 
-### Version 1.7.2
+### Version 2.0
 
+* The wire protocol now uses JSON Lines messages modeled on NVDA's built-in Remote Access protocol, replacing pickle-based serialization. Both ends negotiate the format automatically; connections with older RDAccess versions transparently keep using the previous protocol.
 * The minimum compatible NVDA version is now 2026.1. Removed support for earlier versions.
 * Adapted to the braille API changes and deprecations introduced in NVDA 2026.3.
 

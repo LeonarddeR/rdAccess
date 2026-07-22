@@ -57,7 +57,7 @@ class SettingsAccessorBase(AutoPropertyObject):
 
 	@classmethod
 	def _getSettingAttributeName(cls, setting: str) -> protocol.AttributeT:
-		return protocol.SETTING_ATTRIBUTE_PREFIX + setting.encode("ASCII")
+		return protocol.SETTING_ATTRIBUTE_PREFIX + setting
 
 	@classmethod
 	def _getAvailableSettingsPropertyName(cls, setting: str) -> str:
@@ -65,7 +65,7 @@ class SettingsAccessorBase(AutoPropertyObject):
 
 	@classmethod
 	def _getAvailableSettingsAttributeName(cls, setting: str) -> protocol.AttributeT:
-		return cls._getAvailableSettingsPropertyName(setting).encode("ASCII")
+		return cls._getAvailableSettingsPropertyName(setting)
 
 	@classmethod
 	def _makeGetSetting(cls, setting: str):
@@ -83,7 +83,7 @@ class SettingsAccessorBase(AutoPropertyObject):
 		def _setSetting(self: SettingsAccessorBase, value: Any):
 			log.debug(f"Setting value for setting {setting} to {value}")
 			attribute = self._getSettingAttributeName(setting)
-			self.driver.setRemoteAttribute(attribute, self.driver._pickle(value))
+			self.driver.setRemoteAttribute(attribute, value)
 			if self.driver._attributeValueProcessor.isAttributeSupported(attribute):
 				self.driver._attributeValueProcessor.setValue(attribute, value)
 

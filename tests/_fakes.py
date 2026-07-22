@@ -74,7 +74,7 @@ class FakeHandlerBase(protocol.RemoteProtocolHandler):
 	def _onReadError(self, error: int) -> bool:
 		return False
 
-	def _incoming_setting(self, attribute: protocol.AttributeT, payLoad: bytes):
+	def _incoming_setting(self, attribute: protocol.AttributeT, value: Any):
 		raise NotImplementedError
 
 
@@ -86,3 +86,13 @@ def buildMessage(driverType: int, command: int, payload: bytes = b"") -> bytes:
 		*len(payload).to_bytes(length=2, byteorder=sys.byteorder, signed=False),
 		*payload,
 	))
+
+
+def speakFrame(sequence: list) -> bytes:
+	"""Legacy SPEAK frame as a v1 speech peer would send it."""
+	command, payload = protocol.legacy.encodeCommandPayload(
+		protocol.DriverType.SPEECH,
+		protocol.RdMessageType.SPEAK,
+		{"sequence": sequence},
+	)
+	return buildMessage(protocol.DriverType.SPEECH, command, payload)

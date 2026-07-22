@@ -23,20 +23,20 @@ class _HandlerWithLanguageReceiver(FakeHandlerBase):
 	"""Adds a LANGUAGE attributeReceiver so attribute receipt can be tested."""
 
 	@protocol.attributeReceiver(protocol.SpeechAttribute.LANGUAGE, defaultValue="en")
-	def _incoming_language(self, payload: bytes) -> str:
-		return payload.decode()
+	def _incoming_language(self, value: str) -> str:
+		return value
 
 
 class _HandlerWithRecordingCommandHandler(FakeHandlerBase):
-	"""Adds a SPEAK commandHandler that records the payload it receives."""
+	"""Adds a SPEAK commandHandler that records the sequence it receives."""
 
 	def __init__(self):
 		super().__init__()
-		self.receivedPayloads: list[bytes] = []
+		self.receivedSequences: list[list] = []
 
-	@protocol.commandHandler(protocol.SpeechCommand.SPEAK)
-	def _handle_speak(self, payload: bytes):
-		self.receivedPayloads.append(payload)
+	@protocol.commandHandler(protocol.RdMessageType.SPEAK)
+	def _handle_speak(self, sequence: list):
+		self.receivedSequences.append(sequence)
 
 
 # ---------------------------------------------------------------------------
@@ -44,36 +44,39 @@ class _HandlerWithRecordingCommandHandler(FakeHandlerBase):
 # ---------------------------------------------------------------------------
 
 
-class TestWriteMessage(unittest.TestCase):
-	"""Test 1 & 2: basic writeMessage behaviour."""
+class TestLegacySendWireFormat(unittest.TestCase):
+	"""Tests 1 & 2: legacy wire bytes produced by sendMessage before the JSON switch."""
 
 	def setUp(self):
 		self.handler = FakeHandlerBase()
 		self.addCleanup(self.handler.terminate)
 
-	def test_write_message_speak_with_payload(self):
-		"""writeMessage produces the correct wire bytes for a non-empty payload."""
-		payload = b"abc"
-		self.handler.writeMessage(protocol.SpeechCommand.SPEAK, payload)
+	def test_send_message_speak_frame_layout(self):
+		"""A SPEAK message writes driverType, command byte, LE length field and payload."""
+		self.handler.sendMessage(protocol.RdMessageType.SPEAK, sequence=["abc"])
 
-		expected = b"S" + bytes([protocol.SpeechCommand.SPEAK]) + (3).to_bytes(2, sys.byteorder) + b"abc"
+		written = self.handler._dev.writes[0]
+		self.assertEqual(written[0:1], b"S")
+		self.assertEqual(written[1], protocol.SpeechCommand.SPEAK)
+		length_field = int.from_bytes(written[2:4], sys.byteorder)
+		self.assertEqual(length_field, len(written) - 4)
+
+	def test_send_message_matches_build_message(self):
+		"""sendMessage output is identical to the buildMessage helper over the encoded payload."""
+		sequence = ["abc"]
+		self.handler.sendMessage(protocol.RdMessageType.SPEAK, sequence=sequence)
+
+		command, payload = protocol.legacy.encodeCommandPayload(
+			protocol.DriverType.SPEECH,
+			protocol.RdMessageType.SPEAK,
+			{"sequence": sequence},
+		)
+		expected = buildMessage(protocol.DriverType.SPEECH, command, payload)
 		self.assertEqual(self.handler._dev.writes, [expected])
 
-	def test_write_message_matches_build_message(self):
-		"""writeMessage output is identical to buildMessage helper."""
-		payload = b"abc"
-		self.handler.writeMessage(protocol.SpeechCommand.SPEAK, payload)
-
-		expected = buildMessage(
-			protocol.DriverType.SPEECH,
-			protocol.SpeechCommand.SPEAK,
-			payload,
-		)
-		self.assertEqual(self.handler._dev.writes[0], expected)
-
-	def test_write_message_default_empty_payload(self):
-		"""writeMessage with no payload argument writes a zero-length field and no payload bytes."""
-		self.handler.writeMessage(protocol.SpeechCommand.CANCEL)
+	def test_send_message_empty_payload(self):
+		"""CANCEL writes a zero-length field and no payload bytes."""
+		self.handler.sendMessage(protocol.RdMessageType.CANCEL)
 
 		written = self.handler._dev.writes[0]
 		# Length field is bytes 2-3; must be zero
@@ -93,24 +96,24 @@ class TestLargePayloadRoundtrip(unittest.TestCase):
 		self.addCleanup(self.receiver.terminate)
 
 	def test_large_payload_length_field(self):
-		"""300-byte payload encodes its length correctly in the 2-byte field."""
-		payload = bytes(range(256)) + bytes(range(44))  # 300 bytes
-		self.sender.writeMessage(protocol.SpeechCommand.SPEAK, payload)
+		"""A payload larger than 255 bytes exercises both bytes of the length field."""
+		sequence = ["x" * 300]
+		self.sender.sendMessage(protocol.RdMessageType.SPEAK, sequence=sequence)
 
 		written = self.sender._dev.writes[0]
 		length_field = int.from_bytes(written[2:4], sys.byteorder)
-		self.assertEqual(length_field, 300)
+		self.assertEqual(length_field, len(written) - 4)
+		self.assertGreater(length_field, 255)
 
 	def test_large_payload_roundtrip_via_on_receive(self):
-		"""Feeding large written bytes into _onReceive dispatches the payload intact."""
-		payload = bytes(range(256)) + bytes(range(44))  # 300 bytes
-		self.sender.writeMessage(protocol.SpeechCommand.SPEAK, payload)
+		"""Feeding large written bytes into _onReceive dispatches the sequence intact."""
+		sequence = ["x" * 300]
+		self.sender.sendMessage(protocol.RdMessageType.SPEAK, sequence=sequence)
 
 		wire_bytes = self.sender._dev.writes[0]
 		self.receiver._onReceive(wire_bytes)
 
-		self.assertEqual(len(self.receiver.receivedPayloads), 1)
-		self.assertEqual(self.receiver.receivedPayloads[0], payload)
+		self.assertEqual(self.receiver.receivedSequences, [sequence])
 
 
 class TestSetRemoteAttribute(unittest.TestCase):
@@ -122,7 +125,7 @@ class TestSetRemoteAttribute(unittest.TestCase):
 
 	def test_set_remote_attribute_payload_format(self):
 		"""setRemoteAttribute writes ATTRIBUTE command with `attribute`value payload."""
-		self.handler.setRemoteAttribute(b"language", b"nl")
+		self.handler.setRemoteAttribute("language", "nl")
 
 		self.assertEqual(len(self.handler._dev.writes), 1)
 		written = self.handler._dev.writes[0]
@@ -134,7 +137,7 @@ class TestSetRemoteAttribute(unittest.TestCase):
 
 		# payload is everything after the 4-byte header
 		payload = written[4:]
-		expected_payload = b"`language`nl"
+		expected_payload = b"`language`" + protocol.legacy.encodeAttributeValue("language", "nl")
 		self.assertEqual(payload, expected_payload)
 
 
@@ -147,7 +150,7 @@ class TestRequestRemoteAttribute(unittest.TestCase):
 
 	def test_request_remote_attribute_payload_format(self):
 		"""requestRemoteAttribute writes ATTRIBUTE command with trailing separator and empty value."""
-		self.handler.requestRemoteAttribute(b"language")
+		self.handler.requestRemoteAttribute("language")
 
 		self.assertEqual(len(self.handler._dev.writes), 1)
 		written = self.handler._dev.writes[0]
@@ -162,18 +165,18 @@ class TestRequestRemoteAttribute(unittest.TestCase):
 
 	def test_request_remote_attribute_sets_pending(self):
 		"""requestRemoteAttribute marks the attribute request as pending."""
-		self.handler.requestRemoteAttribute(b"language")
+		self.handler.requestRemoteAttribute("language")
 
 		self.assertTrue(
-			self.handler._attributeValueProcessor.isAttributeRequestPending(b"language"),
+			self.handler._attributeValueProcessor.isAttributeRequestPending("language"),
 		)
 
 	def test_duplicate_request_suppressed(self):
 		"""Second requestRemoteAttribute for the same pending attribute does not write again."""
-		self.handler.requestRemoteAttribute(b"language")
+		self.handler.requestRemoteAttribute("language")
 		writes_after_first = len(self.handler._dev.writes)
 
-		self.handler.requestRemoteAttribute(b"language")
+		self.handler.requestRemoteAttribute("language")
 		writes_after_second = len(self.handler._dev.writes)
 
 		self.assertEqual(writes_after_first, writes_after_second)
@@ -192,7 +195,7 @@ class TestPendingClearedOnReceipt(unittest.TestCase):
 		self.handler.requestRemoteAttribute(attr)
 		self.assertTrue(self.handler._attributeValueProcessor.isAttributeRequestPending(attr))
 
-		self.handler._attributeValueProcessor(attr, b"nl")
+		self.handler._attributeValueProcessor(attr, "nl")
 
 		self.assertFalse(self.handler._attributeValueProcessor.isAttributeRequestPending(attr))
 
@@ -201,7 +204,7 @@ class TestPendingClearedOnReceipt(unittest.TestCase):
 		attr = protocol.SpeechAttribute.LANGUAGE
 		self.handler.requestRemoteAttribute(attr)
 
-		self.handler._attributeValueProcessor(attr, b"nl")
+		self.handler._attributeValueProcessor(attr, "nl")
 
 		value = self.handler._attributeValueProcessor.getValue(attr, fallBackToDefault=False)
 		self.assertEqual(value, "nl")
@@ -210,7 +213,7 @@ class TestPendingClearedOnReceipt(unittest.TestCase):
 		"""Attribute receipt without a prior request still stores the value and leaves pending=False."""
 		attr = protocol.SpeechAttribute.LANGUAGE
 		# No requestRemoteAttribute call — just a push from the remote side
-		self.handler._attributeValueProcessor(attr, b"en-GB")
+		self.handler._attributeValueProcessor(attr, "en-GB")
 
 		self.assertFalse(self.handler._attributeValueProcessor.isAttributeRequestPending(attr))
 		value = self.handler._attributeValueProcessor.getValue(attr, fallBackToDefault=False)
