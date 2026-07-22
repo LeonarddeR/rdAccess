@@ -22,6 +22,10 @@ This enables a user experience where managing a remote system feels as seamless 
 
 ## Changelog
 
+### Version 1.8
+
+* The wire protocol now uses JSON Lines messages modeled on NVDA's built-in Remote Access protocol, replacing pickle-based serialization. Both ends negotiate the format automatically; connections with older RDAccess versions transparently keep using the previous protocol.
+
 ### Version 1.7.1
 
 * Hopefully fixed a bug in rd_pipe that caused the wrong virtual channel to be created.

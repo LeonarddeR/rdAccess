@@ -10,17 +10,28 @@ import time
 import unittest
 
 from lib import protocol
+from lib.protocol import legacy
 
 from tests._fakes import FakeHandlerBase, buildMessage
 
 # ---------------------------------------------------------------------------
-# Helper: build a raw ATTRIBUTE payload as the wire expects it.
+# Helpers: build raw ATTRIBUTE wire messages as a v1 peer would send them.
 # ---------------------------------------------------------------------------
 
 
-def _attrPayload(attribute: bytes, value: bytes = b"") -> bytes:
-	"""Return the payload bytes that _command_attribute parses."""
-	return protocol.ATTRIBUTE_SEPARATOR + attribute + protocol.ATTRIBUTE_SEPARATOR + value
+def _attrRequest(attribute: str) -> bytes:
+	payload = protocol.ATTRIBUTE_SEPARATOR + attribute.encode("ASCII") + protocol.ATTRIBUTE_SEPARATOR
+	return buildMessage(protocol.DriverType.SPEECH, protocol.GenericCommand.ATTRIBUTE, payload)
+
+
+def _attrPush(attribute: str, value) -> bytes:
+	payload = (
+		protocol.ATTRIBUTE_SEPARATOR
+		+ attribute.encode("ASCII")
+		+ protocol.ATTRIBUTE_SEPARATOR
+		+ legacy.encodeAttributeValue(attribute, value)
+	)
+	return buildMessage(protocol.DriverType.SPEECH, protocol.GenericCommand.ATTRIBUTE, payload)
 
 
 # ---------------------------------------------------------------------------
@@ -30,8 +41,8 @@ def _attrPayload(attribute: bytes, value: bytes = b"") -> bytes:
 
 class LanguageSender(FakeHandlerBase):
 	@protocol.attributeSender(protocol.SpeechAttribute.LANGUAGE)
-	def _outgoing_language(self) -> bytes:
-		return b"nl"
+	def _outgoing_language(self) -> str:
+		return "nl"
 
 
 class TestRequestPath(unittest.TestCase):
@@ -41,24 +52,19 @@ class TestRequestPath(unittest.TestCase):
 
 	def test_request_triggers_reply_write(self):
 		"""Empty-value ATTRIBUTE message causes setRemoteAttribute to be called."""
-		msg = buildMessage(
-			protocol.DriverType.SPEECH,
-			protocol.GenericCommand.ATTRIBUTE,
-			_attrPayload(protocol.SpeechAttribute.LANGUAGE),
-		)
-		self.handler._onReceive(msg)
+		self.handler._onReceive(_attrRequest(protocol.SpeechAttribute.LANGUAGE))
 		self.assertEqual(len(self.handler._dev.writes), 1)
 
 	def test_reply_payload_contains_attribute_and_value(self):
-		"""The written reply embeds ``language`` and ``nl`` in its payload."""
-		msg = buildMessage(
-			protocol.DriverType.SPEECH,
-			protocol.GenericCommand.ATTRIBUTE,
-			_attrPayload(protocol.SpeechAttribute.LANGUAGE),
-		)
-		self.handler._onReceive(msg)
+		"""The written reply embeds ``language`` and the encoded value in its payload."""
+		self.handler._onReceive(_attrRequest(protocol.SpeechAttribute.LANGUAGE))
 		written = self.handler._dev.writes[0]
-		expected_payload = _attrPayload(protocol.SpeechAttribute.LANGUAGE, b"nl")
+		expected_payload = (
+			protocol.ATTRIBUTE_SEPARATOR
+			+ b"language"
+			+ protocol.ATTRIBUTE_SEPARATOR
+			+ legacy.encodeAttributeValue(protocol.SpeechAttribute.LANGUAGE, "nl")
+		)
 		# The written message is a full wire message; the payload starts at byte 4.
 		self.assertIn(expected_payload, written)
 
@@ -70,8 +76,8 @@ class TestRequestPath(unittest.TestCase):
 
 class LanguageReceiver(FakeHandlerBase):
 	@protocol.attributeReceiver(protocol.SpeechAttribute.LANGUAGE, defaultValue="en")
-	def _incoming_language(self, payload: bytes) -> str:
-		return payload.decode()
+	def _incoming_language(self, value: str) -> str:
+		return value
 
 
 class TestPushPath(unittest.TestCase):
@@ -80,12 +86,7 @@ class TestPushPath(unittest.TestCase):
 		self.addCleanup(self.handler.terminate)
 
 	def test_push_stores_decoded_value(self):
-		msg = buildMessage(
-			protocol.DriverType.SPEECH,
-			protocol.GenericCommand.ATTRIBUTE,
-			_attrPayload(protocol.SpeechAttribute.LANGUAGE, b"nl"),
-		)
-		self.handler._onReceive(msg)
+		self.handler._onReceive(_attrPush(protocol.SpeechAttribute.LANGUAGE, "nl"))
 		value = self.handler._attributeValueProcessor.getValue(
 			protocol.SpeechAttribute.LANGUAGE,
 			fallBackToDefault=False,
@@ -94,12 +95,7 @@ class TestPushPath(unittest.TestCase):
 
 	def test_push_no_writes(self):
 		"""An incoming push must not generate a reply write."""
-		msg = buildMessage(
-			protocol.DriverType.SPEECH,
-			protocol.GenericCommand.ATTRIBUTE,
-			_attrPayload(protocol.SpeechAttribute.LANGUAGE, b"nl"),
-		)
-		self.handler._onReceive(msg)
+		self.handler._onReceive(_attrPush(protocol.SpeechAttribute.LANGUAGE, "nl"))
 		self.assertEqual(self.handler._dev.writes, [])
 
 
@@ -114,8 +110,8 @@ class LanguageReceiverWithCallback(FakeHandlerBase):
 		super().__init__()
 
 	@protocol.attributeReceiver(protocol.SpeechAttribute.LANGUAGE, defaultValue="en")
-	def _incoming_language(self, payload: bytes) -> str:
-		return payload.decode()
+	def _incoming_language(self, value: str) -> str:
+		return value
 
 	@_incoming_language.updateCallback
 	def _cb_language(self, attribute: protocol.AttributeT, value: object) -> None:
@@ -128,12 +124,7 @@ class TestUpdateCallback(unittest.TestCase):
 		self.addCleanup(self.handler.terminate)
 
 	def test_callback_fires_on_push(self):
-		msg = buildMessage(
-			protocol.DriverType.SPEECH,
-			protocol.GenericCommand.ATTRIBUTE,
-			_attrPayload(protocol.SpeechAttribute.LANGUAGE, b"nl"),
-		)
-		self.handler._onReceive(msg)
+		self.handler._onReceive(_attrPush(protocol.SpeechAttribute.LANGUAGE, "nl"))
 		self.assertEqual(len(self.handler.callback_calls), 1)
 		attr, val = self.handler.callback_calls[0]
 		self.assertEqual(attr, protocol.SpeechAttribute.LANGUAGE)
@@ -148,12 +139,7 @@ class TestUpdateCallback(unittest.TestCase):
 
 	def test_callback_records_correct_value_inside_body(self):
 		"""Callback body sees exactly the value that was pushed, not stale state."""
-		msg = buildMessage(
-			protocol.DriverType.SPEECH,
-			protocol.GenericCommand.ATTRIBUTE,
-			_attrPayload(protocol.SpeechAttribute.LANGUAGE, b"fr"),
-		)
-		self.handler._onReceive(msg)
+		self.handler._onReceive(_attrPush(protocol.SpeechAttribute.LANGUAGE, "fr"))
 		self.assertEqual(self.handler.callback_calls[-1], (protocol.SpeechAttribute.LANGUAGE, "fr"))
 
 
@@ -209,8 +195,8 @@ _SENTINEL = object()
 
 class LanguageReceiverWithGetter(FakeHandlerBase):
 	@protocol.attributeReceiver(protocol.SpeechAttribute.LANGUAGE)
-	def _incoming_language(self, payload: bytes) -> object:
-		return payload.decode()
+	def _incoming_language(self, value: object) -> object:
+		return value
 
 	@_incoming_language.defaultValueGetter
 	def _default_language(self, _attribute: protocol.AttributeT) -> object:
@@ -238,7 +224,7 @@ class TestDefaultValueGetter(unittest.TestCase):
 class TestFactoryValidation(unittest.TestCase):
 	def test_both_defaultValue_and_defaultValueGetter_raises(self):
 		with self.assertRaises(ValueError):
-			protocol.attributeReceiver(b"x", defaultValue=1, defaultValueGetter=lambda _s, _a: 2)
+			protocol.attributeReceiver("x", defaultValue=1, defaultValueGetter=lambda _s, _a: 2)
 
 
 # ---------------------------------------------------------------------------
@@ -248,13 +234,13 @@ class TestFactoryValidation(unittest.TestCase):
 
 class WildcardSettingReceiver(FakeHandlerBase):
 	def __init__(self):
-		self.wildcard_calls: list[tuple[bytes, bytes]] = []
+		self.wildcard_calls: list[tuple[str, object]] = []
 		super().__init__()
 
-	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
-	def _incoming_setting(self, attribute: protocol.AttributeT, payload: bytes) -> bytes:  # type: ignore[override]
-		self.wildcard_calls.append((bytes(attribute), payload))
-		return payload
+	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + "*")
+	def _incoming_setting(self, attribute: protocol.AttributeT, value: object) -> object:  # type: ignore[override]
+		self.wildcard_calls.append((attribute, value))
+		return value
 
 
 class TestWildcardReceiver(unittest.TestCase):
@@ -263,26 +249,16 @@ class TestWildcardReceiver(unittest.TestCase):
 		self.addCleanup(self.handler.terminate)
 
 	def test_wildcard_invoked_with_concrete_attribute(self):
-		msg = buildMessage(
-			protocol.DriverType.SPEECH,
-			protocol.GenericCommand.ATTRIBUTE,
-			_attrPayload(b"setting_rate", b"50"),
-		)
-		self.handler._onReceive(msg)
+		self.handler._onReceive(_attrPush("setting_rate", 50))
 		self.assertEqual(len(self.handler.wildcard_calls), 1)
-		attr, payload = self.handler.wildcard_calls[0]
-		self.assertEqual(attr, b"setting_rate")
-		self.assertEqual(payload, b"50")
+		attr, value = self.handler.wildcard_calls[0]
+		self.assertEqual(attr, "setting_rate")
+		self.assertEqual(value, 50)
 
 	def test_value_stored_under_concrete_attribute(self):
-		msg = buildMessage(
-			protocol.DriverType.SPEECH,
-			protocol.GenericCommand.ATTRIBUTE,
-			_attrPayload(b"setting_rate", b"50"),
-		)
-		self.handler._onReceive(msg)
-		val = self.handler._attributeValueProcessor.getValue(b"setting_rate", fallBackToDefault=False)
-		self.assertEqual(val, b"50")
+		self.handler._onReceive(_attrPush("setting_rate", 50))
+		val = self.handler._attributeValueProcessor.getValue("setting_rate", fallBackToDefault=False)
+		self.assertEqual(val, 50)
 
 
 # ---------------------------------------------------------------------------
@@ -292,19 +268,19 @@ class TestWildcardReceiver(unittest.TestCase):
 
 class ExactBeatWildcardReceiver(FakeHandlerBase):
 	def __init__(self):
-		self.wildcard_calls: list[tuple[bytes, bytes]] = []
-		self.exact_calls: list[bytes] = []
+		self.wildcard_calls: list[tuple[str, object]] = []
+		self.exact_calls: list[object] = []
 		super().__init__()
 
-	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
-	def _incoming_setting(self, attribute: protocol.AttributeT, payload: bytes) -> bytes:  # type: ignore[override]
-		self.wildcard_calls.append((bytes(attribute), payload))
-		return payload
+	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + "*")
+	def _incoming_setting(self, attribute: protocol.AttributeT, value: object) -> object:  # type: ignore[override]
+		self.wildcard_calls.append((attribute, value))
+		return value
 
-	@protocol.attributeReceiver(b"setting_voice", defaultValue=None)
-	def _incoming_setting_voice(self, payload: bytes) -> bytes:
-		self.exact_calls.append(payload)
-		return payload
+	@protocol.attributeReceiver("setting_voice", defaultValue=None)
+	def _incoming_setting_voice(self, value: object) -> object:
+		self.exact_calls.append(value)
+		return value
 
 
 class TestExactBeatsWildcard(unittest.TestCase):
@@ -313,30 +289,15 @@ class TestExactBeatsWildcard(unittest.TestCase):
 		self.addCleanup(self.handler.terminate)
 
 	def test_exact_handler_invoked_for_setting_voice(self):
-		msg = buildMessage(
-			protocol.DriverType.SPEECH,
-			protocol.GenericCommand.ATTRIBUTE,
-			_attrPayload(b"setting_voice", b"David"),
-		)
-		self.handler._onReceive(msg)
-		self.assertEqual(self.handler.exact_calls, [b"David"])
+		self.handler._onReceive(_attrPush("setting_voice", "David"))
+		self.assertEqual(self.handler.exact_calls, ["David"])
 
 	def test_wildcard_not_invoked_for_setting_voice(self):
-		msg = buildMessage(
-			protocol.DriverType.SPEECH,
-			protocol.GenericCommand.ATTRIBUTE,
-			_attrPayload(b"setting_voice", b"David"),
-		)
-		self.handler._onReceive(msg)
+		self.handler._onReceive(_attrPush("setting_voice", "David"))
 		self.assertEqual(self.handler.wildcard_calls, [])
 
 	def test_wildcard_still_handles_other_settings(self):
-		msg = buildMessage(
-			protocol.DriverType.SPEECH,
-			protocol.GenericCommand.ATTRIBUTE,
-			_attrPayload(b"setting_rate", b"75"),
-		)
-		self.handler._onReceive(msg)
+		self.handler._onReceive(_attrPush("setting_rate", 75))
 		self.assertEqual(len(self.handler.wildcard_calls), 1)
 		self.assertEqual(self.handler.exact_calls, [])
 
@@ -348,13 +309,13 @@ class TestExactBeatsWildcard(unittest.TestCase):
 
 class WildcardSenderHandler(FakeHandlerBase):
 	def __init__(self):
-		self.sender_calls: list[bytes] = []
+		self.sender_calls: list[str] = []
 		super().__init__()
 
-	@protocol.attributeSender(b"available*s")
-	def _outgoing_available(self, attribute: protocol.AttributeT) -> bytes:
-		self.sender_calls.append(bytes(attribute))
-		return b"data_for_" + bytes(attribute)
+	@protocol.attributeSender("available*s")
+	def _outgoing_available(self, attribute: protocol.AttributeT) -> str:
+		self.sender_calls.append(attribute)
+		return f"data_for_{attribute}"
 
 
 class TestWildcardSender(unittest.TestCase):
@@ -363,21 +324,22 @@ class TestWildcardSender(unittest.TestCase):
 		self.addCleanup(self.handler.terminate)
 
 	def test_wildcard_sender_writes_reply(self):
-		self.handler._attributeSenderStore(b"availableVoices")
+		self.handler._attributeSenderStore("availableVoices")
 		self.assertEqual(len(self.handler._dev.writes), 1)
 
 	def test_wildcard_sender_receives_concrete_attribute(self):
-		self.handler._attributeSenderStore(b"availableVoices")
-		self.assertEqual(self.handler.sender_calls, [b"availableVoices"])
+		self.handler._attributeSenderStore("availableVoices")
+		self.assertEqual(self.handler.sender_calls, ["availableVoices"])
 
 	def test_wildcard_sender_reply_contains_concrete_attribute(self):
-		self.handler._attributeSenderStore(b"availableVoices")
+		self.handler._attributeSenderStore("availableVoices")
 		written = self.handler._dev.writes[0]
 		self.assertIn(b"availableVoices", written)
 
 	def test_wildcard_sender_reply_contains_value(self):
-		self.handler._attributeSenderStore(b"availableVoices")
+		self.handler._attributeSenderStore("availableVoices")
 		written = self.handler._dev.writes[0]
+		# The value is pickled; the string's UTF-8 bytes appear inside the pickle.
 		self.assertIn(b"data_for_availableVoices", written)
 
 
@@ -400,7 +362,7 @@ class TestIsAttributeSupported(unittest.TestCase):
 
 	def test_unknown_sender_not_supported(self):
 		self.assertFalse(
-			self.handler._attributeSenderStore.isAttributeSupported(b"unknownAttribute"),
+			self.handler._attributeSenderStore.isAttributeSupported("unknownAttribute"),
 		)
 
 	def test_exact_receiver_supported(self):
@@ -412,14 +374,14 @@ class TestIsAttributeSupported(unittest.TestCase):
 
 	def test_unknown_receiver_not_supported(self):
 		self.assertFalse(
-			self.receiver_handler._attributeValueProcessor.isAttributeSupported(b"unknownAttribute"),
+			self.receiver_handler._attributeValueProcessor.isAttributeSupported("unknownAttribute"),
 		)
 
 	def test_wildcard_receiver_matched_supported(self):
 		handler = WildcardSettingReceiver()
 		self.addCleanup(handler.terminate)
 		self.assertTrue(
-			handler._attributeValueProcessor.isAttributeSupported(b"setting_pitch"),
+			handler._attributeValueProcessor.isAttributeSupported("setting_pitch"),
 		)
 
 
@@ -435,11 +397,11 @@ class TestUnknownAttributeDispatch(unittest.TestCase):
 
 	def test_unknown_receiver_raises(self):
 		with self.assertRaises(NotImplementedError):
-			self.handler._attributeValueProcessor(b"nope", b"v")
+			self.handler._attributeValueProcessor("nope", "v")
 
 	def test_unknown_sender_raises(self):
 		with self.assertRaises(NotImplementedError):
-			self.handler._attributeSenderStore(b"nope")
+			self.handler._attributeSenderStore("nope")
 
 
 # ---------------------------------------------------------------------------
@@ -532,12 +494,7 @@ class TestPendingCleared(unittest.TestCase):
 		avp.setAttributeRequestPending(protocol.SpeechAttribute.LANGUAGE)
 		self.assertTrue(avp.isAttributeRequestPending(protocol.SpeechAttribute.LANGUAGE))
 
-		msg = buildMessage(
-			protocol.DriverType.SPEECH,
-			protocol.GenericCommand.ATTRIBUTE,
-			_attrPayload(protocol.SpeechAttribute.LANGUAGE, b"nl"),
-		)
-		self.handler._onReceive(msg)
+		self.handler._onReceive(_attrPush(protocol.SpeechAttribute.LANGUAGE, "nl"))
 		self.assertFalse(avp.isAttributeRequestPending(protocol.SpeechAttribute.LANGUAGE))
 
 

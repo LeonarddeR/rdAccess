@@ -4,21 +4,15 @@
 from __future__ import annotations
 
 import inspect
-import pickle
-import sys
 import time
 import weakref
 from abc import abstractmethod
 from collections import defaultdict
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from enum import Enum, IntEnum
 from fnmatch import fnmatch
 from functools import partial, update_wrapper, wraps
-from typing import (
-	Any,
-	cast,
-)
+from typing import Any
 
 import addonHandler
 import queueHandler
@@ -27,40 +21,55 @@ from baseObject import AutoPropertyObject
 from hwIo.base import IoBase
 from logHandler import log
 
-from ._restrictedUnpickling import restrictedLoads
+from . import legacy
 from .braille import BrailleAttribute, BrailleCommand
+from .legacy import ATTRIBUTE_SEPARATOR, GenericCommand
+from .messages import (
+	CHANNEL_NAMES,
+	MSG_XOFF,
+	MSG_XON,
+	PROTOCOL_VERSION,
+	DriverType,
+	GenericAttribute,
+	RdMessageType,
+)
+from .serializer import RdJSONSerializer
 from .speech import SpeechAttribute, SpeechCommand
 
+__all__ = [
+	"ATTRIBUTE_SEPARATOR",
+	"MSG_XOFF",
+	"MSG_XON",
+	"PROTOCOL_VERSION",
+	"SETTING_ATTRIBUTE_PREFIX",
+	"AttributeReceiver",
+	"AttributeT",
+	"BrailleAttribute",
+	"BrailleCommand",
+	"DriverType",
+	"GenericAttribute",
+	"GenericCommand",
+	"RdMessageType",
+	"RemoteProtocolHandler",
+	"SpeechAttribute",
+	"SpeechCommand",
+	"attributeReceiver",
+	"attributeSender",
+	"commandHandler",
+	"legacy",
+]
+
 addon: addonHandler.Addon = addonHandler.getCodeAddon()
-ATTRIBUTE_SEPARATOR = b"`"
-SETTING_ATTRIBUTE_PREFIX = b"setting_"
+SETTING_ATTRIBUTE_PREFIX = "setting_"
 
-
-class DriverType(IntEnum):
-	SPEECH = ord(b"S")
-	BRAILLE = ord(b"B")
-
-
-class GenericCommand(IntEnum):
-	ATTRIBUTE = ord(b"@")
-
-
-class GenericAttribute(bytes, Enum):
-	TIME_SINCE_INPUT = b"timeSinceInput"
-	SUPPORTED_SETTINGS = b"supportedSettings"
-	NVDA_VERSION = b"nvdaVersion"
-	RD_ACCESS_VERSION = b"rdAccessVersion"
-
-
-CommandT = GenericCommand | SpeechCommand | BrailleCommand
-AttributeT = GenericAttribute | SpeechAttribute | BrailleAttribute | bytes
+AttributeT = str
 # Handler functions are stored unbound; the first parameter is the RemoteProtocolHandler instance.
 # It is typed as Any because typing it precisely would make subclass methods (whose self is the
 # subclass) unassignable due to parameter contravariance.
-CommandHandlerFuncT = Callable[[Any, bytes], None]
+CommandHandlerFuncT = Callable[..., None]
 # Attribute handler functions vary in arity: catch-all handlers receive the concrete attribute as an
 # extra argument and senders may take additional (keyword) arguments.
-AttributeFetcherT = Callable[..., bytes]
+AttributeFetcherT = Callable[..., Any]
 AttributeReceiverFuncT = Callable[..., Any]
 DefaultValueGetterT = Callable[[Any, AttributeT], Any]
 AttributeValueUpdateCallbackT = Callable[[Any, AttributeT, Any], None]
@@ -90,27 +99,27 @@ class HandlerDecoratorBase[HandlerFuncT: Callable]:
 
 
 class CommandHandler(HandlerDecoratorBase[CommandHandlerFuncT]):
-	_command: CommandT
+	_messageType: RdMessageType
 
-	def __init__(self, command: CommandT, func: CommandHandlerFuncT):
+	def __init__(self, messageType: RdMessageType, func: CommandHandlerFuncT):
 		super().__init__(func)
-		self._command = command
+		self._messageType = messageType
 
-	def __call__(self, protocolHandler: RemoteProtocolHandler, payload: bytes):
-		log.debug(f"Calling {self!r} for command {self._command!r}")
-		return self._func(protocolHandler, payload)
+	def __call__(self, protocolHandler: RemoteProtocolHandler, **kwargs):
+		log.debug(f"Calling {self!r} for message type {self._messageType!r}")
+		return self._func(protocolHandler, **kwargs)
 
 
-def commandHandler(command: CommandT):
-	return partial(CommandHandler, command)
+def commandHandler(messageType: RdMessageType):
+	return partial(CommandHandler, messageType)
 
 
 class AttributeHandler[AttributeHandlerFuncT: Callable](HandlerDecoratorBase[AttributeHandlerFuncT]):
-	_attribute: AttributeT = b""
+	_attribute: AttributeT = ""
 
 	@property
 	def _isCatchAll(self) -> bool:
-		return b"*" in self._attribute
+		return "*" in self._attribute
 
 	def __init__(self, attribute: AttributeT, func: AttributeHandlerFuncT):
 		super().__init__(func)
@@ -145,19 +154,40 @@ def attributeSender(attribute: AttributeT):
 	return partial(AttributeSender, attribute)
 
 
+def _identityReceiver(_protocolHandler: Any, *args: Any) -> Any:
+	return args[-1]
+
+
+def _constantDefaultValueGetter(defaultValue: Any) -> DefaultValueGetterT:
+	def _defaultValueGetter(_self: RemoteProtocolHandler, _attribute: AttributeT):
+		return defaultValue
+
+	return _defaultValueGetter
+
+
 class AttributeReceiver(AttributeHandler[AttributeReceiverFuncT]):
+	"""Receiver for a remote attribute value.
+
+	Usable as a bare class attribute when the decoded value needs no transformation,
+	or applied to a method (via the :func:`attributeReceiver` decorator) that
+	normalizes the value before it is stored.
+	"""
+
 	_defaultValueGetter: DefaultValueGetterT
 	_updateCallback: AttributeValueUpdateCallbackT | None
 
 	def __init__(
 		self,
 		attribute: AttributeT,
-		func: AttributeReceiverFuncT,
-		defaultValueGetter: DefaultValueGetterT,
-		updateCallback: AttributeValueUpdateCallbackT | None,
+		func: AttributeReceiverFuncT | None = None,
+		defaultValue: Any = None,
+		defaultValueGetter: DefaultValueGetterT | None = None,
+		updateCallback: AttributeValueUpdateCallbackT | None = None,
 	):
-		super().__init__(attribute, func)
-		self._defaultValueGetter = defaultValueGetter
+		if defaultValue is not None and defaultValueGetter is not None:
+			raise ValueError("Either defaultValue or defaultValueGetter is required, but not both")
+		super().__init__(attribute, func if func is not None else _identityReceiver)
+		self._defaultValueGetter = defaultValueGetter or _constantDefaultValueGetter(defaultValue)
 		self._updateCallback = updateCallback
 
 	def defaultValueGetter(self, func: DefaultValueGetterT):
@@ -169,13 +199,6 @@ class AttributeReceiver(AttributeHandler[AttributeReceiverFuncT]):
 		return func
 
 
-def _constantDefaultValueGetter(defaultValue: Any) -> DefaultValueGetterT:
-	def _defaultValueGetter(_self: RemoteProtocolHandler, _attribute: AttributeT):
-		return defaultValue
-
-	return _defaultValueGetter
-
-
 def attributeReceiver(
 	attribute: AttributeT,
 	defaultValue: Any = None,
@@ -184,11 +207,10 @@ def attributeReceiver(
 ):
 	if defaultValue is not None and defaultValueGetter is not None:
 		raise ValueError("Either defaultValue or defaultValueGetter is required, but not both")
-	if defaultValueGetter is None:
-		defaultValueGetter = _constantDefaultValueGetter(defaultValue)
 	return partial(
 		AttributeReceiver,
 		attribute,
+		defaultValue=defaultValue,
 		defaultValueGetter=defaultValueGetter,
 		updateCallback=updateCallback,
 	)
@@ -215,21 +237,21 @@ class HandlerStoreBase:
 
 
 class CommandHandlerStore(HandlerStoreBase):
-	_commandIndex: dict[CommandT, CommandHandler]
+	_commandIndex: dict[RdMessageType, CommandHandler]
 
 	def __init__(self, owner: RemoteProtocolHandler):
 		super().__init__(owner)
 		self._commandIndex = {}
 
 	def register(self, handler: CommandHandler):
-		self._commandIndex[handler._command] = handler
+		self._commandIndex[handler._messageType] = handler
 
-	def __call__(self, command: CommandT, payload: bytes):
-		log.debug(f"Getting handler on {self!r} to process command {command!r}")
-		handler = self._commandIndex.get(command)
+	def __call__(self, messageType: RdMessageType, **kwargs):
+		log.debug(f"Getting handler on {self!r} to process message type {messageType!r}")
+		handler = self._commandIndex.get(messageType)
 		if handler is None:
-			raise NotImplementedError(f"No command handler for command {command!r}")
-		handler(self._getOwner(), payload)
+			raise NotImplementedError(f"No command handler for message type {messageType!r}")
+		handler(self._getOwner(), **kwargs)
 
 
 class AttributeHandlerStore[AttributeHandlerT: AttributeHandler](HandlerStoreBase):
@@ -327,10 +349,10 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
 		self._valueTimes[attribute] = time.perf_counter()
 		self._submitAttributeUpdateCallback(attribute, value)
 
-	def __call__(self, attribute: AttributeT, rawValue: bytes):
+	def __call__(self, attribute: AttributeT, value: Any):
 		log.debug(f"Getting handler on {self!r} to process attribute {attribute!r}")
 		handler = self._getRawHandler(attribute)
-		value = handler(self._getOwner(), attribute, rawValue)
+		value = handler(self._getOwner(), attribute, value)
 		log.debug(f"Handler on {self!r} returned value {value!r} for attribute {attribute!r}")
 		self.setAttributeRequestPending(attribute, False)
 		self.setValue(attribute, value)
@@ -346,6 +368,9 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 	timeout: float = 1.0
 	cachePropertiesByDefault = True
 	_bgExecutor: ThreadPoolExecutor
+	# Stateless, so shared by all handlers.
+	_serializer: RdJSONSerializer = RdJSONSerializer()
+	_sendJson: bool = False
 
 	def __new__(cls, *args, **kwargs):
 		self = super().__new__(cls, *args, **kwargs)
@@ -388,64 +413,136 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 		if self._receiveBuffer:
 			message = self._receiveBuffer + message
 			self._receiveBuffer = b""
-		if not message[0] == self.driverType:
-			raise RuntimeError(f"Unexpected payload: {message}")
-		command = cast(CommandT, message[1])
-		expectedLength = int.from_bytes(message[2:4], sys.byteorder)
-		payload = message[4:]
-		actualLength = len(payload)
-		remainder: bytes | None = None
-		if expectedLength != actualLength:
-			log.debug(
-				f"Expected payload of length {expectedLength}, "
-				f"actual length of payload {payload!r} is {actualLength}",
-			)
-			if expectedLength > actualLength:
-				self._receiveBuffer = message
-				return
+		while message:
+			firstByte = message[0]
+			if firstByte == RdJSONSerializer.SEP[0]:
+				# Tolerate stray separators between JSON lines.
+				message = message[1:]
+			elif firstByte == ord("{"):
+				line, sep, message = message.partition(RdJSONSerializer.SEP)
+				if not sep:
+					self._receiveBuffer = line
+					return
+				self._bgExecutor.submit(self._handleJsonLine, line)
+			elif firstByte == self.driverType:
+				message = self._parseLegacyFrame(message)
 			else:
-				remainder = payload[expectedLength:]
-				payload = payload[:expectedLength]
+				raise RuntimeError(f"Unexpected payload: {message}")
 
+	def _parseLegacyFrame(self, message: bytes) -> bytes:
+		"""Dispatch one legacy frame from ``message``, buffering partial frames.
+
+		Returns the remaining bytes after the frame, or ``b""`` when the frame is
+		incomplete and has been stashed in the receive buffer.
+		"""
+		parsed = legacy.parseFrame(message)
+		if parsed is None:
+			log.debug(f"Incomplete legacy frame, buffering {len(message)} bytes")
+			self._receiveBuffer = message
+			return b""
+		command, payload, rest = parsed
+		self._bgExecutor.submit(self._handleLegacyFrame, command, payload)
+		return rest
+
+	def _handleLegacyFrame(self, command: int, payload: bytes):
+		messageType, kwargs = legacy.decodeCommandPayload(self.driverType, command, payload)
+		self._handleMessage(messageType, kwargs)
+
+	def _handleJsonLine(self, line: bytes):
 		try:
-			self._bgExecutor.submit(self._commandHandlerStore, command, payload)
-		finally:
-			if remainder:
-				self._onReceive(remainder)
+			obj = self._serializer.deserialize(line)
+		except ValueError:
+			log.error(f"Error parsing incoming JSON line: {line!r}", exc_info=True)
+			return
+		if not isinstance(obj, dict):
+			log.error(f"Incoming JSON line is not an object: {line!r}")
+			return
+		# A peer that speaks JSON is at least version 2, whether or not its
+		# protocol_version message has arrived yet.
+		self._notePeerProtocolVersion(PROTOCOL_VERSION)
+		typeValue = obj.pop("type", None)
+		try:
+			messageType = RdMessageType(typeValue)
+		except ValueError:
+			log.warning(f"Unknown message type received: {typeValue!r}")
+			return
+		self._handleMessage(messageType, obj)
 
-	@commandHandler(GenericCommand.ATTRIBUTE)
-	def _command_attribute(self, payload: bytes):
-		attribute, rawValue = payload[1:].split(ATTRIBUTE_SEPARATOR, 1)
-		log.debug(f"Handling attribute {attribute!r} on {self!r}, value {rawValue!r}")
-		if not rawValue:
-			log.debug(f"No value sent for attribute {attribute!r} on {self!r}, expecting a reply")
-			self._attributeSenderStore(attribute)
-		else:
-			log.debug(
-				f"Value of length {len(rawValue)} sent for attribute {attribute!r} "
-				f"on {self!r}, direction incoming",
-			)
-			self._attributeValueProcessor(attribute, rawValue)
+	def _handleMessage(self, messageType: RdMessageType, kwargs: dict[str, Any]):
+		log.debug(f"Handling message of type {messageType!r} on {self!r}")
+		self._commandHandlerStore(messageType, **kwargs)
+
+	@commandHandler(RdMessageType.ATTRIBUTE_REQUEST)
+	def _command_attributeRequest(self, attribute: AttributeT):
+		self._attributeSenderStore(attribute)
+
+	@commandHandler(RdMessageType.ATTRIBUTE_VALUE)
+	def _command_attributeValue(self, attribute: AttributeT, value: Any):
+		self._attributeValueProcessor(attribute, value)
+
+	@commandHandler(RdMessageType.PING)
+	def _command_ping(self):
+		pass
+
+	@commandHandler(RdMessageType.PROTOCOL_VERSION)
+	def _command_protocolVersion(self, version: int, channel: str | None = None):
+		if channel is not None and channel != CHANNEL_NAMES[self.driverType]:
+			log.error(f"Protocol version message for unexpected channel {channel!r} on {self!r}")
+			return
+		self._notePeerProtocolVersion(version)
+
+	def _notePeerProtocolVersion(self, version: int):
+		if version > self._peerProtocolVersion:
+			self._attributeValueProcessor.setValue(GenericAttribute.PROTOCOL_VERSION, version)
+
+	@property
+	def _peerProtocolVersion(self) -> int:
+		return self._attributeValueProcessor.getValue(
+			GenericAttribute.PROTOCOL_VERSION,
+			fallBackToDefault=True,
+		)
+
+	@attributeSender(GenericAttribute.PROTOCOL_VERSION)
+	def _outgoing_protocolVersion(self) -> int:
+		return PROTOCOL_VERSION
+
+	@attributeReceiver(GenericAttribute.PROTOCOL_VERSION, defaultValue=1)
+	def _incoming_protocolVersion(self, value: int) -> int:
+		return max(value, self._peerProtocolVersion)
+
+	@_incoming_protocolVersion.updateCallback
+	def _post_protocolVersion(self, _attribute: AttributeT, value: int):
+		self._handlePeerProtocolVersionChange(value)
+
+	def _handlePeerProtocolVersionChange(self, version: int):
+		if version < PROTOCOL_VERSION or self._sendJson:
+			return
+		log.debug(f"Peer speaks protocol version {version}, switching to JSON Lines on {self!r}")
+		self._sendJson = True
+		self.sendMessage(
+			RdMessageType.PROTOCOL_VERSION,
+			version=PROTOCOL_VERSION,
+			channel=CHANNEL_NAMES[self.driverType],
+		)
+
+	def pushProtocolVersion(self):
+		"""Push our protocol version to the peer; call once when a connection is established."""
+		self._attributeSenderStore(GenericAttribute.PROTOCOL_VERSION)
 
 	@abstractmethod
-	def _incoming_setting(self, attribute: AttributeT, payLoad: bytes):
+	def _incoming_setting(self, attribute: AttributeT, value: Any):
 		raise NotImplementedError
 
-	def writeMessage(self, command: CommandT, payload: bytes = b""):
-		data = bytes((
-			self.driverType,
-			command,
-			*len(payload).to_bytes(length=2, byteorder=sys.byteorder, signed=False),
-			*payload,
-		))
-		self._dev.write(data)
+	def sendMessage(self, messageType: RdMessageType, **payload: Any):
+		if self._sendJson:
+			self._dev.write(self._serializer.serialize(type=messageType, **payload))
+		else:
+			command, data = legacy.encodeCommandPayload(self.driverType, messageType, payload)
+			self._dev.write(legacy.packFrame(self.driverType, command, data))
 
-	def setRemoteAttribute(self, attribute: AttributeT, value: bytes):
-		log.debug(f"Setting remote attribute {attribute!r} to raw value {value!r}")
-		return self.writeMessage(
-			GenericCommand.ATTRIBUTE,
-			ATTRIBUTE_SEPARATOR + attribute + ATTRIBUTE_SEPARATOR + value,
-		)
+	def setRemoteAttribute(self, attribute: AttributeT, value: Any):
+		log.debug(f"Setting remote attribute {attribute!r} to value {value!r}")
+		self.sendMessage(RdMessageType.ATTRIBUTE_VALUE, attribute=attribute, value=value)
 
 	def requestRemoteAttribute(self, attribute: AttributeT):
 		if self._attributeValueProcessor.isAttributeRequestPending(attribute):
@@ -453,10 +550,7 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 			return
 		log.debug(f"Requesting remote attribute {attribute!r}")
 		self._attributeValueProcessor.setAttributeRequestPending(attribute)
-		self.writeMessage(
-			GenericCommand.ATTRIBUTE,
-			ATTRIBUTE_SEPARATOR + attribute + ATTRIBUTE_SEPARATOR,
-		)
+		self.sendMessage(RdMessageType.ATTRIBUTE_REQUEST, attribute=attribute)
 
 	def _safeWait(self, predicate: Callable[[], bool], timeout: float | None = None):
 		if timeout is None:
@@ -514,15 +608,6 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 			log.debug(f"Waiting for attribute {attribute} failed")
 		return result
 
-	def _pickle(self, obj: Any):
-		return pickle.dumps(obj, protocol=4)
-
-	def _unpickle(self, payload: bytes) -> Any:
-		res = restrictedLoads(payload)
-		if isinstance(res, AutoPropertyObject):
-			res.invalidateCache()
-		return res
-
 	def _queueFunctionOnMainThread(self, func, *args, **kwargs):
 		@wraps(func)
 		def wrapper(*args, **kwargs):
@@ -542,23 +627,19 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 		return False
 
 	@attributeSender(GenericAttribute.NVDA_VERSION)
-	def _outgoing_nvdaVersion(self) -> bytes:
-		return versionInfo.version_detailed.encode()
+	def _outgoing_nvdaVersion(self) -> str:
+		return versionInfo.version_detailed
 
-	@attributeReceiver(GenericAttribute.NVDA_VERSION, defaultValue="0.0.0")
-	def _incoming_nvdaVersion(self, payload: bytes) -> str:
-		return payload.decode()
+	_incoming_nvdaVersion = AttributeReceiver(GenericAttribute.NVDA_VERSION, defaultValue="0.0.0")
 
 	def _get_nvdaVersion(self) -> str:
 		return self._getRemoteAttributeValueWithFallback(GenericAttribute.NVDA_VERSION)
 
 	@attributeSender(GenericAttribute.RD_ACCESS_VERSION)
-	def _outgoing_rdAccessVersion(self) -> bytes:
-		return addon.version.encode()
+	def _outgoing_rdAccessVersion(self) -> str:
+		return addon.version
 
-	@attributeReceiver(GenericAttribute.RD_ACCESS_VERSION, defaultValue="0.0")
-	def _incoming_rdAccessVersion(self, payload: bytes) -> str:
-		return payload.decode()
+	_incoming_rdAccessVersion = AttributeReceiver(GenericAttribute.RD_ACCESS_VERSION, defaultValue="0.0")
 
 	def _get_rdAccessVersion(self) -> str:
 		return self._getRemoteAttributeValueWithFallback(GenericAttribute.RD_ACCESS_VERSION)

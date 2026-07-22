@@ -47,21 +47,21 @@ Client-side detection of new pipes uses `directoryChanges.DirectoryWatcher` (Rea
 
 ### Protocol (`addon/lib/protocol/`)
 
-Wire format on each pipe:
+Dual-stack: two wire formats coexist on each pipe, negotiated automatically per connection.
 
-```
-[driverType:1][command:1][payloadLen:2 LE][payload...]
-```
+**Protocol v2 (JSON Lines)** — modeled on NVDA core's `_remoteClient` protocol: one UTF-8 JSON object per `\n`-terminated line with a mandatory `"type"` field. Message types are `RdMessageType(StrEnum)` in `messages.py`; names/values mirror `RemoteMessageType` where semantics match (`speak`, `cancel`, `pause_speech`, `tone`, `wave`, `index`, `display`, `braille_input`, `protocol_version`, `ping`), plus RDAccess-specific `attribute_request`/`attribute_value`. `serializer.py` (`RdJSONSerializer`) encodes speech sequences byte-for-byte identically to `_remoteClient.serializer` (`[ClassName, __dict__]` pairs); RDAccess-specific values (DriverSetting family, VoiceInfo, GlobalGestureMap via `export()`/`update()`, `supportedCommands` class-name lists) extend the same convention with explicit per-attribute decode allowlists. Conformance tests (`tests/test_serializerConformance.py`) load `..\nvda\source\_remoteClient\{serializer,protocol}.py` by file path and fail when NVDA core drifts.
 
-`driverType` ∈ `{S, B}` (`DriverType.SPEECH/BRAILLE`). `command` is one of `GenericCommand.ATTRIBUTE` (`@`), `SpeechCommand.*`, or `BrailleCommand.*`. The `ATTRIBUTE` command carries `` `attributeName`value `` — empty value means "send me yours" (request), non-empty means "here is mine" (push).
+**Protocol v1 (legacy, binary + pickle)** — `[driverType:1][command:1][payloadLen:2 LE][payload...]`; `driverType` ∈ `{S, B}`. All v1 byte formats live in `legacy.py`, which translates frames to/from the same value-based messages (`encode/decodeCommandPayload`, `encode/decodeAttributeValue`); pickled payloads pass through `_restrictedUnpickling.RestrictedUnpickler` only.
 
-`RemoteProtocolHandler` (in `protocol/__init__.py`) is the abstract base, used by both driver classes (server side) and handler classes (client side). It uses three decorator-driven registries populated at `__new__` time by introspecting the class:
+**Negotiation**: both sides push a `protocolVersion` attribute at connect (client on pipe connect, server after XON). Receive side sniffs the first byte per message (`{` = JSON line, driverType byte = legacy frame; `_onReceive`). Send side stays legacy until the peer is known to be ≥ v2 (explicit version, or any received JSON line), then flips (`_sendJson`) and emits a one-shot `protocol_version` message with a `channel` field validated against the pipe's channel. Old peers never answer the version push, so `defaultValue=1` keeps everything legacy. Legacy removal is planned for a later release.
 
-* `@commandHandler(cmd)` → `CommandHandlerStore` — dispatch incoming commands.
-* `@attributeSender(attr)` → `AttributeSenderStore` — produce bytes when peer requests `attr`.
-* `@attributeReceiver(attr, defaultValue=…)` → `AttributeValueProcessor` — parse bytes when peer pushes `attr`; `.defaultValueGetter` and `.updateCallback` are settable via the returned descriptor.
+`RemoteProtocolHandler` (in `protocol/__init__.py`) is the abstract base, used by both driver classes (server side) and handler classes (client side). All dispatch funnels through `_handleMessage(messageType, kwargs)` → `_commandHandlerStore`; the built-in message types (`attribute_request`/`attribute_value`/`protocol_version`/`ping`) are ordinary `@commandHandler` methods on the base, so subclasses can override any message type through the same registry. Sends go through `sendMessage(messageType, **payload)`. Three decorator-driven registries are populated at `__new__` time by introspecting the class:
 
-Wildcards are allowed (`*` matched via `fnmatch`) — `_incoming_setting` is the catch-all for `setting_*` attributes used to forward driver settings (voice, pitch, dot-firmness, etc.) bidirectionally. Payloads for non-trivial values are pickled with `protocol=4` (`_pickle`/`_unpickle`).
+* `@commandHandler(RdMessageType.X)` → `CommandHandlerStore` — dispatch incoming messages; handlers receive decoded kwargs.
+* `@attributeSender(attr)` → `AttributeSenderStore` — return the Python value when peer requests `attr`.
+* `@attributeReceiver(attr, defaultValue=…)` → `AttributeValueProcessor` — accept the decoded value when peer pushes `attr`; `.defaultValueGetter` and `.updateCallback` are settable via the returned descriptor. When the decoded value needs no transformation, assign a bare `AttributeReceiver(attr, defaultValue=…)` as a class attribute instead of decorating an identity method.
+
+Attributes are `str`; wildcards are allowed (`*` matched via `fnmatch`) — `_incoming_setting` is the catch-all for `setting_*` attributes used to forward driver settings (voice, pitch, dot-firmness, etc.) bidirectionally.
 
 `AttributeReceiver` callbacks run on a per-handler `ThreadPoolExecutor(4)`. Anything touching NVDA core state must hop back via `_queueFunctionOnMainThread` (queues onto `queueHandler.eventQueue`).
 

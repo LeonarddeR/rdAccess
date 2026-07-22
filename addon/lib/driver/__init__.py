@@ -3,7 +3,6 @@
 # License: GNU General Public License version 2.0
 from __future__ import annotations
 
-import sys
 import time
 from abc import abstractmethod
 from collections.abc import Iterable, Iterator, Sequence
@@ -27,8 +26,6 @@ _AUTO_PROPERTY_OBJECT_NAMES: frozenset[str] = frozenset(
 
 ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_NOT_CONNECTED = 0xE9
-MSG_XON = 0x11
-MSG_XOFF = 0x13
 
 
 class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
@@ -140,19 +137,18 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	def _onReceive(self, message: bytes):
 		if len(message) == 1:
 			command = message[0]
-			if command == MSG_XON:
+			if command == protocol.MSG_XON:
 				self._connected = True
+				self.pushProtocolVersion()
 				return
-			elif command == MSG_XOFF:
+			elif command == protocol.MSG_XOFF:
 				log.debugWarning("MSG_XOFF message received, connection closed")
 				self._handleRemoteDisconnect()
 				return
 		super()._onReceive(message)
 
 	@protocol.attributeReceiver(protocol.GenericAttribute.SUPPORTED_SETTINGS, defaultValue=[])
-	def _incomingSupportedSettings(self, payLoad: bytes):
-		assert len(payLoad) > 0
-		settings = self._unpickle(payLoad)
+	def _incomingSupportedSettings(self, settings: Sequence[DriverSetting]):
 		for s in settings:
 			s.useConfig = False
 		return settings
@@ -181,18 +177,12 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			settings.extend(self.getRemoteAttribute(attribute))
 		return settings
 
-	@protocol.attributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + b"*")
-	def _incoming_setting(self, _attribute: protocol.AttributeT, payLoad: bytes):
-		assert len(payLoad) > 0
-		return self._unpickle(payLoad)
-
-	@protocol.attributeReceiver(b"available*s")
-	def _incoming_availableSettingValues(self, _attribute: protocol.AttributeT, payLoad: bytes):
-		return self._unpickle(payLoad)
+	_incoming_setting = protocol.AttributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + "*")
+	_incoming_availableSettingValues = protocol.AttributeReceiver("available*s")
 
 	@protocol.attributeSender(protocol.GenericAttribute.TIME_SINCE_INPUT)
-	def _outgoing_timeSinceInput(self) -> bytes:
-		return inputTime.getTimeSinceInput().to_bytes(4, sys.byteorder, signed=False)
+	def _outgoing_timeSinceInput(self) -> int:
+		return inputTime.getTimeSinceInput()
 
 	def _handlePossibleSessionDisconnect(self):
 		if not self.check():

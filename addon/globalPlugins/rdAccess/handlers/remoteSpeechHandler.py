@@ -2,7 +2,6 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0
 
-import sys
 import typing
 
 import nvwave
@@ -48,20 +47,19 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 		return synth
 
 	@protocol.attributeSender(protocol.SpeechAttribute.SUPPORTED_COMMANDS)
-	def _outgoing_supportedCommands(self, commands=None) -> bytes:
+	def _outgoing_supportedCommands(self, commands=None):
 		if commands is None:
 			commands = self._driver.supportedCommands
-		return self._pickle(commands)
+		return commands
 
 	@protocol.attributeSender(protocol.SpeechAttribute.LANGUAGE)
-	def _outgoing_language(self, language: str | None = None) -> bytes:
+	def _outgoing_language(self, language: str | None = None) -> str | None:
 		if language is None:
 			language = self._driver.language
-		return self._pickle(language)
+		return language
 
-	@protocol.commandHandler(protocol.SpeechCommand.SPEAK)
-	def _command_speak(self, payload: bytes):
-		sequence = self._unpickle(payload)
+	@protocol.commandHandler(protocol.RdMessageType.SPEAK)
+	def _command_speak(self, sequence: SpeechSequence):
 		self._queueFunctionOnMainThread(self._speak, sequence)
 
 	def _speak(self, sequence: SpeechSequence):
@@ -79,8 +77,8 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 		speech.speech._speechState.beenCanceled = False
 		self._driver.speak(sequence)
 
-	@protocol.commandHandler(protocol.SpeechCommand.CANCEL)
-	def _command_cancel(self, _payload: bytes = b""):
+	@protocol.commandHandler(protocol.RdMessageType.CANCEL)
+	def _command_cancel(self):
 		self._indexesSpeaking.clear()
 		self._queueFunctionOnMainThread(self._cancel)
 
@@ -90,26 +88,22 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 		speech.speech._speechState.beenCanceled = True
 		speech.speech._speechState.isPaused = False
 
-	@protocol.commandHandler(protocol.SpeechCommand.PAUSE)
-	def _command_pause(self, payload: bytes):
-		assert len(payload) == 1
-		switch = bool.from_bytes(payload, sys.byteorder)
+	@protocol.commandHandler(protocol.RdMessageType.PAUSE_SPEECH)
+	def _command_pause(self, switch: bool):
 		self._queueFunctionOnMainThread(self._pause, switch)
 
 	def _pause(self, switch: bool):
 		speech.pauseSpeech(switch)
 
-	@protocol.commandHandler(protocol.SpeechCommand.BEEP)
-	def _command_beep(self, payload: bytes):
-		kwargs = self._unpickle(payload)
-		log.debug(f"Received BEEP command: {kwargs}")
+	@protocol.commandHandler(protocol.RdMessageType.TONE)
+	def _command_beep(self, **kwargs):
+		log.debug(f"Received TONE command: {kwargs}")
 		# Tones are always asynchronous
 		tones.beep(**kwargs)
 
-	@protocol.commandHandler(protocol.SpeechCommand.PLAY_WAVE_FILE)
-	def _command_playWaveFile(self, payload: bytes):
-		kwargs = self._unpickle(payload)
-		log.debug(f"Received PLAY_WAVE_FILE command: {kwargs}")
+	@protocol.commandHandler(protocol.RdMessageType.WAVE)
+	def _command_playWaveFile(self, **kwargs):
+		log.debug(f"Received WAVE command: {kwargs}")
 		# Ensure the wave plays asynchronous.
 		kwargs["asynchronous"] = True
 		nvwave.playWaveFile(**kwargs)
@@ -122,13 +116,8 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 		assert synth == self._driver
 		if index in self._indexesSpeaking:
 			subtractedIndex = index - protocol.speech.SPEECH_INDEX_OFFSET
-			indexBytes = subtractedIndex.to_bytes(
-				length=2,  # Bytes needed to encode speech._manager.MAX_INDEX
-				byteorder=sys.byteorder,  # for a single byte big/little endian does not matter.
-				signed=False,
-			)
 			try:
-				self.writeMessage(protocol.SpeechCommand.INDEX_REACHED, indexBytes)
+				self.sendMessage(protocol.RdMessageType.INDEX, index=subtractedIndex)
 			except OSError:
 				log.warning("Error calling _onSynthIndexReached", exc_info=True)
 			self._indexesSpeaking.remove(index)
@@ -138,7 +127,7 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 		if len(self._indexesSpeaking) > 0:
 			self._indexesSpeaking.clear()
 			try:
-				self.writeMessage(protocol.SpeechCommand.INDEX_REACHED, b"\x00\x00")
+				self.sendMessage(protocol.RdMessageType.INDEX, index=0)
 			except OSError:
 				log.warning("Error calling _onSynthDoneSpeaking", exc_info=True)
 
