@@ -123,12 +123,43 @@ def install():
 
 	hwIoBase.IoBase = IoBase
 
+	buildVersion = _module("buildVersion")
+	buildVersion.version_year = 2026
+	buildVersion.version_major = 3
+
 	braille = _module("braille")
+	brailleDisplay = _module("braille.display")
+	braille.display = brailleDisplay
+	brailleDisplayGesture = _module("braille.display.gesture")
+	brailleDisplay.gesture = brailleDisplayGesture
+	brailleDisplayDriver = _module("braille.display.driver")
+	brailleDisplay.driver = brailleDisplayDriver
+	brailleConstants = _module("braille.constants")
+	braille.constants = brailleConstants
+	brailleExtensions = _module("braille.extensions")
+	braille.extensions = brailleExtensions
 
 	class BrailleDisplayGesture:
+		cellIndexes: list[int] | None = None
+
+		@property
+		def routingIndex(self) -> int | None:
+			return max(self.cellIndexes) if self.cellIndexes else None
+
+		@routingIndex.setter
+		def routingIndex(self, value: int | None) -> None:
+			self.cellIndexes = [value] if value is not None else None
+
+	brailleDisplayGesture.BrailleDisplayGesture = BrailleDisplayGesture
+
+	class BrailleDisplayDriver:
 		pass
 
-	braille.BrailleDisplayGesture = BrailleDisplayGesture
+	brailleDisplayDriver.BrailleDisplayDriver = BrailleDisplayDriver
+
+	brailleConstants.AUTOMATIC_PORT = ("auto", "Automatic")
+	brailleExtensions.decide_enabled = object()
+	brailleExtensions.displayChanged = object()
 
 	brailleInput = _module("brailleInput")
 

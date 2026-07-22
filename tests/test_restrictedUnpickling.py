@@ -167,6 +167,7 @@ class TestRestrictedUnpicklingAcceptance(unittest.TestCase):
 		restored = self._roundtrip(original)
 		self.assertIsInstance(restored, BrailleInputGesture)
 		self.assertEqual(restored.id, "routing1")
+		self.assertEqual(restored.cellIndexes, [3])
 		self.assertEqual(restored.routingIndex, 3)
 
 	def test_roundtrips_plain_builtins_dict(self):

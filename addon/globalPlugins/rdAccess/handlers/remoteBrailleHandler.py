@@ -15,15 +15,16 @@ from logHandler import log
 from ._remoteHandler import RemoteHandler
 
 if typing.TYPE_CHECKING:
-	from ....lib import protocol
+	from ....lib import nvdaCompat, protocol
 else:
 	import addonHandler
 
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
+	nvdaCompat = addon.loadModule("lib.nvdaCompat")
 	protocol = addon.loadModule("lib.protocol")
 
 
-class RemoteBrailleHandler(RemoteHandler[braille.BrailleDisplayDriver]):
+class RemoteBrailleHandler(RemoteHandler[nvdaCompat.BrailleDisplayDriver]):
 	driverType = protocol.DriverType.BRAILLE
 	_queuedWrite: list[int] | None = None
 	_queuedWriteLock: threading.Lock
@@ -31,16 +32,16 @@ class RemoteBrailleHandler(RemoteHandler[braille.BrailleDisplayDriver]):
 	def __init__(self, ioThread: IoThread, pipeName: str):
 		self._queuedWriteLock = threading.Lock()
 		super().__init__(ioThread, pipeName)
-		braille.decide_enabled.register(self._handleBrailleHandlerEnabled)
-		braille.displayChanged.register(self._handleDriverChanged)
+		nvdaCompat.decide_enabled.register(self._handleBrailleHandlerEnabled)
+		nvdaCompat.displayChanged.register(self._handleDriverChanged)
 		postBrailleViewerToolToggledAction.register(self._handleDisplayDimensionChanges)
 		inputCore.decide_executeGesture.register(self._handleExecuteGesture)
 
 	def terminate(self):
 		inputCore.decide_executeGesture.unregister(self._handleExecuteGesture)
 		postBrailleViewerToolToggledAction.unregister(self._handleDisplayDimensionChanges)
-		braille.displayChanged.unregister(self._handleDriverChanged)
-		braille.decide_enabled.unregister(self._handleBrailleHandlerEnabled)
+		nvdaCompat.displayChanged.unregister(self._handleDriverChanged)
+		nvdaCompat.decide_enabled.unregister(self._handleBrailleHandlerEnabled)
 		super().terminate()
 
 	def _get__driver(self):
@@ -109,14 +110,14 @@ class RemoteBrailleHandler(RemoteHandler[braille.BrailleDisplayDriver]):
 	def _handleExecuteGesture(self, gesture):
 		assert braille.handler is not None
 		if (
-			isinstance(gesture, braille.BrailleDisplayGesture)
+			isinstance(gesture, nvdaCompat.BrailleDisplayGesture)
 			and not braille.handler.enabled
 			and self.hasFocus
 		):
-			kwargs = {
+			kwargs: dict[str, typing.Any] = {
 				"source": gesture.source,
 				"id": gesture.id,
-				"routingIndex": gesture.routingIndex,
+				"routingIndex": nvdaCompat.getRoutingIndex(gesture),
 				"model": gesture.model,
 			}
 			if isinstance(gesture, brailleInput.BrailleInputGesture):
@@ -133,7 +134,7 @@ class RemoteBrailleHandler(RemoteHandler[braille.BrailleDisplayDriver]):
 	def _handleBrailleHandlerEnabled(self):
 		return not self.hasFocus
 
-	def _handleDriverChanged(self, display: braille.BrailleDisplayDriver):
+	def _handleDriverChanged(self, display: nvdaCompat.BrailleDisplayDriver):
 		self._handleDisplayDimensionChanges()
 		super()._handleDriverChanged(display)
 		self._attributeSenderStore(protocol.BrailleAttribute.GESTURE_MAP, gestureMap=display.gestureMap)

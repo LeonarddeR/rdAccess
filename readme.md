@@ -2,7 +2,7 @@
 
 * Authors: [Leonard de Ruijter][1]
 * Download [latest stable version][2]
-* NVDA compatibility: 2024.1 and later
+* NVDA compatibility: 2026.1 and later
 
 The RDAccess add-on (Remote Desktop Accessibility) adds support for Microsoft Remote Desktop, Citrix, Parallels RAS, or VMware Horizon remote sessions to NVDA.
 When installed on both the client and the server in NVDA, speech and braille generated on the server will be spoken and displayed in braille on the client machine.
@@ -21,6 +21,11 @@ This enables a user experience where managing a remote system feels as seamless 
 * Ability to control specific synthesizer and braille display settings without leaving the remote session
 
 ## Changelog
+
+### Version 1.7.2
+
+* The minimum compatible NVDA version is now 2026.1. Removed support for earlier versions.
+* Adapted to the braille API changes and deprecations introduced in NVDA 2026.3.
 
 ### Version 1.7.1
 

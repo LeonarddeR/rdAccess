@@ -15,7 +15,6 @@ from ctypes.wintypes import DWORD, HANDLE
 from enum import IntFlag
 from glob import iglob
 
-import buildVersion
 import winKernel
 from hwIo.base import IoBase
 from hwIo.ioThread import IoThread
@@ -24,11 +23,7 @@ from serial.win32 import (
 	INVALID_HANDLE_VALUE,
 	CreateFile,
 )
-
-if buildVersion.version_year >= 2026:
-	from winBindings.kernel32 import PROCESSENTRY32W
-else:
-	from appModuleHandler import processEntry32W as PROCESSENTRY32W
+from winBindings.kernel32 import PROCESSENTRY32W
 
 PIPE_DIRECTORY = "\\\\.\\pipe\\"
 RD_PIPE_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
