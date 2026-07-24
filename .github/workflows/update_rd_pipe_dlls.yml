@@ -133,4 +133,19 @@ jobs:
 
       - name: Enable auto-merge
         if: env.SKIP != '1' && env.CHANGED == '1'
-        run: gh pr merge --auto --squash "$PR_URL"
+        # enablePullRequestAutoMerge is rejected with "Pull request is in clean
+        # status" while the PR has nothing blocking it, which is still the case
+        # for the first seconds after creation, before any check registers.
+        # Retry until a check shows up rather than falling back to a direct
+        # merge, which would merge before CI has run.
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 12); do
+            if gh pr merge --auto --squash "$PR_URL"; then
+              exit 0
+            fi
+            echo "Auto-merge not accepted yet (attempt $attempt/12); retrying in 10s."
+            sleep 10
+          done
+          echo "Could not enable auto-merge on $PR_URL after 12 attempts" >&2
+          exit 1
