@@ -25,8 +25,8 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, nvdaCompat.BrailleDisplayD
 	isThreadSafe = True
 	supportsAutomaticDetection = True
 	driverType = protocol.DriverType.BRAILLE
-	_requiredAttributesOnInit = frozenset(
-		driver.RemoteDriver._requiredAttributesOnInit.union({
+	_attributesToPreRequestOnInit = frozenset(
+		driver.RemoteDriver._attributesToPreRequestOnInit.union({
 			protocol.BrailleAttribute.NUM_CELLS,
 		}),
 	)
@@ -68,6 +68,15 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, nvdaCompat.BrailleDisplayD
 
 	def _get_numCols(self) -> int:
 		return self._getRemoteAttributeValueWithFallback(protocol.BrailleAttribute.NUM_COLS)
+
+	@_incoming_numCells.updateCallback
+	@_incoming_numRows.updateCallback
+	@_incoming_numCols.updateCallback
+	def _updateCallback_displayDimensions(self, _attribute: protocol.AttributeT, _value: int):
+		self.invalidateCache()
+		assert braille.handler is not None
+		if braille.handler.display is self:
+			self._queueFunctionOnMainThread(braille.handler.initialDisplay)
 
 	_incoming_gestureMapUpdate = protocol.AttributeReceiver(protocol.BrailleAttribute.GESTURE_MAP)
 

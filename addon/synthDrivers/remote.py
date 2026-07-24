@@ -16,6 +16,7 @@ from autoSettingsUtils.utils import StringParameterInfo
 from extensionPoints import Action
 from languageHandler import getLanguage
 from logHandler import log
+from speech.commands import IndexCommand
 
 if typing.TYPE_CHECKING:
 	from ..lib import driver, protocol
@@ -61,6 +62,10 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		super().__init__(port)
 		nvwave.decide_playWaveFile.register(self.handle_decidePlayWaveFile)
 		tones.decide_beep.register(self.handle_decideBeep)
+
+	def initSettings(self):
+		super().initSettings()
+		synthDriverHandler.changeVoice(self, None)
 
 	def terminate(self):
 		tones.decide_beep.unregister(self.handle_decideBeep)
@@ -110,7 +115,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 
 	_incoming_supportedCommands = protocol.AttributeReceiver(
 		protocol.SpeechAttribute.SUPPORTED_COMMANDS,
-		defaultValue=frozenset(),
+		defaultValue=frozenset({IndexCommand}),
 	)
 
 	def _get_supportedCommands(self):
