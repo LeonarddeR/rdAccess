@@ -73,10 +73,15 @@ class RemoteBrailleDisplayDriver(driver.RemoteDriver, nvdaCompat.BrailleDisplayD
 	@_incoming_numRows.updateCallback
 	@_incoming_numCols.updateCallback
 	def _updateCallback_displayDimensions(self, _attribute: protocol.AttributeT, _value: int):
-		self.invalidateCache()
+		self._queueFunctionOnMainThread(self._handleDisplayDimensionsChanged)
+
+	def _handleDisplayDimensionsChanged(self):
 		assert braille.handler is not None
-		if braille.handler.display is self:
-			self._queueFunctionOnMainThread(braille.handler.initialDisplay)
+		if braille.handler.display is not self:
+			return
+		self.invalidateCache()
+		braille.handler.invalidateCache()
+		braille.handler.initialDisplay()
 
 	_incoming_gestureMapUpdate = protocol.AttributeReceiver(protocol.BrailleAttribute.GESTURE_MAP)
 
