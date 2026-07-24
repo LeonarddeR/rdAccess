@@ -97,9 +97,12 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	def __setattr__(self, name: str, value: Any) -> None:
 		getter = super().__getattribute__
-		accessor = getter("_settingsAccessor")
-		if accessor and getter("isSupported")(name):
-			setattr(accessor, name, value)
+		if not (
+			(name.startswith("_") and not name.startswith("_get_")) or name in _AUTO_PROPERTY_OBJECT_NAMES
+		):
+			accessor = getter("_settingsAccessor")
+			if accessor and getter("isSupported")(name):
+				setattr(accessor, name, value)
 		super().__setattr__(name, value)
 
 	def _onReadError(self, error: int) -> bool:
