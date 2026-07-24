@@ -49,7 +49,6 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		if isinstance(port, bdDetect.DeviceMatch):
 			yield port
 		else:
-			assert port == "auto"
 			yield from cls._getAutoPorts()
 
 	_localSettings: ClassVar[list[DriverSetting]] = []
