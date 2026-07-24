@@ -3,7 +3,6 @@
 # License: GNU General Public License version 2.0 or later
 from __future__ import annotations
 
-import time
 from abc import abstractmethod
 from collections.abc import Iterable, Iterator, Sequence
 from typing import Any, ClassVar
@@ -31,7 +30,7 @@ ERROR_PIPE_NOT_CONNECTED = 0xE9
 class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	name = "remote"
 	_settingsAccessor: SettingsAccessorBase | None = None
-	_requiredAttributesOnInit: frozenset[protocol.AttributeT] = frozenset({
+	_attributesToPreRequestOnInit: frozenset[protocol.AttributeT] = frozenset({
 		protocol.GenericAttribute.SUPPORTED_SETTINGS,
 	})
 
@@ -65,11 +64,10 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		self._saveSpecificSettings(self, self._localSettings)
 
 	def __init__(self, port="auto"):
-		initialTime = time.perf_counter()
 		super().__init__()
 		self._connected = False
 		for _portType, _portId, port, _portInfo in self._getTryPorts(port):  # noqa: B020
-			for attr in self._requiredAttributesOnInit:
+			for attr in self._attributesToPreRequestOnInit:
 				self._attributeValueProcessor.setAttributeRequestPending(attr)
 			try:
 				self._dev = wtsVirtualChannel.WTSVirtualChannel(
@@ -81,21 +79,8 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 				log.debugWarning("", exc_info=True)
 				continue
 			# Wait for RdPipe at the other end to send a XON
-			if not self._safeWait(lambda: self._connected, self.timeout * 3):
-				continue
-			handledAttributes = set[protocol.AttributeT]()
-			for attr in self._requiredAttributesOnInit:
-				if self._waitForAttributeUpdate(attr, initialTime):
-					handledAttributes.add(attr)
-				else:
-					log.debugWarning(f"Error getting {attr}")
-
-			else:
-				if not (self._requiredAttributesOnInit - handledAttributes):
-					log.debug(f"Required attributes received: {handledAttributes!r}")
-					break
-
-			self._dev.close()
+			if self._safeWait(lambda: self._connected, self.timeout * 3):
+				break
 		else:
 			raise RuntimeError("No remote device found")
 
@@ -162,13 +147,10 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		self.invalidateCache()
 
 	def _get_supportedSettings(self):
-		settings = []
-		settings.extend(self._localSettings)
-		attribute = protocol.GenericAttribute.SUPPORTED_SETTINGS
-		try:
-			settings.extend(self._attributeValueProcessor.getValue(attribute, fallBackToDefault=False))
-		except KeyError:
-			settings.extend(self.getRemoteAttribute(attribute))
+		settings = list(self._localSettings)
+		settings.extend(
+			self._getRemoteAttributeValueWithFallback(protocol.GenericAttribute.SUPPORTED_SETTINGS),
+		)
 		return settings
 
 	_incoming_setting = protocol.AttributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + "*")
