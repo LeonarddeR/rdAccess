@@ -25,11 +25,14 @@ _AUTO_PROPERTY_OBJECT_NAMES: frozenset[str] = frozenset(
 
 ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_NOT_CONNECTED = 0xE9
+# Milliseconds after connecting during which time since input is reported as zero.
+CONNECT_FOCUS_GRACE = 4000
 
 
 class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	name = "remote"
 	_settingsAccessor: SettingsAccessorBase | None = None
+	_connectTick: int = 0
 	_attributesToPreRequestOnInit: frozenset[protocol.AttributeT] = frozenset({
 		protocol.GenericAttribute.SUPPORTED_SETTINGS,
 	})
@@ -120,6 +123,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			command = message[0]
 			if command == protocol.MSG_XON:
 				self._connected = True
+				self._connectTick = inputTime.getTickCount()
 				self.pushProtocolVersion()
 				return
 			elif command == protocol.MSG_XOFF:
@@ -160,6 +164,8 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 	@protocol.attributeSender(protocol.GenericAttribute.TIME_SINCE_INPUT)
 	def _outgoing_timeSinceInput(self) -> int:
+		if inputTime.getTickCount() - self._connectTick < CONNECT_FOCUS_GRACE:
+			return 0
 		return inputTime.getTimeSinceInput()
 
 	def _handlePossibleSessionDisconnect(self):
