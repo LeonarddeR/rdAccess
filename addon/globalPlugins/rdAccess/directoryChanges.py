@@ -2,16 +2,23 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0 or later
 
-import os.path
-import sys
+"""Watches a directory for file name changes.
+
+Change notifications are delivered as a bare "something changed" signal rather
+than parsed per-file events: on the pipe file system, events that occur between
+one ``ReadDirectoryChangesW`` completion and the next call are silently dropped
+by the kernel, so consumers must rescan the directory anyway to get a reliable
+view.
+"""
+
 from ctypes import WinError, byref, create_string_buffer, sizeof, windll
-from enum import IntEnum, IntFlag
-from struct import calcsize, unpack
+from enum import IntFlag
 
 import queueHandler
 import winKernel
 from extensionPoints import Action
 from hwIo.ioThread import IoThread
+from logHandler import log
 from serial.win32 import (
 	FILE_FLAG_OVERLAPPED,
 	INVALID_HANDLE_VALUE,
@@ -34,14 +41,6 @@ class FileNotifyFilter(IntFlag):
 	FILE_NOTIFY_CHANGE_SECURITY = 0x100
 
 
-class FileNotifyInformationAction(IntEnum):
-	FILE_ACTION_ADDED = 0x1
-	FILE_ACTION_REMOVED = 0x2
-	FILE_ACTION_MODIFIED = 0x3
-	FILE_ACTION_RENAMED_OLD_NAME = 0x4
-	FILE_ACTION_RENAMED_NEW_NAME = 0x5
-
-
 class DirectoryWatcher(IoThread):
 	directoryChanged: Action
 
@@ -53,6 +52,7 @@ class DirectoryWatcher(IoThread):
 	):
 		super().__init__()
 		self._watching = False
+		self._notifyQueued = False
 		self._directory = directory
 		self._notifyFilter = notifyFilter
 		self._watchSubtree = watchSubtree
@@ -117,32 +117,15 @@ class DirectoryWatcher(IoThread):
 		if not self._watching:
 			# We stopped watching
 			return
-		if numberOfBytes == 0:
-			raise RuntimeError("No bytes received, probably internal buffer overflow")
 		if error != 0:
 			raise WinError(error)
-		data = self._buffer.raw[:numberOfBytes]
+		if numberOfBytes == 0:
+			log.debugWarning("Directory change notification buffer overflowed, changes were dropped")
 		self._asyncWatch()
-		queueHandler.queueFunction(queueHandler.eventQueue, self._handleChanges, data)
+		if not self._notifyQueued:
+			self._notifyQueued = True
+			queueHandler.queueFunction(queueHandler.eventQueue, self._notifyDirectoryChanged)
 
-	def _handleChanges(self, data: bytes):
-		nextOffset = 0
-		while True:
-			fileNameLength = int.from_bytes(
-				# fileNameLength is the third DWORD in the FILE_NOTIFY_INFORMATION struct
-				data[nextOffset + 8 : nextOffset + 12],
-				byteorder=sys.byteorder,
-				signed=False,
-			)
-			formatStr = f"@3I{fileNameLength}s"
-			nextOffset, action, fileNameLength, fileNameBytes = unpack(
-				formatStr,
-				data[nextOffset : nextOffset + calcsize(formatStr)],
-			)
-			fileName = fileNameBytes.decode("utf-16")
-			self.directoryChanged.notify(
-				action=FileNotifyInformationAction(action),
-				fileName=os.path.join(self._directory, fileName),
-			)
-			if nextOffset == 0:
-				break
+	def _notifyDirectoryChanged(self):
+		self._notifyQueued = False
+		self.directoryChanged.notify()

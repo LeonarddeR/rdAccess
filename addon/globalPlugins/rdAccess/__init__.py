@@ -116,13 +116,15 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._ioThread.start()
 		wx.CallAfter(self._registerRdPipeInRegistry)
 		self._handlers: dict[str, handlers.RemoteHandler] = {}
+		self._detachedPipeNames: set[str] = set()
+		self._failedPipeNames: set[str] = set()
 		self._pipeWatcher = directoryChanges.DirectoryWatcher(
 			namedPipe.PIPE_DIRECTORY,
 			directoryChanges.FileNotifyFilter.FILE_NOTIFY_CHANGE_FILE_NAME,
 		)
-		self._pipeWatcher.directoryChanged.register(self._handleNewPipe)
+		self._pipeWatcher.directoryChanged.register(self._reconcilePipes)
 		self._pipeWatcher.start()
-		self._initializeExistingPipes()
+		self._reconcilePipes()
 
 	def __init__(self):
 		super().__init__()
@@ -143,57 +145,54 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._handlePostConfigProfileSwitch,
 		)
 
-	def _initializeExistingPipes(self):
-		for match in namedPipe.getRdPipeNamedPipes():
-			try:
-				self._handleNewPipe(
-					directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED,
-					match,
-				)
-			except Exception:
-				log.exception("Error initializing existing pipe")
+	def _reconcilePipes(self):
+		"""Aligns the handler map with the pipes that currently exist.
 
-	def _handleNewPipe(
-		self,
-		action: directoryChanges.FileNotifyInformationAction,
-		fileName: str,
-	):
-		if not fnmatch(fileName, namedPipe.RD_PIPE_GLOB_PATTERN):
-			return
-		if action == directoryChanges.FileNotifyInformationAction.FILE_ACTION_ADDED:
-			if fnmatch(
-				fileName,
-				namedPipe.RD_PIPE_GLOB_PATTERN.replace(
-					"*",
-					f"{protocol.DriverType.BRAILLE.name}*",
-				),
-			):
-				HandlerClass = handlers.RemoteBrailleHandler
-			elif fnmatch(
-				fileName,
-				namedPipe.RD_PIPE_GLOB_PATTERN.replace(
-					"*",
-					f"{protocol.DriverType.SPEECH.name}*",
-				),
-			):
-				HandlerClass = handlers.RemoteSpeechHandler
-			else:
-				raise RuntimeError(f"Unknown named pipe: {fileName}")
-			log.debug(f"Creating {HandlerClass.__name__} for {fileName!r}")
-			assert self._ioThread is not None
-			handler = HandlerClass(self._ioThread, fileName)
-			handler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
-			handler.event_gainFocus(api.getFocusObject())
-			self._handlers[fileName] = handler
-		elif action == directoryChanges.FileNotifyInformationAction.FILE_ACTION_REMOVED:
-			log.debug(f"Pipe with name {fileName!r} removed")
-			handler = self._handlers.pop(fileName, None)
-			if handler:
-				log.debug(
-					f"Terminating handler {handler!r} for Pipe with name {fileName!r}",
-				)
-				handler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
-				handler.terminate()
+		Directory change notifications only signal that something changed; on the
+		pipe file system events can be dropped by the kernel, so the actual pipe
+		list is always re-globbed and diffed against the live handlers.
+		"""
+		currentPipes = set(namedPipe.getRdPipeNamedPipes())
+		self._detachedPipeNames &= currentPipes
+		self._failedPipeNames &= currentPipes
+		for fileName in currentPipes - self._handlers.keys() - self._detachedPipeNames:
+			try:
+				self._createHandler(fileName)
+			except Exception:
+				if fileName not in self._failedPipeNames:
+					self._failedPipeNames.add(fileName)
+					log.debugWarning(f"Error creating handler for pipe {fileName!r}", exc_info=True)
+		for fileName in list(self._handlers.keys() - currentPipes):
+			handler = self._handlers.pop(fileName)
+			log.debug(f"Pipe with name {fileName!r} removed, terminating handler {handler!r}")
+			handler.decide_remoteDisconnect.unregister(self._handleRemoteDisconnect)
+			handler.terminate()
+
+	def _createHandler(self, fileName: str):
+		if fnmatch(
+			fileName,
+			namedPipe.RD_PIPE_GLOB_PATTERN.replace(
+				"*",
+				f"{protocol.DriverType.BRAILLE.name}*",
+			),
+		):
+			HandlerClass = handlers.RemoteBrailleHandler
+		elif fnmatch(
+			fileName,
+			namedPipe.RD_PIPE_GLOB_PATTERN.replace(
+				"*",
+				f"{protocol.DriverType.SPEECH.name}*",
+			),
+		):
+			HandlerClass = handlers.RemoteSpeechHandler
+		else:
+			raise RuntimeError(f"Unknown named pipe: {fileName}")
+		log.debug(f"Creating {HandlerClass.__name__} for {fileName!r}")
+		assert self._ioThread is not None
+		handler = HandlerClass(self._ioThread, fileName)
+		handler.decide_remoteDisconnect.register(self._handleRemoteDisconnect)
+		handler.event_gainFocus(api.getFocusObject())
+		self._handlers[fileName] = handler
 
 	def terminateOperatingModeServer(self):
 		post_secureDesktopStateChange.unregister(self._handlePossibleServerDisconnect)
@@ -208,6 +207,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		for handler in self._handlers.values():
 			handler.terminate()
 		self._handlers.clear()
+		self._detachedPipeNames.clear()
+		self._failedPipeNames.clear()
 		if not configuration.getPersistentRegistration():
 			self._unregisterRdPipeFromRegistry()
 		if self._ioThread:
@@ -325,9 +326,14 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		error: int,
 	) -> bool:
 		if isinstance(WinError(error), BrokenPipeError):
+			pipeName = handler._dev.pipeName
+			# A broken pipe also brings down the virtual channel, after which the
+			# pipe itself disappears. Tombstone the name until that happens, so
+			# reconciliation doesn't reattach to the dying pipe.
+			self._detachedPipeNames.add(pipeName)
 			handler.terminate()
-			if handler._dev.pipeName in self._handlers:
-				del self._handlers[handler._dev.pipeName]
+			if pipeName in self._handlers:
+				del self._handlers[pipeName]
 			return True
 		return False
 
