@@ -29,6 +29,7 @@ else:
 
 MAX_TIME_SINCE_INPUT_FOR_REMOTE_SESSION_FOCUS = 200
 DriverT = typing.TypeVar("DriverT", bound=Driver)
+_MISSING = object()
 
 
 class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.NamedPipeClient]):
@@ -64,6 +65,9 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 		pipeName: str,
 	):
 		super().__init__()
+		self._pendingSettings: protocol.PendingValueStore[protocol.AttributeT, typing.Any] = (
+			protocol.PendingValueStore()
+		)
 		self.initIo(ioThread, pipeName)
 
 		self._onConnected(True)
@@ -133,7 +137,11 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 	def _queueIncomingSettingOnDriver(self, attribute: protocol.AttributeT, value: typing.Any):
 		if not configuration.getDriverSettingsManagement():
 			return
-		self._queueFunctionOnMainThread(self._setIncomingSettingOnDriver, attribute, value)
+		if self._pendingSettings.push(attribute, value):
+			self._queueFunctionOnMainThread(self._applyPendingSettings)
+
+	def _applyPendingSettings(self):
+		self._pendingSettings.drain(self._setIncomingSettingOnDriver)
 
 	def _setIncomingSettingOnDriver(self, attribute: protocol.AttributeT, value: typing.Any):
 		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX) :]
@@ -143,6 +151,9 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 	def _outgoing_setting(self, attribute: protocol.AttributeT):
 		if not configuration.getDriverSettingsManagement():
 			return None
+		pending = self._pendingSettings.get(attribute, _MISSING)
+		if pending is not _MISSING:
+			return pending
 		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX) :]
 		return getattr(self._driver, name)
 

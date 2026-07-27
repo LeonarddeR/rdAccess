@@ -49,6 +49,7 @@ __all__ = [
 	"DriverType",
 	"GenericAttribute",
 	"GenericCommand",
+	"PendingValueStore",
 	"RdMessageType",
 	"RemoteProtocolHandler",
 	"SpeechAttribute",
@@ -355,6 +356,56 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
 		log.debug(f"Handler on {self!r} returned value {value!r} for attribute {attribute!r}")
 		self.setAttributeRequestPending(attribute, False)
 		self.setValue(attribute, value)
+
+
+_UNSET = object()
+
+
+class PendingValueStore[KeyT, ValueT]:
+	"""Thread-safe per-key store for values awaiting application on another thread.
+
+	push stores the newest value for a key and returns True when the store was
+	empty, i.e. when the caller should schedule a drain. A value stays visible to
+	get until it has been applied, so readers observe the most recent value even
+	while application is queued or in progress.
+	"""
+
+	_lock: threading.Lock
+	_values: dict[KeyT, ValueT]
+
+	def __init__(self):
+		self._lock = threading.Lock()
+		self._values = {}
+
+	def push(self, key: KeyT, value: ValueT) -> bool:
+		with self._lock:
+			wasEmpty = not self._values
+			self._values[key] = value
+			return wasEmpty
+
+	def get(self, key: KeyT, default: Any = None) -> Any:
+		with self._lock:
+			return self._values.get(key, default)
+
+	def drain(self, apply: Callable[[KeyT, ValueT], None]):
+		"""Apply every pending value, including ones pushed while draining.
+
+		Application errors are logged and the value is skipped, so the drain
+		always terminates with the store empty of applied (or failed) values.
+		"""
+		while True:
+			with self._lock:
+				if not self._values:
+					return
+				key, value = next(iter(self._values.items()))
+			try:
+				apply(key, value)
+			except Exception:
+				log.error(f"Error applying pending value for {key!r}", exc_info=True)
+			finally:
+				with self._lock:
+					if self._values.get(key, _UNSET) == value:
+						del self._values[key]
 
 
 class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
