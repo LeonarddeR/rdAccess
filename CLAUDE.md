@@ -63,7 +63,7 @@ Dual-stack: two wire formats coexist on each pipe, negotiated automatically per 
 
 Attributes are `str`; wildcards are allowed (`*` matched via `fnmatch`) — `_incoming_setting` is the catch-all for `setting_*` attributes used to forward driver settings (voice, pitch, dot-firmness, etc.) bidirectionally.
 
-`AttributeReceiver` callbacks run on a per-handler `ThreadPoolExecutor(4)`. Anything touching NVDA core state must hop back via `_queueFunctionOnMainThread` (queues onto `queueHandler.eventQueue`).
+Incoming messages, attribute receivers and update callbacks all run inline on the device's IO thread, in arrival order. Handlers must therefore never block: anything touching NVDA core state hops via `_queueFunctionOnMainThread` (queues onto `queueHandler.eventQueue`), and calling `getRemoteAttribute`/`_safeWait` on the IO thread raises `RuntimeError` (the reply could never be processed there).
 
 ### Handlers (client side, `addon/globalPlugins/rdAccess/handlers/`)
 

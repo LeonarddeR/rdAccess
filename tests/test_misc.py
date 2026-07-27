@@ -9,6 +9,7 @@ _safeWait, terminate, _queueFunctionOnMainThread.
 from __future__ import annotations
 
 import gc
+import threading
 import unittest
 import weakref
 
@@ -57,6 +58,29 @@ class TestSafeWait(unittest.TestCase):
 		self.assertTrue(result)
 		self.assertGreaterEqual(len(calls), 2)
 
+	def test_raises_when_called_on_the_devices_io_thread(self):
+		"""Waiting on the device's own IO thread can never be satisfied and must fail fast."""
+		raised: list[RuntimeError] = []
+
+		def _callSafeWait():
+			try:
+				self.handler._safeWait(lambda: False, timeout=0.05)
+			except RuntimeError as e:
+				raised.append(e)
+
+		thread = threading.Thread(target=_callSafeWait)
+		self.handler._dev._ioThreadRef = weakref.ref(thread)
+		thread.start()
+		thread.join(2.0)
+		self.assertEqual(len(raised), 1)
+
+	def test_does_not_raise_on_other_threads_when_io_thread_known(self):
+		"""With a known IO thread, callers on any other thread wait normally."""
+		ioThread = threading.Thread(target=lambda: None)
+		self.handler._dev._ioThreadRef = weakref.ref(ioThread)
+		result = self.handler._safeWait(lambda: False, timeout=0.05)
+		self.assertFalse(result)
+
 
 class TestTerminate(unittest.TestCase):
 	"""Tests for RemoteProtocolHandler.terminate."""
@@ -68,12 +92,6 @@ class TestTerminate(unittest.TestCase):
 		handler._attributeValueProcessor._values[b"k"] = 1
 		handler.terminate()
 		self.assertTrue(handler._dev.closed)
-
-	def test_terminate_shuts_down_executor(self):
-		"""After terminate(), the background executor is shut down."""
-		handler = FakeHandlerBase()
-		handler.terminate()
-		self.assertTrue(handler._bgExecutor.isShutdown)
 
 	def test_terminate_clears_attribute_cache(self):
 		"""After terminate(), previously stored attribute values are gone from the cache."""

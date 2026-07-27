@@ -93,8 +93,6 @@ class RestrictedUnpickler(pickle.Unpickler):
 			cls = _getAllowedGlobals().get((module, name))
 			if cls is not None:
 				return cls
-		# Exceptions raised inside _bgExecutor futures are otherwise swallowed silently, so log here
-		# to keep rejected payloads diagnosable.
 		log.error(f"Refusing to unpickle disallowed global: module={module!r}, name={name!r}")
 		raise pickle.UnpicklingError(f"Global '{module}.{name}' is forbidden")
 

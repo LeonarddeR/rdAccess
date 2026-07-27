@@ -78,9 +78,7 @@ class TestRestrictedUnpicklingRejections(unittest.TestCase):
 			legacy.loads(payload)
 
 	def test_rejection_is_logged_as_error(self):
-		"""Rejections are logged via log.error, since exceptions raised inside _bgExecutor futures
-		are otherwise swallowed silently.
-		"""
+		"""Rejections are logged via log.error, naming the offending global."""
 		log.records.clear()
 		payload = pickle.dumps(_ReduceGadget(os.system, ("echo pwned",)), protocol=4)
 		with self.assertRaises(pickle.UnpicklingError):

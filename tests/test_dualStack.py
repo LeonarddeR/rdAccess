@@ -5,8 +5,8 @@
 """Tests for the dual-stack send-path switch and protocol version handshake.
 
 Two in-process handlers are wired write-to-receive to simulate a connection.
-The InlineExecutor in FakeHandlerBase makes all dispatch synchronous, so a
-"pump" that forwards captured writes drains the conversation deterministically.
+Dispatch is synchronous, so a "pump" that forwards captured writes drains the
+conversation deterministically.
 """
 
 from __future__ import annotations

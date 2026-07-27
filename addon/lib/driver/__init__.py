@@ -146,7 +146,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 	):
 		log.debug(f"Initializing settings accessor for {len(settings)} settings")
 		self._settingsAccessor = SettingsAccessorBase.createFromSettings(self, settings) if settings else None
-		self._handleRemoteDriverChange()
+		self._queueFunctionOnMainThread(self._handleRemoteDriverChange)
 
 	def _handleRemoteDriverChange(self):
 		log.debug("Handling remote driver change")

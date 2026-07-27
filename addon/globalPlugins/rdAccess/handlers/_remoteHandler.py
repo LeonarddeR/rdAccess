@@ -130,9 +130,12 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 	_incoming_setting = protocol.AttributeReceiver(protocol.SETTING_ATTRIBUTE_PREFIX + "*")
 
 	@_incoming_setting.updateCallback
-	def _setIncomingSettingOnDriver(self, attribute: protocol.AttributeT, value: typing.Any):
+	def _queueIncomingSettingOnDriver(self, attribute: protocol.AttributeT, value: typing.Any):
 		if not configuration.getDriverSettingsManagement():
 			return
+		self._queueFunctionOnMainThread(self._setIncomingSettingOnDriver, attribute, value)
+
+	def _setIncomingSettingOnDriver(self, attribute: protocol.AttributeT, value: typing.Any):
 		name = attribute[len(protocol.SETTING_ATTRIBUTE_PREFIX) :]
 		setattr(self._driver, name, value)
 

@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import sys
-from concurrent.futures import Future
 from typing import Any
 
 from hwIo.base import IoBase
@@ -34,41 +33,13 @@ class FakeIo(IoBase):
 		self.closed = True
 
 
-class InlineExecutor:
-	"""Drop-in for the handler's ThreadPoolExecutor that runs submissions synchronously.
-
-	Exceptions are captured on the returned future, mirroring how a real executor
-	swallows them when the future is discarded.
-	"""
-
-	def __init__(self):
-		self.isShutdown = False
-
-	def submit(self, fn: Any, *args: Any, **kwargs: Any) -> Future:
-		future: Future = Future()
-		try:
-			future.set_result(fn(*args, **kwargs))
-		except BaseException as e:  # noqa: BLE001
-			future.set_exception(e)
-		return future
-
-	def shutdown(self, wait: bool = True, *, cancel_futures: bool = False):
-		self.isShutdown = True
-
-
 class FakeHandlerBase(protocol.RemoteProtocolHandler):
-	"""Concrete RemoteProtocolHandler attached to a FakeIo device.
-
-	Background execution is synchronous (InlineExecutor), so command dispatch and
-	attribute processing triggered through _onReceive complete before it returns.
-	"""
+	"""Concrete RemoteProtocolHandler attached to a FakeIo device."""
 
 	driverType = protocol.DriverType.SPEECH
 
 	def __init__(self):
 		super().__init__()
-		self._bgExecutor.shutdown(wait=False)
-		self._bgExecutor = InlineExecutor()
 		self._dev = FakeIo()
 
 	def _onReadError(self, error: int) -> bool:

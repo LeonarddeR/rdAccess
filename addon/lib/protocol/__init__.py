@@ -10,7 +10,6 @@ import weakref
 from abc import abstractmethod
 from collections import defaultdict
 from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor
 from fnmatch import fnmatch
 from functools import partial, update_wrapper, wraps
 from typing import Any
@@ -329,12 +328,11 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
 		)
 		return handler._defaultValueGetter(self._getOwner(), attribute)
 
-	def _submitAttributeUpdateCallback(self, attribute: AttributeT, value: Any):
+	def _invokeAttributeUpdateCallback(self, attribute: AttributeT, value: Any):
 		handler = self._getRawHandler(attribute)
 		if handler._updateCallback is not None:
 			log.debug(f"Calling update callback {handler._updateCallback!r} for attribute {attribute!r}")
-			owner = self._getOwner()
-			owner._bgExecutor.submit(handler._updateCallback, owner, attribute, value)
+			handler._updateCallback(self._getOwner(), attribute, value)
 
 	def getValue(self, attribute: AttributeT, fallBackToDefault: bool = False):
 		if fallBackToDefault and attribute not in self._values:
@@ -348,7 +346,7 @@ class AttributeValueProcessor(AttributeHandlerStore[AttributeReceiver]):
 	def setValue(self, attribute: AttributeT, value):
 		self._values[attribute] = value
 		self._valueTimes[attribute] = time.perf_counter()
-		self._submitAttributeUpdateCallback(attribute, value)
+		self._invokeAttributeUpdateCallback(attribute, value)
 
 	def __call__(self, attribute: AttributeT, value: Any):
 		log.debug(f"Getting handler on {self!r} to process attribute {attribute!r}")
@@ -368,7 +366,6 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 	_attributeValueProcessor: AttributeValueProcessor
 	timeout: float = 1.0
 	cachePropertiesByDefault = True
-	_bgExecutor: ThreadPoolExecutor
 	# Stateless, so shared by all handlers.
 	_serializer: RdJSONSerializer = RdJSONSerializer()
 	_sendJson: bool = False
@@ -394,7 +391,6 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 
 	def __init__(self):
 		super().__init__()
-		self._bgExecutor = ThreadPoolExecutor(4, thread_name_prefix=self.__class__.__name__)
 		self._receiveBuffer = b""
 		self._sendLock = threading.Lock()
 
@@ -409,10 +405,6 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 		finally:
 			self.terminateIo()
 			self._attributeValueProcessor.clearCache()
-			# Joining the workers can block forever when a thread's native exit is
-			# wedged (e.g. during a session disconnect), freezing NVDA's main thread.
-			# The device is already closed, so lingering tasks only get OSErrors.
-			self._bgExecutor.shutdown(wait=False)
 
 	def _onReceive(self, message: bytes):
 		if self._receiveBuffer:
@@ -428,7 +420,10 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 				if not sep:
 					self._receiveBuffer = line
 					return
-				self._bgExecutor.submit(self._handleJsonLine, line)
+				try:
+					self._handleJsonLine(line)
+				except Exception:
+					log.error(f"Error handling JSON line: {line!r}", exc_info=True)
 			elif firstByte == self.driverType:
 				message = self._parseLegacyFrame(message)
 			else:
@@ -446,7 +441,10 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 			self._receiveBuffer = message
 			return b""
 		command, payload, rest = parsed
-		self._bgExecutor.submit(self._handleLegacyFrame, command, payload)
+		try:
+			self._handleLegacyFrame(command, payload)
+		except Exception:
+			log.error(f"Error handling legacy frame with command {command!r}", exc_info=True)
 		return rest
 
 	def _handleLegacyFrame(self, command: int, payload: bytes):
@@ -546,7 +544,7 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 			data = legacy.packFrame(self.driverType, command, commandPayload)
 		# IoBase.write reuses a single OVERLAPPED structure per device and byte-mode
 		# channels give no message atomicity, so writes from concurrent threads
-		# (main thread, IO thread, background executor) must be serialized.
+		# (main thread, IO thread, braille background thread) must be serialized.
 		with self._sendLock:
 			self._dev.write(data)
 
@@ -563,6 +561,10 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 		self.sendMessage(RdMessageType.ATTRIBUTE_REQUEST, attribute=attribute)
 
 	def _safeWait(self, predicate: Callable[[], bool], timeout: float | None = None):
+		ioThreadRef = getattr(self._dev, "_ioThreadRef", None)
+		ioThread = ioThreadRef() if ioThreadRef is not None else None
+		if ioThread is not None and threading.current_thread() is ioThread:
+			raise RuntimeError("_safeWait may not be called on the device's IO thread")
 		if timeout is None:
 			timeout = self.timeout
 		log.debug(f"Waiting for {predicate!r} during {timeout} seconds")
