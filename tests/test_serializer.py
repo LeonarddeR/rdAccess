@@ -130,6 +130,15 @@ class SupportedCommandsTests(SerializerTestCase):
 		decoded = self.roundTripAttribute("supportedCommands", commands)
 		self.assertEqual(decoded, commands)
 
+	def test_roundTripMutableSet(self):
+		commands = {
+			speech.commands.IndexCommand,
+			speech.commands.PitchCommand,
+			speech.commands.BreakCommand,
+		}
+		decoded = self.roundTripAttribute("supportedCommands", commands)
+		self.assertEqual(decoded, frozenset(commands))
+
 	def test_unknownAndNonCommandNamesDropped(self):
 		data = self.serializer.serialize(
 			type=RdMessageType.ATTRIBUTE_VALUE,

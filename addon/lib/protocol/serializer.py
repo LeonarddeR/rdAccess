@@ -70,7 +70,7 @@ class RdAccessJSONEncoder(json.JSONEncoder):
 			return [o.__class__.__name__, o.export()]
 		if isinstance(o, type) and issubclass(o, speech.commands.SpeechCommand):
 			return o.__name__
-		if isinstance(o, frozenset) and all(isinstance(item, type) for item in o):
+		if isinstance(o, (set, frozenset)) and all(isinstance(item, type) for item in o):
 			return sorted(item.__name__ for item in o)
 		return super().default(o)
 
