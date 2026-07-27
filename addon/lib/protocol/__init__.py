@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import inspect
+import threading
 import time
 import weakref
 from abc import abstractmethod
@@ -395,6 +396,7 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 		super().__init__()
 		self._bgExecutor = ThreadPoolExecutor(4, thread_name_prefix=self.__class__.__name__)
 		self._receiveBuffer = b""
+		self._sendLock = threading.Lock()
 
 	def terminate(self):
 		try:
@@ -407,7 +409,10 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 		finally:
 			self.terminateIo()
 			self._attributeValueProcessor.clearCache()
-			self._bgExecutor.shutdown()
+			# Joining the workers can block forever when a thread's native exit is
+			# wedged (e.g. during a session disconnect), freezing NVDA's main thread.
+			# The device is already closed, so lingering tasks only get OSErrors.
+			self._bgExecutor.shutdown(wait=False)
 
 	def _onReceive(self, message: bytes):
 		if self._receiveBuffer:
@@ -535,10 +540,15 @@ class RemoteProtocolHandler[IoTypeT: IoBase](AutoPropertyObject):
 
 	def sendMessage(self, messageType: RdMessageType, **payload: Any):
 		if self._sendJson:
-			self._dev.write(self._serializer.serialize(type=messageType, **payload))
+			data = self._serializer.serialize(type=messageType, **payload)
 		else:
-			command, data = legacy.encodeCommandPayload(self.driverType, messageType, payload)
-			self._dev.write(legacy.packFrame(self.driverType, command, data))
+			command, commandPayload = legacy.encodeCommandPayload(self.driverType, messageType, payload)
+			data = legacy.packFrame(self.driverType, command, commandPayload)
+		# IoBase.write reuses a single OVERLAPPED structure per device and byte-mode
+		# channels give no message atomicity, so writes from concurrent threads
+		# (main thread, IO thread, background executor) must be serialized.
+		with self._sendLock:
+			self._dev.write(data)
 
 	def setRemoteAttribute(self, attribute: AttributeT, value: Any):
 		log.debug(f"Setting remote attribute {attribute!r} to value {value!r}")
