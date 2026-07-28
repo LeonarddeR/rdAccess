@@ -98,9 +98,14 @@ class SerializerConformanceTests(unittest.TestCase):
 					),
 				)
 
+	def assertSequenceRoundTrips(self, decoded: list, sequence: list):
+		# EndUtteranceCommand defines no __eq__, so compare it by type.
+		self.assertEqual(decoded[:-1], sequence[:-1])
+		self.assertIs(type(decoded[-1]), speech.commands.EndUtteranceCommand)
+
 	def test_crossDeserializeSpeak(self):
 		sequence = self._sampleSequence()
 		fromTheirs = self.ours.deserialize(self.theirs.serialize(type="speak", sequence=sequence))
-		self.assertEqual(fromTheirs["sequence"], sequence)
+		self.assertSequenceRoundTrips(fromTheirs["sequence"], sequence)
 		fromOurs = self.theirs.deserialize(self.ours.serialize(type="speak", sequence=sequence))
-		self.assertEqual(fromOurs["sequence"], sequence)
+		self.assertSequenceRoundTrips(fromOurs["sequence"], sequence)

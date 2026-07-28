@@ -10,7 +10,9 @@ import synthDriverHandler
 import tones
 from hwIo.ioThread import IoThread
 from logHandler import log
-from speech.commands import IndexCommand, PitchCommand
+from speech.commands import PitchCommand
+from speech.extensions import speechCanceled
+from speech.priorities import Spri
 from speech.types import SpeechSequence
 
 from ._remoteHandler import RemoteHandler
@@ -29,16 +31,13 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 	driverType = protocol.DriverType.SPEECH
 
 	def __init__(self, ioThread: IoThread, pipeName: str):
-		self._indexesSpeaking = []
 		super().__init__(ioThread, pipeName)
-		synthDriverHandler.synthIndexReached.register(self._onSynthIndexReached)
-		synthDriverHandler.synthDoneSpeaking.register(self._onSynthDoneSpeaking)
+		speechCanceled.register(self._onSpeechCanceled)
 		synthDriverHandler.synthChanged.register(self._handleDriverChanged)
 
 	def terminate(self):
 		synthDriverHandler.synthChanged.unregister(self._handleDriverChanged)
-		synthDriverHandler.synthDoneSpeaking.unregister(self._onSynthDoneSpeaking)
-		synthDriverHandler.synthIndexReached.unregister(self._onSynthIndexReached)
+		speechCanceled.unregister(self._onSpeechCanceled)
 		super().terminate()
 
 	def _get__driver(self):
@@ -66,24 +65,27 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 		pitchChange = configuration.getIncomingSpeechPitchChange(fromCache=True)
 		if pitchChange != 0 and PitchCommand in self._driver.supportedCommands:
 			sequence = [PitchCommand(offset=pitchChange), *sequence, PitchCommand()]
-		for item in sequence:
-			if isinstance(item, IndexCommand):
-				item.index += protocol.speech.SPEECH_INDEX_OFFSET
-				self._indexesSpeaking.append(item.index)
-		# Send speech to the current synth directly because we don't want unnecessary processing to happen.
-		# We need to change speech state accordingly.
+		sequence = protocol.speech.remapIndexesToCallbacks(sequence, self._sendIndex)
 		assert speech.speech._speechState is not None
 		speech.speech._speechState.isPaused = False
 		speech.speech._speechState.beenCanceled = False
-		self._driver.speak(sequence)
+		speech.speech._manager.speak(sequence, priority=Spri.NORMAL)
+
+	def _sendIndex(self, index: int):
+		try:
+			self.sendMessage(protocol.RdMessageType.INDEX, index=index)
+		except OSError:
+			log.warning("Error sending index", exc_info=True)
+
+	def _onSpeechCanceled(self):
+		self._sendIndex(0)
 
 	@protocol.commandHandler(protocol.RdMessageType.CANCEL)
 	def _command_cancel(self):
-		self._indexesSpeaking.clear()
 		self._queueFunctionOnMainThread(self._cancel, _immediate=True)
 
 	def _cancel(self):
-		self._driver.cancel()
+		speech.speech._manager.cancel()
 		assert speech.speech._speechState is not None
 		speech.speech._speechState.beenCanceled = True
 		speech.speech._speechState.isPaused = False
@@ -108,31 +110,8 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 		kwargs["asynchronous"] = True
 		nvwave.playWaveFile(**kwargs)
 
-	def _onSynthIndexReached(
-		self,
-		synth: synthDriverHandler.SynthDriver | None = None,
-		index: int | None = None,
-	):
-		assert synth == self._driver
-		if index in self._indexesSpeaking:
-			subtractedIndex = index - protocol.speech.SPEECH_INDEX_OFFSET
-			try:
-				self.sendMessage(protocol.RdMessageType.INDEX, index=subtractedIndex)
-			except OSError:
-				log.warning("Error calling _onSynthIndexReached", exc_info=True)
-			self._indexesSpeaking.remove(index)
-
-	def _onSynthDoneSpeaking(self, synth: synthDriverHandler.SynthDriver | None = None):
-		assert synth == self._driver
-		if len(self._indexesSpeaking) > 0:
-			self._indexesSpeaking.clear()
-			try:
-				self.sendMessage(protocol.RdMessageType.INDEX, index=0)
-			except OSError:
-				log.warning("Error calling _onSynthDoneSpeaking", exc_info=True)
-
 	def _handleDriverChanged(self, synth: synthDriverHandler.SynthDriver):
-		self._indexesSpeaking.clear()
+		self._sendIndex(0)
 		super()._handleDriverChanged(synth)
 		self._attributeSenderStore(
 			protocol.SpeechAttribute.SUPPORTED_COMMANDS,

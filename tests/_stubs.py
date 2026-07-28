@@ -4,9 +4,10 @@
 
 """Stand-ins for NVDA runtime modules, installed into ``sys.modules``.
 
-Only leaf modules are stubbed. ``baseObject``, ``extensionPoints``, ``winKernel`` and the
-``hwIo`` submodules are imported for real from the sibling NVDA source checkout; their
-dependencies (``logHandler``, ``garbageHandler``, ``NVDAState``, ``config``) are covered here.
+Only leaf modules are stubbed. ``baseObject``, ``extensionPoints``, ``winKernel``, the
+``hwIo`` submodules and ``speech.commands`` are imported for real from the sibling NVDA source
+checkout; their dependencies (``logHandler``, ``garbageHandler``, ``NVDAState``, ``config``,
+``synthDriverHandler.getSynth``) are covered here.
 """
 
 from __future__ import annotations
@@ -17,12 +18,20 @@ import types
 from pathlib import Path
 from typing import Any
 
+_NVDA_SOURCE = Path(__file__).resolve().parent.parent.parent / "nvda" / "source"
+
 
 class FakeLogger:
 	"""Collects log records so tests can optionally assert on them."""
 
+	DEBUG = 10
+	INFO = 20
+
 	def __init__(self):
 		self.records: list[tuple[str, str]] = []
+
+	def isEnabledFor(self, level: int) -> bool:
+		return False
 
 	def _log(self, level: str, msg: Any, *args: Any, **kwargs: Any):
 		self.records.append((level, str(msg)))
@@ -69,7 +78,10 @@ def install():
 	logHandler.getFormattedStacksForAllThreads = getFormattedStacksForAllThreads
 
 	config = _module("config")
-	config.conf = {"debugLog": {"hwIo": False}}
+	config.conf = {
+		"debugLog": {"hwIo": False, "speechManager": False},
+		"featureFlag": {"cancelExpiredFocusSpeech": 0},
+	}
 
 	garbageHandler = _module("garbageHandler")
 
@@ -165,16 +177,8 @@ def install():
 	brailleInput.BrailleInputGesture = BrailleInputGesture
 
 	speech = _module("speech")
-	speechManager = _module("speech.manager")
-	speech.manager = speechManager
-
-	class SpeechManager:
-		MAX_INDEX = 9999
-
-	speechManager.SpeechManager = SpeechManager
-
-	_installSpeechCommandsStub(speech)
 	_installDriverSettingAndSynthVoiceStubs()
+	_installSpeechCommands(speech)
 	_installInputCoreStub()
 
 
@@ -186,9 +190,8 @@ def _installHwIo() -> None:
 	directory. Submodule imports then resolve against the real sources without that import
 	ever running.
 	"""
-	hwIoPath = Path(__file__).resolve().parent.parent.parent / "nvda" / "source" / "hwIo"
 	hwIo = _module("hwIo")
-	hwIo.__path__ = [str(hwIoPath)]
+	hwIo.__path__ = [str(_NVDA_SOURCE / "hwIo")]
 	hwIo.base = importlib.import_module("hwIo.base")
 	hwIo.ioThread = importlib.import_module("hwIo.ioThread")
 
@@ -205,66 +208,35 @@ def _setStubIdentity(cls: type, module: str) -> None:
 	cls.__qualname__ = cls.__name__
 
 
-def _installSpeechCommandsStub(speech: types.ModuleType) -> None:
-	speechCommands = _module("speech.commands")
+def _installSpeechCommands(speech: types.ModuleType) -> None:
+	"""Make the real ``speech.commands`` (and ``speech.manager`` and its dependencies) importable
+	from the NVDA checkout.
+
+	``speech/__init__.py`` pulls in the full speech subsystem, so like ``hwIo`` the package is
+	registered with ``__path__`` pointing straight at the real sources. ``speech.commands``
+	itself only needs ``config`` and ``synthDriverHandler.getSynth``, both installed above.
+	``speech.languageHandling`` pulls in the full ``speech.speech`` module, so the one function
+	``speech.manager`` needs from it is stubbed instead.
+	"""
+	speech.__path__ = [str(_NVDA_SOURCE / "speech")]
+	speechCommands = importlib.import_module("speech.commands")
 	speech.commands = speechCommands
 
-	class SpeechCommand:
-		pass
-
-	class SynthCommand(SpeechCommand):
-		pass
-
-	class IndexCommand(SynthCommand):
-		def __init__(self, index: int):
-			self.index = index
-
-		def __eq__(self, other: Any) -> bool:
-			return type(self) is type(other) and self.index == other.index
-
-	class SynthParamCommand(SynthCommand):
-		pass
-
-	class BaseProsodyCommand(SynthParamCommand):
-		pass
-
-	class PitchCommand(BaseProsodyCommand):
-		def __init__(self, offset: int = 0):
-			self.offset = offset
-
-		def __eq__(self, other: Any) -> bool:
-			return type(self) is type(other) and self.offset == other.offset
-
-	class BreakCommand(SynthCommand):
-		def __init__(self, time: int = 0):
-			self.time = time
-
-		def __eq__(self, other: Any) -> bool:
-			return type(self) is type(other) and self.time == other.time
-
-	class EndUtteranceCommand(SpeechCommand):
-		def __eq__(self, other: Any) -> bool:
-			return type(self) is type(other)
-
 	class NotASpeechCommand:
-		"""Exists in speech.commands but is not a SpeechCommand subclass; used to test that the
-		dynamic find_class rule for speech.commands rejects it.
+		"""Injected into speech.commands without being a SpeechCommand subclass; used to test
+		that the dynamic find_class rule for speech.commands rejects it.
 		"""
 
-	stubClasses = (
-		SpeechCommand,
-		SynthCommand,
-		IndexCommand,
-		SynthParamCommand,
-		BaseProsodyCommand,
-		PitchCommand,
-		BreakCommand,
-		EndUtteranceCommand,
-		NotASpeechCommand,
-	)
-	for cls in stubClasses:
-		_setStubIdentity(cls, "speech.commands")
-		setattr(speechCommands, cls.__name__, cls)
+	_setStubIdentity(NotASpeechCommand, "speech.commands")
+	speechCommands.NotASpeechCommand = NotASpeechCommand
+
+	speechLanguageHandling = _module("speech.languageHandling")
+
+	def shouldSwitchVoice() -> bool:
+		return True
+
+	speechLanguageHandling.shouldSwitchVoice = shouldSwitchVoice
+	speech.languageHandling = speechLanguageHandling
 
 
 def _installDriverSettingAndSynthVoiceStubs() -> None:
@@ -316,7 +288,24 @@ def _installDriverSettingAndSynthVoiceStubs() -> None:
 	autoSettingsDriverSetting.NumericDriverSetting = NumericDriverSetting
 	autoSettingsDriverSetting.BooleanDriverSetting = BooleanDriverSetting
 
+	from extensionPoints import Action
+
 	synthDriverHandler = _module("synthDriverHandler")
+	synthDriverHandler._currentSynth = None
+
+	def getSynth() -> Any:
+		return synthDriverHandler._currentSynth
+
+	synthDriverHandler.getSynth = getSynth
+	synthDriverHandler.synthIndexReached = Action()
+	synthDriverHandler.synthDoneSpeaking = Action()
+	synthDriverHandler.pre_synthSpeak = Action()
+
+	class SynthDriver:
+		pass
+
+	_setStubIdentity(SynthDriver, "synthDriverHandler")
+	synthDriverHandler.SynthDriver = SynthDriver
 
 	class VoiceInfo(StringParameterInfo):
 		def __init__(self, id: str, displayName: str, language: str | None = None):
