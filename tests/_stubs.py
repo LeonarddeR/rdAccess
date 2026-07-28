@@ -4,15 +4,17 @@
 
 """Stand-ins for NVDA runtime modules, installed into ``sys.modules``.
 
-Only leaf modules are stubbed. ``baseObject`` and ``extensionPoints`` are imported
-for real from the sibling NVDA source checkout; their dependencies (``logHandler``,
-``garbageHandler``, ``NVDAState``) are covered here.
+Only leaf modules are stubbed. ``baseObject``, ``extensionPoints``, ``winKernel`` and the
+``hwIo`` submodules are imported for real from the sibling NVDA source checkout; their
+dependencies (``logHandler``, ``garbageHandler``, ``NVDAState``, ``config``) are covered here.
 """
 
 from __future__ import annotations
 
+import importlib
 import sys
 import types
+from pathlib import Path
 from typing import Any
 
 
@@ -61,6 +63,14 @@ def install():
 	logHandler = _module("logHandler")
 	logHandler.log = FakeLogger()
 
+	def getFormattedStacksForAllThreads() -> str:
+		return ""
+
+	logHandler.getFormattedStacksForAllThreads = getFormattedStacksForAllThreads
+
+	config = _module("config")
+	config.conf = {"debugLog": {"hwIo": False}}
+
 	garbageHandler = _module("garbageHandler")
 
 	class TrackedObject:
@@ -107,21 +117,7 @@ def install():
 	versionInfo = _module("versionInfo")
 	versionInfo.version_detailed = "2026.1.0-test"
 
-	hwIo = _module("hwIo")
-	hwIoBase = _module("hwIo.base")
-	hwIo.base = hwIoBase
-
-	class IoBase:
-		def write(self, data: bytes):
-			raise NotImplementedError
-
-		def waitForRead(self, timeout: float) -> bool:
-			raise NotImplementedError
-
-		def close(self):
-			pass
-
-	hwIoBase.IoBase = IoBase
+	_installHwIo()
 
 	buildVersion = _module("buildVersion")
 	buildVersion.version_year = 2026
@@ -180,6 +176,21 @@ def install():
 	_installSpeechCommandsStub(speech)
 	_installDriverSettingAndSynthVoiceStubs()
 	_installInputCoreStub()
+
+
+def _installHwIo() -> None:
+	"""Make the real ``hwIo.base`` and ``hwIo.ioThread`` importable.
+
+	``hwIo/__init__.py`` pulls in ``comtypes`` via ``hwIo.hid``, which is not a dev dependency,
+	so ``hwIo`` is registered as a module whose ``__path__`` points straight at the package
+	directory. Submodule imports then resolve against the real sources without that import
+	ever running.
+	"""
+	hwIoPath = Path(__file__).resolve().parent.parent.parent / "nvda" / "source" / "hwIo"
+	hwIo = _module("hwIo")
+	hwIo.__path__ = [str(hwIoPath)]
+	hwIo.base = importlib.import_module("hwIo.base")
+	hwIo.ioThread = importlib.import_module("hwIo.ioThread")
 
 
 def _setStubIdentity(cls: type, module: str) -> None:

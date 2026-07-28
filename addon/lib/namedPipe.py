@@ -16,7 +16,6 @@ from enum import IntFlag
 from glob import iglob
 
 import winKernel
-from hwIo.base import IoBase
 from hwIo.ioThread import IoThread
 from serial.win32 import (
 	FILE_FLAG_OVERLAPPED,
@@ -24,6 +23,8 @@ from serial.win32 import (
 	CreateFile,
 )
 from winBindings.kernel32 import PROCESSENTRY32W
+
+from .ioBase import OverlappedIoBase
 
 PIPE_DIRECTORY = "\\\\.\\pipe\\"
 RD_PIPE_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
@@ -73,7 +74,7 @@ class PipeOpenMode(IntFlag):
 MAX_PIPE_MESSAGE_SIZE = 1024 * 64
 
 
-class NamedPipeClient(IoBase):
+class NamedPipeClient(OverlappedIoBase):
 	pipeProcessId: int | None = None
 	pipeParentProcessId: int | None = None
 	pipeMode: PipeMode

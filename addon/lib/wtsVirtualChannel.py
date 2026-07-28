@@ -5,7 +5,6 @@
 from collections.abc import Callable
 from ctypes import (
 	POINTER,
-	GetLastError,
 	Structure,
 	WinError,
 	byref,
@@ -26,11 +25,11 @@ from ctypes.wintypes import (
 )
 
 import winKernel
-from hwIo.base import IoBase, _isDebug
 from hwIo.ioThread import IoThread
-from logHandler import log
-from serial.win32 import ERROR_IO_PENDING, INVALID_HANDLE_VALUE
+from serial.win32 import INVALID_HANDLE_VALUE
 from winAPI import _wtsApi32
+
+from .ioBase import OverlappedIoBase
 
 WTS_CHANNEL_OPTION_DYNAMIC = 0x00000001
 WTS_CHANNEL_OPTION_DYNAMIC_PRI_HIGH = 0x00000004
@@ -104,7 +103,7 @@ def getRemoteSessionMetrics() -> bool:
 	return bool(GetSystemMetrics(SM_REMOTESESSION))
 
 
-class WTSVirtualChannel(IoBase):
+class WTSVirtualChannel(OverlappedIoBase):
 	_rawOutput: bool
 
 	def __init__(
@@ -163,6 +162,8 @@ class WTSVirtualChannel(IoBase):
 			winKernel.closeHandle(self._file)
 			self._file = INVALID_HANDLE_VALUE
 
+	_read = OverlappedIoBase._syncRead
+
 	def _notifyReceive(self, data: bytes):
 		if self._rawOutput:
 			return super()._notifyReceive(data)
@@ -177,19 +178,3 @@ class WTSVirtualChannel(IoBase):
 				assert len(buffer) == header.length
 				return super()._notifyReceive(bytes(buffer))
 			dataToProcess = self._read()
-
-	def _read(self) -> bytes:
-		byteData = DWORD()
-		if not windll.kernel32.ReadFile(
-			self._file,
-			self._readBuf,
-			self._readSize,
-			byref(byteData),
-			byref(self._readOl),
-		):
-			if GetLastError() != ERROR_IO_PENDING:
-				if _isDebug():
-					log.debug(f"Read failed: {WinError()}")
-				raise WinError()
-			windll.kernel32.GetOverlappedResult(self._file, byref(self._readOl), byref(byteData), True)
-		return self._readBuf.raw[: byteData.value]
