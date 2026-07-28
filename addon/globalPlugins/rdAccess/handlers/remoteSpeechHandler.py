@@ -60,7 +60,7 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 
 	@protocol.commandHandler(protocol.RdMessageType.SPEAK)
 	def _command_speak(self, sequence: SpeechSequence):
-		self._queueFunctionOnMainThread(self._speak, sequence)
+		self._queueFunctionOnMainThread(self._speak, sequence, _immediate=True)
 
 	def _speak(self, sequence: SpeechSequence):
 		pitchChange = configuration.getIncomingSpeechPitchChange(fromCache=True)
@@ -80,7 +80,7 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 	@protocol.commandHandler(protocol.RdMessageType.CANCEL)
 	def _command_cancel(self):
 		self._indexesSpeaking.clear()
-		self._queueFunctionOnMainThread(self._cancel)
+		self._queueFunctionOnMainThread(self._cancel, _immediate=True)
 
 	def _cancel(self):
 		self._driver.cancel()
@@ -90,7 +90,7 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 
 	@protocol.commandHandler(protocol.RdMessageType.PAUSE_SPEECH)
 	def _command_pause(self, switch: bool):
-		self._queueFunctionOnMainThread(self._pause, switch)
+		self._queueFunctionOnMainThread(self._pause, switch, _immediate=True)
 
 	def _pause(self, switch: bool):
 		speech.pauseSpeech(switch)

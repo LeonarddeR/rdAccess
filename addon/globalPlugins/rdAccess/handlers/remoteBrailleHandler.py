@@ -93,7 +93,7 @@ class RemoteBrailleHandler(RemoteHandler[nvdaCompat.BrailleDisplayDriver]):
 			with self._queuedWriteLock:
 				self._queuedWrite = cells
 			if not braille.handler.enabled and self.hasFocus:
-				self._queueFunctionOnMainThread(self._performLocalWriteCells)
+				self._queueFunctionOnMainThread(self._performLocalWriteCells, _immediate=True)
 			elif self._remoteSessionhasFocus is False:
 				self.requestRemoteAttribute(protocol.GenericAttribute.TIME_SINCE_INPUT)
 
@@ -107,7 +107,7 @@ class RemoteBrailleHandler(RemoteHandler[nvdaCompat.BrailleDisplayDriver]):
 
 	def _handleRemoteSessionGainFocus(self):
 		super()._handleRemoteSessionGainFocus()
-		self._queueFunctionOnMainThread(self._performLocalWriteCells)
+		self._queueFunctionOnMainThread(self._performLocalWriteCells, _immediate=True)
 
 	def _handleExecuteGesture(self, gesture):
 		assert braille.handler is not None
