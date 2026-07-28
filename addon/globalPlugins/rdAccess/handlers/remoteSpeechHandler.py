@@ -32,12 +32,12 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 
 	def __init__(self, ioThread: IoThread, pipeName: str):
 		super().__init__(ioThread, pipeName)
-		speechCanceled.register(self._onSpeechCanceled)
+		speechCanceled.register(self._notifyDoneSpeaking)
 		synthDriverHandler.synthChanged.register(self._handleDriverChanged)
 
 	def terminate(self):
 		synthDriverHandler.synthChanged.unregister(self._handleDriverChanged)
-		speechCanceled.unregister(self._onSpeechCanceled)
+		speechCanceled.unregister(self._notifyDoneSpeaking)
 		super().terminate()
 
 	def _get__driver(self):
@@ -77,7 +77,7 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 		except OSError:
 			log.warning("Error sending index", exc_info=True)
 
-	def _onSpeechCanceled(self):
+	def _notifyDoneSpeaking(self):
 		self._sendIndex(0)
 
 	@protocol.commandHandler(protocol.RdMessageType.CANCEL)
@@ -111,7 +111,7 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 		nvwave.playWaveFile(**kwargs)
 
 	def _handleDriverChanged(self, synth: synthDriverHandler.SynthDriver):
-		self._sendIndex(0)
+		self._notifyDoneSpeaking()
 		super()._handleDriverChanged(synth)
 		self._attributeSenderStore(
 			protocol.SpeechAttribute.SUPPORTED_COMMANDS,
