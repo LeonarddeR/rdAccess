@@ -46,7 +46,9 @@ class SpeakSequenceTests(SerializerTestCase):
 			speech.commands.EndUtteranceCommand(),
 		]
 		obj = self.roundTrip(RdMessageType.SPEAK, sequence=sequence)
-		self.assertEqual(obj["sequence"], sequence)
+		# EndUtteranceCommand defines no __eq__, so compare it by type.
+		self.assertEqual(obj["sequence"][:-1], sequence[:-1])
+		self.assertIs(type(obj["sequence"][-1]), speech.commands.EndUtteranceCommand)
 
 	def test_unknownClassSkipped(self):
 		data = b'{"sequence": ["hi", ["NoSuchCommand", {}]], "type": "speak"}\n'
