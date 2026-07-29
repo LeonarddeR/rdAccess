@@ -22,6 +22,11 @@ This enables a user experience where managing a remote system feels as seamless 
 
 ## Changelog
 
+### Version 2.0.1
+
+* When remote speech is switched on automatically, it now keeps speaking after a configuration profile switch. Previously, NVDA fell back to the synthesizer you have configured as soon as a profile was activated, for example when you moved to an application with its own profile.
+* Renamed the option "Automatically recover remote speech after connection loss" to "Automatically switch to remote speech when available", which better describes what it does.
+
 ### Version 2.0
 
 * Speech and braille coming from the remote system are now presented sooner, which makes working in a remote session feel more responsive.

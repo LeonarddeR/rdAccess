@@ -26,8 +26,8 @@ else:
 
 
 class SynthDetector(AutoPropertyObject):
-	#: NVDA's own synthesizer profile switch handler, while replaced by ours.
 	_nvdaHandlePostConfigProfileSwitch: Callable[[bool], None] | None = None
+	"""NVDA's own synthesizer profile switch handler, while replaced by ours."""
 
 	def __init__(self):
 		remoteSynthDriver.synthRemoteDisconnected.register(self._handleRemoteDisconnect)
