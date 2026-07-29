@@ -58,9 +58,9 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		serverGroup = guiHelper.BoxSizerHelper(self, sizer=serverGroupSizer)  # ty: ignore[invalid-argument-type]
 		sizer_helper.addItem(serverGroup)
 
-		# Translators: The label for a setting in RDAccess settings to enable
-		# automatic recovery of remote speech when the connection was lost.
-		recoverRemoteSpeechText = _("&Automatically recover remote speech after connection loss")
+		# Translators: The label for a setting in RDAccess settings to let NVDA
+		# activate remote speech whenever a remote session offers it.
+		recoverRemoteSpeechText = _("&Automatically switch to remote speech when available")
 		self.recoverRemoteSpeechCheckbox = serverGroup.addItem(
 			wx.CheckBox(serverGroupBox, label=recoverRemoteSpeechText),
 		)

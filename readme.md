@@ -109,10 +109,11 @@ Choose between:
 To ensure a smooth start with the add-on, all options are enabled by default.
 However, you are encouraged to disable server or client mode as appropriate.
 
-### Automatically Recover Remote Speech after Connection Loss
+### Automatically Switch to Remote Speech when Available
 
 This option is only available in server mode.
-It ensures that the connection will automatically be re-established when the Remote Speech synthesizer is active and the connection is lost, similar to braille display auto-detection.
+It ensures that Remote Speech is activated as soon as a remote desktop client offers it, similar to braille display auto-detection, and that the connection is automatically re-established when it is lost.
+While Remote Speech is active this way, your configured synthesizer is left untouched, and switching configuration profiles no longer falls back to it.
 
 This option is enabled by default.
 It is strongly encouraged to leave this option enabled if the Remote Desktop server has no audio output.
