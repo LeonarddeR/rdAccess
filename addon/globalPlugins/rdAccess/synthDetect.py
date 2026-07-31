@@ -69,6 +69,7 @@ class SynthDetector(AutoPropertyObject):
 		original = synthDriverHandler.handlePostConfigProfileSwitch
 		if not config.post_configProfileSwitch.unregister(original):
 			log.debugWarning("NVDA's synthesizer profile switch handler was not registered")
+			return
 		self._nvdaHandlePostConfigProfileSwitch = original
 		handler = self._handlePostConfigProfileSwitch
 		config.post_configProfileSwitch.register(handler)
