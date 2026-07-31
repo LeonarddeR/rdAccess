@@ -4,6 +4,7 @@
 
 import threading
 import typing
+from collections.abc import Callable
 from concurrent.futures import Future, ThreadPoolExecutor
 
 import addonHandler
@@ -25,11 +26,15 @@ else:
 
 
 class SynthDetector(AutoPropertyObject):
+	_nvdaHandlePostConfigProfileSwitch: Callable[[bool], None] | None = None
+	"""NVDA's own synthesizer profile switch handler, while replaced by ours."""
+
 	def __init__(self):
 		remoteSynthDriver.synthRemoteDisconnected.register(self._handleRemoteDisconnect)
 		self._executor = ThreadPoolExecutor(1, thread_name_prefix=self.__class__.__name__)
 		self._queuedFuture: Future | None = None
 		self._stopEvent = threading.Event()
+		self._takeOverPostConfigProfileSwitch()
 
 	currentSynthesizer: synthDriverHandler.SynthDriver
 
@@ -53,6 +58,46 @@ class SynthDetector(AutoPropertyObject):
 	def _get_isRemoteSynthConfigured(self):
 		assert config.conf is not None
 		return config.conf[remoteSynthDriver._configSection]["synth"] == remoteSynthDriver.name
+
+	def _takeOverPostConfigProfileSwitch(self):
+		"""Puts our own handler in NVDA's place, both on L{config.post_configProfileSwitch}
+		and as L{synthDriverHandler.handlePostConfigProfileSwitch},
+		at the start of the registration order.
+		"""
+		if self._nvdaHandlePostConfigProfileSwitch is not None:
+			return
+		original = synthDriverHandler.handlePostConfigProfileSwitch
+		if not config.post_configProfileSwitch.unregister(original):
+			log.debugWarning("NVDA's synthesizer profile switch handler was not registered")
+			return
+		self._nvdaHandlePostConfigProfileSwitch = original
+		handler = self._handlePostConfigProfileSwitch
+		config.post_configProfileSwitch.register(handler)
+		config.post_configProfileSwitch.moveToEnd(handler, last=False)
+		synthDriverHandler.handlePostConfigProfileSwitch = handler  # ty: ignore[invalid-assignment]
+
+	def _restorePostConfigProfileSwitch(self):
+		"""Reverses L{_takeOverPostConfigProfileSwitch}.
+		The module attribute is only restored when it still holds our handler.
+		"""
+		original = self._nvdaHandlePostConfigProfileSwitch
+		if original is None:
+			return
+		self._nvdaHandlePostConfigProfileSwitch = None
+		handler = self._handlePostConfigProfileSwitch
+		config.post_configProfileSwitch.unregister(handler)
+		config.post_configProfileSwitch.register(original)
+		config.post_configProfileSwitch.moveToEnd(original, last=False)
+		if synthDriverHandler.handlePostConfigProfileSwitch != handler:
+			return
+		synthDriverHandler.handlePostConfigProfileSwitch = original  # ty: ignore[invalid-assignment]
+
+	def _handlePostConfigProfileSwitch(self, resetSpeechIfNeeded: bool = True):
+		"""Skips NVDA's synthesizer reload while remote speech is active without being configured."""
+		if self.isRemoteSynthActive and not self.isRemoteSynthConfigured:
+			return
+		assert self._nvdaHandlePostConfigProfileSwitch is not None
+		self._nvdaHandlePostConfigProfileSwitch(resetSpeechIfNeeded)
 
 	def _handleRemoteDisconnect(self, synth: remoteSynthDriver):
 		log.error(f"Handling remote disconnect for {synth!r}")
@@ -112,6 +157,7 @@ class SynthDetector(AutoPropertyObject):
 		self._queueBgScan(force)
 
 	def terminate(self):
+		self._restorePostConfigProfileSwitch()
 		remoteSynthDriver.synthRemoteDisconnected.unregister(self._handleRemoteDisconnect)
 		self._stopBgScan()
 		self._executor.shutdown(wait=False)
