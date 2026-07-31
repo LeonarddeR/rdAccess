@@ -5,13 +5,15 @@
 """Stand-ins for NVDA runtime modules, installed into ``sys.modules``.
 
 Only leaf modules are stubbed. ``baseObject``, ``extensionPoints``, ``winKernel``, the
-``hwIo`` submodules and ``speech.commands`` are imported for real from the sibling NVDA source
-checkout; their dependencies (``logHandler``, ``garbageHandler``, ``NVDAState``, ``config``,
-``synthDriverHandler.getSynth``) are covered here.
+``hwIo`` submodules, ``speech.commands`` and ``braille.constants`` are imported for real from the
+sibling NVDA source checkout; their dependencies (``logHandler``, ``garbageHandler``, ``NVDAState``,
+``config``, ``synthDriverHandler.getSynth``) are covered here, as is the ``_`` gettext builtin that
+NVDA installs at startup.
 """
 
 from __future__ import annotations
 
+import gettext
 import importlib
 import sys
 import types
@@ -68,6 +70,9 @@ def install():
 	"""Install all stub modules. Idempotent; must run before importing ``lib.protocol``."""
 	if "logHandler" in sys.modules:
 		return
+
+	# Binds `_` into builtins, which modules imported from the NVDA checkout expect.
+	gettext.NullTranslations().install()
 
 	logHandler = _module("logHandler")
 	logHandler.log = FakeLogger()
@@ -135,46 +140,7 @@ def install():
 	buildVersion.version_year = 2026
 	buildVersion.version_major = 3
 
-	braille = _module("braille")
-	brailleDisplay = _module("braille.display")
-	braille.display = brailleDisplay
-	brailleDisplayGesture = _module("braille.display.gesture")
-	brailleDisplay.gesture = brailleDisplayGesture
-	brailleDisplayDriver = _module("braille.display.driver")
-	brailleDisplay.driver = brailleDisplayDriver
-	brailleConstants = _module("braille.constants")
-	braille.constants = brailleConstants
-	brailleExtensions = _module("braille.extensions")
-	braille.extensions = brailleExtensions
-
-	class BrailleDisplayGesture:
-		cellIndexes: list[int] | None = None
-
-		@property
-		def routingIndex(self) -> int | None:
-			return max(self.cellIndexes) if self.cellIndexes else None
-
-		@routingIndex.setter
-		def routingIndex(self, value: int | None) -> None:
-			self.cellIndexes = [value] if value is not None else None
-
-	brailleDisplayGesture.BrailleDisplayGesture = BrailleDisplayGesture
-
-	class BrailleDisplayDriver:
-		pass
-
-	brailleDisplayDriver.BrailleDisplayDriver = BrailleDisplayDriver
-
-	brailleConstants.AUTOMATIC_PORT = ("auto", "Automatic")
-	brailleExtensions.decide_enabled = object()
-	brailleExtensions.displayChanged = object()
-
-	brailleInput = _module("brailleInput")
-
-	class BrailleInputGesture:
-		pass
-
-	brailleInput.BrailleInputGesture = BrailleInputGesture
+	_installBraille()
 
 	speech = _module("speech")
 	_installDriverSettingAndSynthVoiceStubs()
@@ -194,6 +160,59 @@ def _installHwIo() -> None:
 	hwIo.__path__ = [str(_NVDA_SOURCE / "hwIo")]
 	hwIo.base = importlib.import_module("hwIo.base")
 	hwIo.ioThread = importlib.import_module("hwIo.ioThread")
+
+
+def _installBraille() -> None:
+	"""Cover the ``braille`` submodules that ``nvdaCompat`` reaches for on NVDA 2026.3.
+
+	Like ``hwIo``, the ``braille`` package is registered with ``__path__`` pointing straight at the
+	real sources, so ``braille.constants`` (which imports nothing but ``typing``) resolves against
+	the NVDA checkout without ``braille/__init__.py`` ever running. The remaining submodules are
+	pre-registered as stubs, both because they bottom out in ``inputCore.InputGesture`` and
+	``bdDetect``, and so that the import above cannot pull them in.
+	"""
+	braille = _module("braille")
+	braille.__path__ = [str(_NVDA_SOURCE / "braille")]
+	brailleDisplay = _module("braille.display")
+	braille.display = brailleDisplay
+	brailleDisplayGesture = _module("braille.display.gesture")
+	brailleDisplay.gesture = brailleDisplayGesture
+	brailleDisplayDriver = _module("braille.display.driver")
+	brailleDisplay.driver = brailleDisplayDriver
+	brailleExtensions = _module("braille.extensions")
+	braille.extensions = brailleExtensions
+	brailleInput = _module("braille.input")
+	braille.input = brailleInput
+	brailleInputGesture = _module("braille.input.gesture")
+	brailleInput.gesture = brailleInputGesture
+
+	braille.constants = importlib.import_module("braille.constants")
+
+	class BrailleDisplayGesture:
+		cellIndexes: list[int] | None = None
+
+		@property
+		def routingIndex(self) -> int | None:
+			return max(self.cellIndexes) if self.cellIndexes else None
+
+		@routingIndex.setter
+		def routingIndex(self, value: int | None) -> None:
+			self.cellIndexes = [value] if value is not None else None
+
+	brailleDisplayGesture.BrailleDisplayGesture = BrailleDisplayGesture
+
+	class BrailleDisplayDriver:
+		pass
+
+	brailleDisplayDriver.BrailleDisplayDriver = BrailleDisplayDriver
+
+	brailleExtensions.decide_enabled = object()
+	brailleExtensions.displayChanged = object()
+
+	class BrailleInputGesture:
+		pass
+
+	brailleInputGesture.BrailleInputGesture = BrailleInputGesture
 
 
 def _setStubIdentity(cls: type, module: str) -> None:

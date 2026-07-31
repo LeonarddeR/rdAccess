@@ -4,9 +4,11 @@
 
 from enum import IntEnum, StrEnum
 
-import brailleInput
-
-from ..nvdaCompat import BrailleDisplayGesture as _BrailleDisplayGesture, applyRoutingIndex
+from ..nvdaCompat import (
+	BrailleDisplayGesture as _BrailleDisplayGesture,
+	BrailleInputGesture as _BrailleInputGesture,
+	applyRoutingIndex,
+)
 
 
 class BrailleCommand(IntEnum):
@@ -25,7 +27,7 @@ class BrailleAttribute(StrEnum):
 GESTURE_FIELDS = ("source", "id", "routingIndex", "model", "dots", "space")
 
 
-class BrailleInputGesture(_BrailleDisplayGesture, brailleInput.BrailleInputGesture):
+class BrailleInputGesture(_BrailleDisplayGesture, _BrailleInputGesture):
 	def __init__(
 		self,
 		source: str,

@@ -6,7 +6,6 @@ import threading
 import typing
 
 import braille
-import brailleInput
 import inputCore
 from brailleViewer import postBrailleViewerToolToggledAction
 from hwIo import IoThread
@@ -122,7 +121,7 @@ class RemoteBrailleHandler(RemoteHandler[nvdaCompat.BrailleDisplayDriver]):
 				"routingIndex": nvdaCompat.getRoutingIndex(gesture),
 				"model": gesture.model,
 			}
-			if isinstance(gesture, brailleInput.BrailleInputGesture):
+			if isinstance(gesture, nvdaCompat.BrailleInputGesture):
 				kwargs["dots"] = gesture.dots
 				kwargs["space"] = gesture.space
 			try:
