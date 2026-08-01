@@ -5,4 +5,5 @@
 * The minimum compatible NVDA version is now 2026.1. Removed support for earlier versions.
 * Adapted to the braille changes introduced in NVDA 2026.3.
 * Updated RD Pipe dependency to version 0.9.0.
+* On ARM64 versions of Windows, remote desktop clients that run under x64 emulation can now use RDAccess.
 * RDAccess is now licensed under the GNU General Public License version 2 or later.

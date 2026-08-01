@@ -9,7 +9,7 @@ RDAccess (Remote Desktop Accessibility): NVDA add-on bridging speech and braille
 Sibling source repos (paths relative to this repo):
 
 * `..\nvda` — NVDA source. Look here for any NVDA-side API used by this add-on (`hwIo.ioThread`, `braille`, `synthDriverHandler`, `extensionPoints`, `winBindings.kernel32`, etc.). The add-on imports many internal NVDA modules; check there before guessing signatures.
-* `..\rd_pipe-rs` — `rd_pipe.dll` source (Rust). Implements the Windows RDS Dynamic Virtual Channel COM server and bridges each DVC to a named pipe `\\.\pipe\RdPipe\<session>\<channel>`. The DLL is shipped pre-built under `addon/dll/{x86,x64,arm64}/rd_pipe.dll` and registered as in-proc COM server (CLSID `{D1F74DC7-9FDE-45BE-9251-FA72D4064DA3}`) on the **client** side. Channels: `NVDA-SPEECH`, `NVDA-BRAILLE`.
+* `..\rd_pipe-rs` — `rd_pipe.dll` source (Rust). Implements the Windows RDS Dynamic Virtual Channel COM server and bridges each DVC to a named pipe `\\.\pipe\RdPipe\<session>\<channel>`. The DLL is shipped pre-built under `addon/dll/{x86,x64,arm64}/rd_pipe.dll` and registered as in-proc COM server (CLSID `{D1F74DC7-9FDE-45BE-9251-FA72D4064DA3}`) on the **client** side. Channels: `NVDA-SPEECH`, `NVDA-BRAILLE`. The `arm64` folder holds the upstream **ARM64X** build (a hybrid image containing both ARM64 and ARM64EC code), because on ARM64 Windows the single registered path under the 64-bit registry view is loaded by both native ARM64 and x64-emulated client processes. `.github/workflows/update_rd_pipe_dlls.yml` therefore sources that folder from the upstream zip's `arm64x/`, not `arm64/`.
 
 ## Build / Lint
 

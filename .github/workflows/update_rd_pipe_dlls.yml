@@ -60,11 +60,12 @@ jobs:
           dest="$RUNNER_TEMP/rdpipe/extracted"
           mkdir -p "$dest"
           unzip -o "$RUNNER_TEMP/rdpipe/$ASSET_NAME" \
-            'arm64/rd_pipe.dll' 'x86/rd_pipe.dll' 'x64/rd_pipe.dll' \
+            'arm64x/rd_pipe.dll' 'x86/rd_pipe.dll' 'x64/rd_pipe.dll' \
             -d "$dest"
-          for arch in arm64 x86 x64; do
+          for arch in arm64x x86 x64; do
             test -f "$dest/$arch/rd_pipe.dll" || { echo "Missing $arch/rd_pipe.dll in zip" >&2; exit 1; }
           done
+          mv "$dest/arm64x" "$dest/arm64"
 
       - name: Compare SHA256 hashes
         if: env.SKIP != '1'
@@ -122,6 +123,8 @@ jobs:
           Upstream release: $RELEASE_URL
           Tag: \`$TAG\`
           Changed architectures: $CHANGED_ARCHES
+
+          The \`arm64\` DLL is taken from the upstream \`arm64x\` build.
           EOF
           )
           pr_url=$(gh pr create \
