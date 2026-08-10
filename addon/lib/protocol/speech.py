@@ -33,7 +33,7 @@ class SpeechAttribute(StrEnum):
 def encodeSupportedLanguages(languages: Iterable[str | None]) -> list[str | None]:
 	"""Encode a supported languages set as a deterministically ordered, JSON-safe list.
 
-	``None`` (a voice without language information) sorts last.
+	``None`` sorts last.
 	"""
 	return sorted(languages, key=lambda lang: (lang is None, lang or ""))
 
