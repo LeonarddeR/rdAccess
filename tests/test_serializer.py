@@ -152,11 +152,11 @@ class SupportedCommandsTests(SerializerTestCase):
 		self.assertEqual(decoded, frozenset((speech.commands.IndexCommand,)))
 
 
-class SupportedLanguagesTests(SerializerTestCase):
+class AvailableLanguagesTests(SerializerTestCase):
 	def test_listPassesThroughUntouched(self):
 		"""Must not hit _decodeAvailableValues despite naming a language capability."""
 		languages = ["en", "nl_NL", None]
-		decoded = self.roundTripAttribute(SpeechAttribute.SUPPORTED_LANGUAGES, languages)
+		decoded = self.roundTripAttribute(SpeechAttribute.AVAILABLE_LANGUAGES, languages)
 		self.assertEqual(decoded, languages)
 
 

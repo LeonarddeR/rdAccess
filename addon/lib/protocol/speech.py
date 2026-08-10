@@ -27,19 +27,20 @@ class SpeechCommand(IntEnum):
 class SpeechAttribute(StrEnum):
 	SUPPORTED_COMMANDS = "supportedCommands"
 	LANGUAGE = "language"
-	SUPPORTED_LANGUAGES = "supportedLanguages"
+	AVAILABLE_LANGUAGES = "_availableLanguages"
+	"""Leading underscore keeps the name outside the ``available*s`` setting values namespace."""
 
 
-def encodeSupportedLanguages(languages: Iterable[str | None]) -> list[str | None]:
-	"""Encode a supported languages set as a deterministically ordered, JSON-safe list.
+def encodeAvailableLanguages(languages: Iterable[str | None]) -> list[str | None]:
+	"""Encode an available languages set as a deterministically ordered, JSON-safe list.
 
 	``None`` sorts last.
 	"""
 	return sorted(languages, key=lambda lang: (lang is None, lang or ""))
 
 
-def decodeSupportedLanguages(value: object, fallback: AbstractSet[str | None]) -> set[str | None]:
-	"""Decode an incoming supported languages value to a set.
+def decodeAvailableLanguages(value: object, fallback: AbstractSet[str | None]) -> set[str | None]:
+	"""Decode an incoming available languages value to a set.
 
 	Members other than ``str`` and ``None`` are dropped; a malformed or empty value
 	decodes to a copy of ``fallback``.
