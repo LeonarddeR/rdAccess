@@ -15,6 +15,7 @@ from autoSettingsUtils.driverSetting import BooleanDriverSetting, DriverSetting,
 from autoSettingsUtils.utils import StringParameterInfo
 from lib.protocol.messages import RdMessageType
 from lib.protocol.serializer import RdJSONSerializer
+from lib.protocol.speech import SpeechAttribute
 from logHandler import log
 from synthDriverHandler import VoiceInfo
 
@@ -149,6 +150,14 @@ class SupportedCommandsTests(SerializerTestCase):
 		)
 		decoded = self.serializer.deserialize(data)["value"]
 		self.assertEqual(decoded, frozenset((speech.commands.IndexCommand,)))
+
+
+class SupportedLanguagesTests(SerializerTestCase):
+	def test_listPassesThroughUntouched(self):
+		"""Must not hit _decodeAvailableValues despite naming a language capability."""
+		languages = ["en", "nl_NL", None]
+		decoded = self.roundTripAttribute(SpeechAttribute.SUPPORTED_LANGUAGES, languages)
+		self.assertEqual(decoded, languages)
 
 
 class GestureMapTests(SerializerTestCase):

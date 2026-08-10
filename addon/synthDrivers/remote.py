@@ -129,6 +129,20 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 	def _get_language(self):
 		return self._getRemoteAttributeValueWithFallback(protocol.SpeechAttribute.LANGUAGE)
 
+	@protocol.attributeReceiver(protocol.SpeechAttribute.SUPPORTED_LANGUAGES)
+	def _incoming_supportedLanguages(self, languages: list[str | None]) -> set[str | None]:
+		return protocol.speech.decodeSupportedLanguages(languages, {self.language})
+
+	@_incoming_supportedLanguages.defaultValueGetter
+	def _default_supportedLanguages(self, _attribute: str) -> set[str | None]:
+		return {self.language}
+
+	def _get_availableLanguages(self) -> set[str | None]:
+		return self._getRemoteAttributeValueWithFallback(protocol.SpeechAttribute.SUPPORTED_LANGUAGES)
+
+	def _getAvailableVoices(self) -> OrderedDict[str, synthDriverHandler.VoiceInfo]:
+		return OrderedDict()
+
 	@protocol.commandHandler(protocol.RdMessageType.INDEX)
 	def _command_indexReached(self, index: int):
 		if index:
