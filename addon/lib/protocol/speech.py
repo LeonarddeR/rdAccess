@@ -10,7 +10,7 @@ from enum import IntEnum, StrEnum
 from speech.commands import BaseCallbackCommand, IndexCommand
 
 if typing.TYPE_CHECKING:
-	from collections.abc import Callable
+	from collections.abc import Callable, Iterable, Set as AbstractSet
 
 	from speech.types import SpeechSequence
 
@@ -27,6 +27,28 @@ class SpeechCommand(IntEnum):
 class SpeechAttribute(StrEnum):
 	SUPPORTED_COMMANDS = "supportedCommands"
 	LANGUAGE = "language"
+	AVAILABLE_LANGUAGES = "_availableLanguages"
+	"""Leading underscore keeps the name outside the ``available*s`` setting values namespace."""
+
+
+def encodeAvailableLanguages(languages: Iterable[str | None]) -> list[str | None]:
+	"""Encode an available languages set as a deterministically ordered, JSON-safe list.
+
+	``None`` sorts last.
+	"""
+	return sorted(languages, key=lambda lang: (lang is None, lang or ""))
+
+
+def decodeAvailableLanguages(value: object, fallback: AbstractSet[str | None]) -> set[str | None]:
+	"""Decode an incoming available languages value to a set.
+
+	Members other than ``str`` and ``None`` are dropped; a malformed or empty value
+	decodes to a copy of ``fallback``.
+	"""
+	if not isinstance(value, (list, tuple, set, frozenset)):
+		return set(fallback)
+	languages = {lang for lang in value if lang is None or isinstance(lang, str)}
+	return languages or set(fallback)
 
 
 class RemoteIndexCallbackCommand(BaseCallbackCommand):

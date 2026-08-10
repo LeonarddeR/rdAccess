@@ -57,6 +57,23 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 			language = self._driver.language
 		return language
 
+	@protocol.attributeSender(protocol.SpeechAttribute.AVAILABLE_LANGUAGES)
+	def _outgoing_availableLanguages(
+		self,
+		languages: list[str | None] | None = None,
+	) -> list[str | None]:
+		if languages is None:
+			languages = self._getAvailableLanguages(self._driver)
+		return languages
+
+	@staticmethod
+	def _getAvailableLanguages(synth: synthDriverHandler.SynthDriver) -> list[str | None]:
+		try:
+			languages = synth.availableLanguages
+		except NotImplementedError:
+			languages = {synth.language}
+		return protocol.speech.encodeAvailableLanguages(languages)
+
 	@protocol.commandHandler(protocol.RdMessageType.SPEAK)
 	def _command_speak(self, sequence: SpeechSequence):
 		self._queueFunctionOnMainThread(self._speak, sequence, _immediate=True)
@@ -118,3 +135,7 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 			commands=synth.supportedCommands,
 		)
 		self._attributeSenderStore(protocol.SpeechAttribute.LANGUAGE, language=synth.language)
+		self._attributeSenderStore(
+			protocol.SpeechAttribute.AVAILABLE_LANGUAGES,
+			languages=self._getAvailableLanguages(synth),
+		)

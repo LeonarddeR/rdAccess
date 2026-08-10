@@ -37,6 +37,7 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 		synthDriverHandler.synthDoneSpeaking,
 	}
 	driverType = protocol.DriverType.SPEECH
+	_availableVoices: typing.ClassVar[OrderedDict[str, synthDriverHandler.VoiceInfo]] = OrderedDict()
 	synthRemoteDisconnected = Action()
 	fallbackSynth: str = AUTOMATIC_PORT[0]
 	_localSettings: typing.ClassVar = [
@@ -128,6 +129,17 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 
 	def _get_language(self):
 		return self._getRemoteAttributeValueWithFallback(protocol.SpeechAttribute.LANGUAGE)
+
+	@protocol.attributeReceiver(protocol.SpeechAttribute.AVAILABLE_LANGUAGES)
+	def _incoming_availableLanguages(self, languages: list[str | None]) -> set[str | None]:
+		return protocol.speech.decodeAvailableLanguages(languages, {self.language})
+
+	@_incoming_availableLanguages.defaultValueGetter
+	def _default_availableLanguages(self, _attribute: str) -> set[str | None]:
+		return {self.language}
+
+	def _get_availableLanguages(self) -> set[str | None]:
+		return self._getRemoteAttributeValueWithFallback(protocol.SpeechAttribute.AVAILABLE_LANGUAGES)
 
 	@protocol.commandHandler(protocol.RdMessageType.INDEX)
 	def _command_indexReached(self, index: int):
