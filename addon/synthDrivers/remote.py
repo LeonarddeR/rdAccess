@@ -2,6 +2,8 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0 or later
 
+from __future__ import annotations
+
 import os.path
 import typing
 from collections import OrderedDict
@@ -112,6 +114,16 @@ class remoteSynthDriver(driver.RemoteDriver, synthDriverHandler.SynthDriver):
 			self.sendMessage(protocol.RdMessageType.PAUSE_SPEECH, switch=switch)
 		except OSError:
 			log.warning("Error pausing speech", exc_info=True)
+
+	def _getAvailableVoices(self) -> OrderedDict:
+		"""Return an empty OrderedDict as a fallback.
+
+		The actual available voices are retrieved through the settings accessor
+		from the remote synth driver. This override prevents NotImplementedError
+		from being raised when availableVoices is accessed before the remote
+		attribute has been received.
+		"""
+		return OrderedDict()
 
 	_incoming_supportedCommands = protocol.AttributeReceiver(
 		protocol.SpeechAttribute.SUPPORTED_COMMANDS,
