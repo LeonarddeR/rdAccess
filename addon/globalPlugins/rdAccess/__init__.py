@@ -14,8 +14,12 @@ import braille
 import config
 import globalPluginHandler
 import gui
+import inputCore
+import keyboardHandler
 import synthDriverHandler
+import winUser
 import wx
+from config.configFlags import NVDAKey
 from hwIo import ioThread
 from logHandler import log
 from utils.security import isRunningOnSecureDesktop, post_sessionLockStateChanged
@@ -125,6 +129,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._pipeWatcher.directoryChanged.register(self._reconcilePipes)
 		self._pipeWatcher.start()
 		self._reconcilePipes()
+		inputCore.decide_executeGesture.register(self._vetoCapsLockToggle)
 
 	def __init__(self):
 		super().__init__()
@@ -201,6 +206,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._synthDetector.terminate()
 
 	def terminateOperatingModeClient(self):
+		inputCore.decide_executeGesture.unregister(self._vetoCapsLockToggle)
 		if self._pipeWatcher:
 			self._pipeWatcher.stop()
 			self._pipeWatcher = None
@@ -336,6 +342,22 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 				del self._handlers[pipeName]
 			return True
 		return False
+
+	def _vetoCapsLockToggle(self, gesture: inputCore.InputGesture) -> bool:
+		"""Swallows caps lock gestures that NVDA would otherwise pass to the OS.
+
+		Applies while caps lock is configured as an NVDA modifier key and a remote
+		desktop client process has focus. Only gestures where the key does not act as
+		the modifier are swallowed; modifier gestures and emulated caps lock gestures
+		are unaffected.
+		"""
+		return not (
+			isinstance(gesture, keyboardHandler.KeyboardInputGesture)
+			and gesture.vkCode == winUser.VK_CAPITAL
+			and not gesture.isNVDAModifierKey  # ty: ignore[unresolved-attribute]
+			and config.conf["keyboard"]["NVDAModifierKeys"] & NVDAKey.CAPS_LOCK  # ty: ignore[not-subscriptable]
+			and any(handler._remoteProcessHasFocus for handler in list(self._handlers.values()))
+		)
 
 	def event_gainFocus(self, obj, nextHandler):
 		if not isRunningOnSecureDesktop():
