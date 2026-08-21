@@ -213,8 +213,8 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 	def _applyRemoteCapsLockToggle(self):
 		"""Aligns the local caps lock toggle state with the state last pushed by the server.
 
-		Runs only while the remote session does not have focus; otherwise application is
-		deferred to the next focus change.
+		Runs only while the remote desktop client process does not have focus; otherwise
+		application is deferred to the next focus change.
 		"""
 		value = self._attributeValueProcessor.getValue(
 			protocol.GenericAttribute.CAPS_LOCK_TOGGLE,

@@ -8,10 +8,7 @@ from collections.abc import Iterable, Iterator, Sequence
 from typing import Any, ClassVar
 
 import bdDetect
-import core
 import driverHandler
-import inputCore
-import keyboardHandler
 import queueHandler
 import winUser
 from autoSettingsUtils.driverSetting import DriverSetting
@@ -31,8 +28,6 @@ ERROR_INVALID_HANDLE = 0x6
 ERROR_PIPE_NOT_CONNECTED = 0xE9
 # Milliseconds after connecting during which time since input is reported as zero.
 CONNECT_FOCUS_GRACE = 4000
-# Milliseconds between a caps lock gesture passing to the OS and reading the resulting toggle state.
-CAPS_LOCK_PUSH_DELAY = 50
 
 
 class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
@@ -94,11 +89,6 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 
 		self.invalidateCache()
 		self._sessionDisconnectQueued = False
-		inputCore.decide_executeGesture.register(self._detectCapsLockToggle)
-
-	def terminate(self):
-		inputCore.decide_executeGesture.unregister(self._detectCapsLockToggle)
-		super().terminate()
 
 	def __getattribute__(self, name: str) -> Any:
 		getter = super().__getattribute__
@@ -179,23 +169,7 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 			return 0
 		return inputTime.getTimeSinceInput()
 
-	def _detectCapsLockToggle(self, gesture: inputCore.InputGesture) -> bool:
-		"""Schedules a caps lock state push when a gesture is about to toggle caps lock.
-
-		Matches caps lock gestures that NVDA passes to the OS, i.e. gestures for which
-		the key does not act as the NVDA modifier. Never vetoes the gesture.
-		"""
-		if (
-			isinstance(gesture, keyboardHandler.KeyboardInputGesture)
-			and gesture.vkCode == winUser.VK_CAPITAL
-			and not gesture.isNVDAModifierKey  # ty: ignore[unresolved-attribute]
-		):
-			core.callLater(CAPS_LOCK_PUSH_DELAY, self._pushCapsLockToggle)
-		return True
-
 	def _pushCapsLockToggle(self):
-		if not self._connected:
-			return
 		try:
 			self._attributeSenderStore(protocol.GenericAttribute.CAPS_LOCK_TOGGLE)
 		except OSError:
