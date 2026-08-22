@@ -216,6 +216,8 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 		Runs only while the remote desktop client process does not have focus; otherwise
 		application is deferred to the next focus change.
 		"""
+		if not configuration.getSynchronizeCapsLock():
+			return
 		value = self._attributeValueProcessor.getValue(
 			protocol.GenericAttribute.CAPS_LOCK_TOGGLE,
 			fallBackToDefault=True,

@@ -50,6 +50,14 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		self.operatingModeList.Select(0)
 		self.operatingModeList.Bind(wx.EVT_CHECKLISTBOX, self.onoperatingModeChange)
 
+		# Translators: The label for a setting in RDAccess settings to keep the caps lock key
+		# in sync between the client and the server.
+		synchronizeCapsLockText = _("S&ynchronize the caps lock key between client and server")
+		self.synchronizeCapsLockCheckbox = sizer_helper.addItem(
+			wx.CheckBox(self, label=synchronizeCapsLockText),
+		)
+		self.synchronizeCapsLockCheckbox.Value = configuration.getSynchronizeCapsLock()
+
 		# Translators: This is the label for a group of options in the
 		# Remote Desktop settings panel.
 		serverGroupText = _("Server")
@@ -215,6 +223,9 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		config.conf[configuration.CONFIG_SECTION_NAME][
 			configuration.INCOMING_SPEECH_PITCH_CHANGE_SETTING_NAME
 		] = self.incomingSpeechPitchChangeSpinCtrl.GetValue()
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.SYNCHRONIZE_CAPS_LOCK_SETTING_NAME] = (
+			self.synchronizeCapsLockCheckbox.IsChecked()
+		)
 		self.post_onSave.notify()
 		if self.rdPipeLogLevelList.IsEnabled():
 			rdPipe.setRdPipeLogLevel(rdPipe.RdPipeLogLevel(self.rdPipeLogLevelList.Selection))

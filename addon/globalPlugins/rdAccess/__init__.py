@@ -372,6 +372,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		"""
 		return not (
 			self._isCapsLockPassThroughGesture(gesture)
+			and configuration.getSynchronizeCapsLock()
 			and keyboardHandler.isNVDAModifierKey(gesture.vkCode, gesture.isExtended)
 			and any(handler._remoteProcessHasFocus for handler in list(self._handlers.values()))
 		)
@@ -381,7 +382,11 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		to toggle caps lock. Never vetoes the gesture. Pushes are coalesced across key
 		repeats.
 		"""
-		if self._isCapsLockPassThroughGesture(gesture) and not self._capsLockPushPending:
+		if (
+			self._isCapsLockPassThroughGesture(gesture)
+			and configuration.getSynchronizeCapsLock()
+			and not self._capsLockPushPending
+		):
 			self._capsLockPushPending = True
 			core.callLater(CAPS_LOCK_PUSH_DELAY, self._pushCapsLockToggle)
 		return True
