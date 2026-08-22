@@ -193,6 +193,12 @@ class ScalarAttributeTests(SerializerTestCase):
 		self.assertEqual(self.roundTripAttribute("timeSinceInput", 1234), 1234)
 		self.assertEqual(self.roundTripAttribute("language", None), None)
 
+	def test_capsLockTogglePassThrough(self):
+		"""Bools survive untouched, proving no decoder pattern matches this attribute."""
+		for value in (True, False):
+			with self.subTest(value=value):
+				self.assertIs(self.roundTripAttribute("capsLockToggle", value), value)
+
 
 class PlainMessageTests(SerializerTestCase):
 	def test_typeIsStringValue(self):

@@ -37,6 +37,7 @@ class GenericAttribute(StrEnum):
 	NVDA_VERSION = "nvdaVersion"
 	RD_ACCESS_VERSION = "rdAccessVersion"
 	PROTOCOL_VERSION = "protocolVersion"
+	CAPS_LOCK_TOGGLE = "capsLockToggle"
 
 
 class RdMessageType(StrEnum):

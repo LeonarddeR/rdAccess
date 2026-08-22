@@ -10,6 +10,7 @@ from typing import Any, ClassVar
 import bdDetect
 import driverHandler
 import queueHandler
+import winUser
 from autoSettingsUtils.driverSetting import DriverSetting
 from baseObject import AutoPropertyObject
 from logHandler import log
@@ -167,6 +168,16 @@ class RemoteDriver(protocol.RemoteProtocolHandler, driverHandler.Driver):
 		if inputTime.getTickCount() - self._connectTick < CONNECT_FOCUS_GRACE:
 			return 0
 		return inputTime.getTimeSinceInput()
+
+	def _pushCapsLockToggle(self):
+		try:
+			self._attributeSenderStore(protocol.GenericAttribute.CAPS_LOCK_TOGGLE)
+		except OSError:
+			log.debugWarning("Error pushing caps lock toggle state", exc_info=True)
+
+	@protocol.attributeSender(protocol.GenericAttribute.CAPS_LOCK_TOGGLE)
+	def _outgoing_capsLockToggle(self) -> bool:
+		return bool(winUser.getKeyState(winUser.VK_CAPITAL) & 1)
 
 	def _handlePossibleSessionDisconnect(self):
 		if self._sessionDisconnectQueued:

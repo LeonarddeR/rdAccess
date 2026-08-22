@@ -30,7 +30,7 @@ addon_info = AddonInfo(
 		+ "Citrix Workspace, Parallels RAS and VMware Horizon",
 	),
 	# version
-	addon_version="2.0.1",
+	addon_version="2.0.2",
 	# Brief changelog for this version
 	# Translators: what's new content for the add-on version to be shown in the add-on store
 	addon_changelog=_(""),

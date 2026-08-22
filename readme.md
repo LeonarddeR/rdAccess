@@ -117,6 +117,15 @@ Choose between:
 To ensure a smooth start with the add-on, all options are enabled by default.
 However, you are encouraged to disable server or client mode as appropriate.
 
+### Synchronize the Caps Lock Key between Client and Server
+
+When both the client and the server run NVDA with caps lock as an NVDA modifier key, the caps lock state can get out of sync, since the remote desktop client feeds caps lock presses back into the client system when the session is full screen.
+When this option is enabled on the client, caps lock presses aimed at a full screen remote session no longer toggle caps lock on the client.
+When it is enabled on the server, the server reports its caps lock state to the client, which applies it as soon as the remote session loses focus.
+For correct behavior, this option needs to be enabled on both the client and the server; it is enabled by default on both.
+
+Note that with the NVDA setting "Handle keys from other applications" disabled on the client, caps lock can still get out of sync.
+
 ### Automatically Switch to Remote Speech when Available
 
 This option is only available in server mode.

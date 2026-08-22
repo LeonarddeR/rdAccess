@@ -12,9 +12,13 @@ import addonHandler
 import api
 import braille
 import config
+import core
 import globalPluginHandler
 import gui
+import inputCore
+import keyboardHandler
 import synthDriverHandler
+import winUser
 import wx
 from hwIo import ioThread
 from logHandler import log
@@ -26,7 +30,6 @@ from .synthDetect import SynthDetector
 
 addon: addonHandler.Addon = addonHandler.getCodeAddon()
 
-
 if typing.TYPE_CHECKING:
 	from ...lib import (
 		configuration,
@@ -34,6 +37,7 @@ if typing.TYPE_CHECKING:
 		namedPipe,
 		protocol,
 		rdPipe,
+		windowHelpers,
 	)
 else:
 	configuration = addon.loadModule("lib.configuration")
@@ -41,11 +45,16 @@ else:
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
+	windowHelpers = addon.loadModule("lib.windowHelpers")
+
+# Milliseconds between a caps lock gesture passing to the OS and reading the resulting toggle state.
+CAPS_LOCK_PUSH_DELAY = 50
 
 
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	_synthDetector: SynthDetector | None = None
 	_ioThread: ioThread.IoThread | None = None
+	_capsLockPushPending: bool = False
 
 	@classmethod
 	def _updateRegistryForRdPipe(cls, install: bool, rdp: bool, citrix: bool) -> bool:
@@ -110,6 +119,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if not isRunningOnSecureDesktop():
 			post_sessionLockStateChanged.register(self._handleLockStateChanged)
 			post_secureDesktopStateChange.register(self._handlePossibleServerDisconnect)
+			inputCore.decide_executeGesture.register(self._detectCapsLockToggle)
 
 	def initializeOperatingModeClient(self):
 		self._ioThread = ioThread.IoThread()
@@ -125,6 +135,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._pipeWatcher.directoryChanged.register(self._reconcilePipes)
 		self._pipeWatcher.start()
 		self._reconcilePipes()
+		inputCore.decide_executeGesture.register(self._vetoCapsLockToggle)
 
 	def __init__(self):
 		super().__init__()
@@ -195,12 +206,14 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._handlers[fileName] = handler
 
 	def terminateOperatingModeServer(self):
+		inputCore.decide_executeGesture.unregister(self._detectCapsLockToggle)
 		post_secureDesktopStateChange.unregister(self._handlePossibleServerDisconnect)
 		post_sessionLockStateChanged.unregister(self._handleLockStateChanged)
 		if self._synthDetector:
 			self._synthDetector.terminate()
 
 	def terminateOperatingModeClient(self):
+		inputCore.decide_executeGesture.unregister(self._vetoCapsLockToggle)
 		if self._pipeWatcher:
 			self._pipeWatcher.stop()
 			self._pipeWatcher = None
@@ -336,6 +349,55 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 				del self._handlers[pipeName]
 			return True
 		return False
+
+	@staticmethod
+	def _isCapsLockPassThroughGesture(
+		gesture: inputCore.InputGesture,
+	) -> typing.TypeGuard[keyboardHandler.KeyboardInputGesture]:
+		"""Whether this is a caps lock gesture that NVDA passes to the OS, toggling caps lock.
+
+		False for gestures where the key acts as the NVDA modifier and for emulated
+		caps lock gestures.
+		"""
+		return (
+			isinstance(gesture, keyboardHandler.KeyboardInputGesture)
+			and gesture.vkCode == winUser.VK_CAPITAL
+			and not gesture.isNVDAModifierKey  # ty: ignore[unresolved-attribute]
+		)
+
+	def _vetoCapsLockToggle(self, gesture: inputCore.InputGesture) -> bool:
+		"""Swallows caps lock gestures that NVDA would otherwise pass to the OS.
+
+		Applies while caps lock is configured as an NVDA modifier key and a remote
+		desktop client process has focus with its session full screen, i.e. the mode in
+		which the client feeds caps lock presses back into the system.
+		"""
+		return not (
+			self._isCapsLockPassThroughGesture(gesture)
+			and configuration.getSynchronizeCapsLock()
+			and keyboardHandler.isNVDAModifierKey(gesture.vkCode, gesture.isExtended)
+			and any(handler._remoteProcessHasFocus for handler in list(self._handlers.values()))
+			and windowHelpers.isForegroundWindowFullScreen()
+		)
+
+	def _detectCapsLockToggle(self, gesture: inputCore.InputGesture) -> bool:
+		"""Schedules a caps lock state push to connected clients when a gesture is about
+		to toggle caps lock. Never vetoes the gesture. Pushes are coalesced across key
+		repeats.
+		"""
+		if (
+			self._isCapsLockPassThroughGesture(gesture)
+			and configuration.getSynchronizeCapsLock()
+			and not self._capsLockPushPending
+		):
+			self._capsLockPushPending = True
+			core.callLater(CAPS_LOCK_PUSH_DELAY, self._pushCapsLockToggle)
+		return True
+
+	def _pushCapsLockToggle(self):
+		self._capsLockPushPending = False
+		for remoteDriver in self._getActiveRemoteServerDrivers():
+			remoteDriver._pushCapsLockToggle()
 
 	def event_gainFocus(self, obj, nextHandler):
 		if not isRunningOnSecureDesktop():

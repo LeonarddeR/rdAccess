@@ -9,9 +9,11 @@ from abc import abstractmethod
 import addonHandler
 import api
 import globalVars
+import keyboardHandler
 import nvwave
 import speech
 import ui
+import winUser
 import wx
 from driverHandler import Driver
 from extensionPoints import AccumulatingDecider
@@ -116,6 +118,7 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 		# for the first focus outside the remote window.
 		self.invalidateCache()
 		self._remoteSessionhasFocus = None
+		self._applyRemoteCapsLockToggle()
 
 	@protocol.attributeSender(protocol.GenericAttribute.SUPPORTED_SETTINGS)
 	def _outgoing_supportedSettings(self, settings=None):
@@ -196,6 +199,33 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 
 	def _handleRemoteSessionGainFocus(self):
 		return
+
+	_incoming_capsLockToggle = protocol.AttributeReceiver(
+		protocol.GenericAttribute.CAPS_LOCK_TOGGLE,
+		defaultValue=None,
+	)
+
+	@_incoming_capsLockToggle.updateCallback
+	def _post_capsLockToggle(self, attribute: protocol.AttributeT, _value: bool):
+		assert attribute == protocol.GenericAttribute.CAPS_LOCK_TOGGLE
+		self._queueFunctionOnMainThread(self._applyRemoteCapsLockToggle)
+
+	def _applyRemoteCapsLockToggle(self):
+		"""Aligns the local caps lock toggle state with the state last pushed by the server.
+
+		Runs only while the remote desktop client process does not have focus; otherwise
+		application is deferred to the next focus change.
+		"""
+		if not configuration.getSynchronizeCapsLock():
+			return
+		value = self._attributeValueProcessor.getValue(
+			protocol.GenericAttribute.CAPS_LOCK_TOGGLE,
+			fallBackToDefault=True,
+		)
+		if value is None or self._remoteProcessHasFocus:
+			return
+		if bool(winUser.getKeyState(winUser.VK_CAPITAL) & 1) != bool(value):
+			keyboardHandler.KeyboardInputGesture.fromName("capsLock").send()
 
 	def _onReadError(self, error: int) -> bool:
 		return self.decide_remoteDisconnect.decide(handler=self, error=error)

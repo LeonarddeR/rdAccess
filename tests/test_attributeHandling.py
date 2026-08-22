@@ -498,5 +498,99 @@ class TestPendingCleared(unittest.TestCase):
 		self.assertFalse(avp.isAttributeRequestPending(protocol.SpeechAttribute.LANGUAGE))
 
 
+# ---------------------------------------------------------------------------
+# 15. capsLockToggle attribute: v2-only feature, exercised over JSON.
+# ---------------------------------------------------------------------------
+
+
+class CapsLockToggleReceiver(FakeHandlerBase):
+	"""Mirrors the receiver declaration on the client's RemoteHandler."""
+
+	def __init__(self):
+		self.callback_calls: list[tuple[protocol.AttributeT, object]] = []
+		super().__init__()
+
+	_incoming_capsLockToggle = protocol.AttributeReceiver(
+		protocol.GenericAttribute.CAPS_LOCK_TOGGLE,
+		defaultValue=None,
+	)
+
+	@_incoming_capsLockToggle.updateCallback
+	def _cb_capsLockToggle(self, attribute: protocol.AttributeT, value: object) -> None:
+		self.callback_calls.append((attribute, value))
+
+
+def _jsonAttrPush(handler: FakeHandlerBase, attribute: str, value) -> bytes:
+	return handler._serializer.serialize(
+		type=protocol.RdMessageType.ATTRIBUTE_VALUE,
+		attribute=attribute,
+		value=value,
+	)
+
+
+class TestCapsLockToggleReceiver(unittest.TestCase):
+	def setUp(self):
+		self.handler = CapsLockToggleReceiver()
+		self.addCleanup(self.handler.terminate)
+
+	def test_getValue_fallback_is_none_before_any_push(self):
+		"""The None sentinel the client's apply helper tests for."""
+		val = self.handler._attributeValueProcessor.getValue(
+			protocol.GenericAttribute.CAPS_LOCK_TOGGLE,
+			fallBackToDefault=True,
+		)
+		self.assertIsNone(val)
+
+	def test_json_push_stores_bool_and_fires_callback(self):
+		line = _jsonAttrPush(self.handler, protocol.GenericAttribute.CAPS_LOCK_TOGGLE, True)
+		self.handler._onReceive(line)
+		val = self.handler._attributeValueProcessor.getValue(
+			protocol.GenericAttribute.CAPS_LOCK_TOGGLE,
+			fallBackToDefault=True,
+		)
+		self.assertIs(val, True)
+		self.assertEqual(
+			self.handler.callback_calls,
+			[(protocol.GenericAttribute.CAPS_LOCK_TOGGLE, True)],
+		)
+
+	def test_json_push_overwrites_previous_value(self):
+		self.handler._onReceive(_jsonAttrPush(self.handler, protocol.GenericAttribute.CAPS_LOCK_TOGGLE, True))
+		self.handler._onReceive(
+			_jsonAttrPush(self.handler, protocol.GenericAttribute.CAPS_LOCK_TOGGLE, False),
+		)
+		val = self.handler._attributeValueProcessor.getValue(
+			protocol.GenericAttribute.CAPS_LOCK_TOGGLE,
+			fallBackToDefault=True,
+		)
+		self.assertIs(val, False)
+
+
+class CapsLockToggleSender(FakeHandlerBase):
+	"""Mirrors the sender declaration on the server's RemoteDriver, minus the OS state read."""
+
+	@protocol.attributeSender(protocol.GenericAttribute.CAPS_LOCK_TOGGLE)
+	def _outgoing_capsLockToggle(self) -> bool:
+		return True
+
+
+class TestCapsLockToggleSender(unittest.TestCase):
+	def setUp(self):
+		self.handler = CapsLockToggleSender()
+		self.handler._sendJson = True
+		self.addCleanup(self.handler.terminate)
+
+	def test_sender_store_writes_one_json_line(self):
+		"""The push path used by the server's _pushCapsLockToggle."""
+		self.handler._attributeSenderStore(protocol.GenericAttribute.CAPS_LOCK_TOGGLE)
+		self.assertEqual(len(self.handler._dev.writes), 1)
+		written = self.handler._dev.writes[0]
+		self.assertEqual(written[0:1], b"{")
+		obj = self.handler._serializer.deserialize(written)
+		self.assertEqual(obj["type"], protocol.RdMessageType.ATTRIBUTE_VALUE.value)
+		self.assertEqual(obj["attribute"], protocol.GenericAttribute.CAPS_LOCK_TOGGLE.value)
+		self.assertIs(obj["value"], True)
+
+
 if __name__ == "__main__":
 	unittest.main()
