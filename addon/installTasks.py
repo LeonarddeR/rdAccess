@@ -1,5 +1,4 @@
 # RDAccess: Remote Desktop Accessibility for NVDA
-# RDAccess: Remote Desktop Accessibility for NVDA
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0 or later
 
@@ -10,19 +9,13 @@ from time import sleep
 import addonHandler
 from logHandler import log
 
-if typing.TYPE_CHECKING:
-	from .lib import configuration, rdPipe
-else:
-	addon: addonHandler.Addon = addonHandler.getCodeAddon()
-	configuration = addon.loadModule("lib.configuration")
-	rdPipe = addon.loadModule("lib.rdPipe")
-
-
-def onInstall():
-	configuration.initializeConfig()
-
 
 def onUninstall():
+	if typing.TYPE_CHECKING:
+		from .lib import rdPipe
+	else:
+		addon: addonHandler.Addon = addonHandler.getCodeAddon()
+		rdPipe = addon.loadModule("lib.rdPipe")
 	for architecture in {rdPipe.defaultArchitecture, rdPipe.Architecture.X86}:
 		try:
 			rdPipe.dllInstall(
