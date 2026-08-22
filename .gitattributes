@@ -1,6 +1,7 @@
 # Set default behaviour, in case users don't have core.autocrlf set.
 * text=auto
 *.py text eol=lf
+sconstruct text eol=lf
 
 # Try to ensure that po files in the repo does not include
 # source code line numbers.
