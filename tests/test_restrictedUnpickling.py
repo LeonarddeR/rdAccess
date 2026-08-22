@@ -24,10 +24,6 @@ from logHandler import log
 from speech.commands import IndexCommand, NotASpeechCommand, PitchCommand
 from synthDriverHandler import VoiceInfo
 
-# ---------------------------------------------------------------------------
-# Helper: mimics a __reduce__-based RCE gadget, the classic pickle attack shape.
-# ---------------------------------------------------------------------------
-
 
 class _ReduceGadget:
 	"""Pickles to a call of an arbitrary global with arbitrary args.
@@ -43,11 +39,6 @@ class _ReduceGadget:
 
 	def __reduce__(self):
 		return (self._target, self._args)
-
-
-# ---------------------------------------------------------------------------
-# Rejection cases.
-# ---------------------------------------------------------------------------
 
 
 class TestRestrictedUnpicklingRejections(unittest.TestCase):
@@ -93,13 +84,11 @@ class TestRestrictedUnpicklingRejections(unittest.TestCase):
 		)
 
 
-# ---------------------------------------------------------------------------
-# Acceptance cases: round-trip legacy.dumps -> legacy.loads for everything that legitimately
-# crosses the wire (see the audit table in the implementation plan).
-# ---------------------------------------------------------------------------
-
-
 class TestRestrictedUnpicklingAcceptance(unittest.TestCase):
+	"""Round-trips legacy.dumps -> legacy.loads for every value shape that legitimately
+	crosses the wire.
+	"""
+
 	def _roundtrip(self, obj: Any) -> Any:
 		return legacy.loads(legacy.dumps(obj))
 

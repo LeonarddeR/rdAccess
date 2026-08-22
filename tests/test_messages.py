@@ -14,10 +14,6 @@ from lib import protocol
 import tests  # noqa: F401 — bootstrap sys.path + stubs
 from tests._fakes import FakeHandlerBase, buildMessage
 
-# ---------------------------------------------------------------------------
-# Helper subclasses
-# ---------------------------------------------------------------------------
-
 
 class _HandlerWithLanguageReceiver(FakeHandlerBase):
 	"""Adds a LANGUAGE attributeReceiver so attribute receipt can be tested."""
@@ -39,13 +35,8 @@ class _HandlerWithRecordingCommandHandler(FakeHandlerBase):
 		self.receivedSequences.append(sequence)
 
 
-# ---------------------------------------------------------------------------
-# Tests
-# ---------------------------------------------------------------------------
-
-
 class TestLegacySendWireFormat(unittest.TestCase):
-	"""Tests 1 & 2: legacy wire bytes produced by sendMessage before the JSON switch."""
+	"""Legacy wire bytes produced by sendMessage before the JSON switch."""
 
 	def setUp(self):
 		self.handler = FakeHandlerBase()
@@ -87,7 +78,7 @@ class TestLegacySendWireFormat(unittest.TestCase):
 
 
 class TestLargePayloadRoundtrip(unittest.TestCase):
-	"""Test 3: large payloads encode/decode correctly through _onReceive."""
+	"""Large payloads encode/decode correctly through _onReceive."""
 
 	def setUp(self):
 		self.sender = FakeHandlerBase()
@@ -117,7 +108,7 @@ class TestLargePayloadRoundtrip(unittest.TestCase):
 
 
 class TestSetRemoteAttribute(unittest.TestCase):
-	"""Test 4: setRemoteAttribute wire format."""
+	"""setRemoteAttribute wire format."""
 
 	def setUp(self):
 		self.handler = FakeHandlerBase()
@@ -142,7 +133,7 @@ class TestSetRemoteAttribute(unittest.TestCase):
 
 
 class TestRequestRemoteAttribute(unittest.TestCase):
-	"""Tests 5 & 6: requestRemoteAttribute wire format and duplicate suppression."""
+	"""requestRemoteAttribute wire format and duplicate suppression."""
 
 	def setUp(self):
 		self.handler = FakeHandlerBase()
@@ -183,7 +174,7 @@ class TestRequestRemoteAttribute(unittest.TestCase):
 
 
 class TestPendingClearedOnReceipt(unittest.TestCase):
-	"""Test 7: pending flag clears and value is stored when attribute value arrives."""
+	"""Pending flag clears and value is stored when the attribute value arrives."""
 
 	def setUp(self):
 		self.handler = _HandlerWithLanguageReceiver()

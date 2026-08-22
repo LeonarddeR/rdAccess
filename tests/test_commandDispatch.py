@@ -17,11 +17,6 @@ from tests._fakes import FakeHandlerBase, buildMessage, speakFrame
 _SEP = protocol.ATTRIBUTE_SEPARATOR
 
 
-# ---------------------------------------------------------------------------
-# Test-local subclasses
-# ---------------------------------------------------------------------------
-
-
 class _SpeakRecorder(FakeHandlerBase):
 	"""Records sequences delivered to the SPEAK command handler."""
 
@@ -76,11 +71,6 @@ class _Sub2PlainOverride(_BaseWithCancel):
 
 	def _command_cancel(self):  # plain — not a CommandHandler descriptor
 		self.log.append("plain")
-
-
-# ---------------------------------------------------------------------------
-# Tests
-# ---------------------------------------------------------------------------
 
 
 class TestCommandDispatchViaOnReceive(unittest.TestCase):

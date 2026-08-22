@@ -17,10 +17,6 @@ import queueHandler  # noqa: E402 — must follow tests import so stubs are inst
 
 from tests._fakes import FakeHandlerBase  # bootstrap runs via tests/__init__ import
 
-# ---------------------------------------------------------------------------
-# Tests
-# ---------------------------------------------------------------------------
-
 
 class TestSafeWait(unittest.TestCase):
 	"""Tests for RemoteProtocolHandler._safeWait."""

@@ -14,10 +14,6 @@ from lib.protocol.messages import RdMessageType
 
 from tests._fakes import FakeHandlerBase, buildMessage, speakFrame
 
-# ---------------------------------------------------------------------------
-# Concrete handler used by all framing tests.
-# ---------------------------------------------------------------------------
-
 
 class SpeakCapture(FakeHandlerBase):
 	"""Records sequences delivered to the SPEAK command handler."""
@@ -46,11 +42,6 @@ def _speakJsonLine(sequence: list) -> bytes:
 	)
 
 
-# ---------------------------------------------------------------------------
-# 1. Complete message → handler invoked once with exact payload.
-# ---------------------------------------------------------------------------
-
-
 class TestCompleteMessage(unittest.TestCase):
 	def setUp(self):
 		self.handler = SpeakCapture()
@@ -68,12 +59,9 @@ class TestCompleteMessage(unittest.TestCase):
 		self.assertEqual(self.handler.speak_sequences[0], sequence)
 
 
-# ---------------------------------------------------------------------------
-# 2. Partial delivery (split AFTER the 4-byte header).
-# ---------------------------------------------------------------------------
-
-
 class TestPartialDelivery(unittest.TestCase):
+	"""Payload delivered in chunks; every split point lies after the 4-byte header."""
+
 	def setUp(self):
 		self.handler = SpeakCapture()
 		self.addCleanup(self.handler.terminate)
@@ -118,12 +106,9 @@ class TestPartialDelivery(unittest.TestCase):
 		self.assertEqual(self.handler.speak_sequences, [sequence])
 
 
-# ---------------------------------------------------------------------------
-# 3. Coalesced messages: two complete messages in one _onReceive call.
-# ---------------------------------------------------------------------------
-
-
 class TestCoalescedMessages(unittest.TestCase):
+	"""Multiple complete messages arriving in a single _onReceive call."""
+
 	def setUp(self):
 		self.handler = SpeakCapture()
 		self.addCleanup(self.handler.terminate)
@@ -148,13 +133,9 @@ class TestCoalescedMessages(unittest.TestCase):
 		self.assertEqual(self.handler.speak_sequences[1], sequence2)
 
 
-# ---------------------------------------------------------------------------
-# 4. Coalesced partial: message1 complete + first half of message2 in one call,
-#    rest of message2 in second call.
-# ---------------------------------------------------------------------------
-
-
 class TestCoalescedPartial(unittest.TestCase):
+	"""A complete message plus part of the next in one call; the remainder in a later call."""
+
 	def setUp(self):
 		self.handler = SpeakCapture()
 		self.addCleanup(self.handler.terminate)
@@ -183,12 +164,9 @@ class TestCoalescedPartial(unittest.TestCase):
 		self.assertEqual(self.handler.speak_sequences, sequences)
 
 
-# ---------------------------------------------------------------------------
-# 5. Wrong driverType → RuntimeError raised synchronously.
-# ---------------------------------------------------------------------------
-
-
 class TestWrongDriverType(unittest.TestCase):
+	"""A frame with the wrong driverType raises RuntimeError synchronously."""
+
 	def setUp(self):
 		self.handler = SpeakCapture()
 		self.addCleanup(self.handler.terminate)
@@ -206,12 +184,9 @@ class TestWrongDriverType(unittest.TestCase):
 		self.assertEqual(self.handler.speak_sequences, [])
 
 
-# ---------------------------------------------------------------------------
-# 6. Empty payload message dispatches (CANCEL has an empty payload on the wire).
-# ---------------------------------------------------------------------------
-
-
 class TestEmptyPayload(unittest.TestCase):
+	"""Empty-payload messages still dispatch; CANCEL has an empty payload on the wire."""
+
 	def setUp(self):
 		self.handler = SpeakCapture()
 		self.addCleanup(self.handler.terminate)
@@ -230,12 +205,9 @@ class TestEmptyPayload(unittest.TestCase):
 		self.assertEqual(self.handler.speak_sequences, [["after"]])
 
 
-# ---------------------------------------------------------------------------
-# 7. Dual-stack sniffing: JSON lines and legacy frames on the same connection.
-# ---------------------------------------------------------------------------
-
-
 class TestDualStackSniffing(unittest.TestCase):
+	"""JSON lines and legacy frames arriving interleaved on the same connection."""
+
 	def setUp(self):
 		self.handler = SpeakCapture()
 		self.addCleanup(self.handler.terminate)

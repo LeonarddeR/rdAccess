@@ -14,17 +14,15 @@ from lib.protocol import legacy
 
 from tests._fakes import FakeHandlerBase, buildMessage
 
-# ---------------------------------------------------------------------------
-# Helpers: build raw ATTRIBUTE wire messages as a v1 peer would send them.
-# ---------------------------------------------------------------------------
-
 
 def _attrRequest(attribute: str) -> bytes:
+	"""Raw ATTRIBUTE request message (empty value) as a v1 peer would send it."""
 	payload = protocol.ATTRIBUTE_SEPARATOR + attribute.encode("ASCII") + protocol.ATTRIBUTE_SEPARATOR
 	return buildMessage(protocol.DriverType.SPEECH, protocol.GenericCommand.ATTRIBUTE, payload)
 
 
 def _attrPush(attribute: str, value) -> bytes:
+	"""Raw ATTRIBUTE value push message as a v1 peer would send it."""
 	payload = (
 		protocol.ATTRIBUTE_SEPARATOR
 		+ attribute.encode("ASCII")
@@ -34,11 +32,6 @@ def _attrPush(attribute: str, value) -> bytes:
 	return buildMessage(protocol.DriverType.SPEECH, protocol.GenericCommand.ATTRIBUTE, payload)
 
 
-# ---------------------------------------------------------------------------
-# 1. Request path: sender store produces a reply write.
-# ---------------------------------------------------------------------------
-
-
 class LanguageSender(FakeHandlerBase):
 	@protocol.attributeSender(protocol.SpeechAttribute.LANGUAGE)
 	def _outgoing_language(self) -> str:
@@ -46,6 +39,8 @@ class LanguageSender(FakeHandlerBase):
 
 
 class TestRequestPath(unittest.TestCase):
+	"""An incoming attribute request makes the sender store write a reply."""
+
 	def setUp(self):
 		self.handler = LanguageSender()
 		self.addCleanup(self.handler.terminate)
@@ -69,11 +64,6 @@ class TestRequestPath(unittest.TestCase):
 		self.assertIn(expected_payload, written)
 
 
-# ---------------------------------------------------------------------------
-# 2. Push path: value processor stores the decoded value.
-# ---------------------------------------------------------------------------
-
-
 class LanguageReceiver(FakeHandlerBase):
 	@protocol.attributeReceiver(protocol.SpeechAttribute.LANGUAGE, defaultValue="en")
 	def _incoming_language(self, value: str) -> str:
@@ -81,6 +71,8 @@ class LanguageReceiver(FakeHandlerBase):
 
 
 class TestPushPath(unittest.TestCase):
+	"""An incoming attribute push stores the decoded value in the value processor."""
+
 	def setUp(self):
 		self.handler = LanguageReceiver()
 		self.addCleanup(self.handler.terminate)
@@ -97,11 +89,6 @@ class TestPushPath(unittest.TestCase):
 		"""An incoming push must not generate a reply write."""
 		self.handler._onReceive(_attrPush(protocol.SpeechAttribute.LANGUAGE, "nl"))
 		self.assertEqual(self.handler._dev.writes, [])
-
-
-# ---------------------------------------------------------------------------
-# 3. updateCallback fires when a value is pushed.
-# ---------------------------------------------------------------------------
 
 
 class LanguageReceiverWithCallback(FakeHandlerBase):
@@ -143,11 +130,6 @@ class TestUpdateCallback(unittest.TestCase):
 		self.assertEqual(self.handler.callback_calls[-1], (protocol.SpeechAttribute.LANGUAGE, "fr"))
 
 
-# ---------------------------------------------------------------------------
-# 4. defaultValue: _getDefaultAttributeValue and getValue fallback.
-# ---------------------------------------------------------------------------
-
-
 class TestDefaultValue(unittest.TestCase):
 	def setUp(self):
 		self.handler = LanguageReceiver()
@@ -186,10 +168,6 @@ class TestDefaultValue(unittest.TestCase):
 			)
 
 
-# ---------------------------------------------------------------------------
-# 5. defaultValueGetter: custom callable overrides the static defaultValue.
-# ---------------------------------------------------------------------------
-
 _SENTINEL = object()
 
 
@@ -204,6 +182,8 @@ class LanguageReceiverWithGetter(FakeHandlerBase):
 
 
 class TestDefaultValueGetter(unittest.TestCase):
+	"""A defaultValueGetter callable overrides the static defaultValue."""
+
 	def setUp(self):
 		self.handler = LanguageReceiverWithGetter()
 		self.addCleanup(self.handler.terminate)
@@ -216,20 +196,10 @@ class TestDefaultValueGetter(unittest.TestCase):
 		self.assertIs(val, _SENTINEL)
 
 
-# ---------------------------------------------------------------------------
-# 6. Factory validation: both defaultValue and defaultValueGetter → ValueError.
-# ---------------------------------------------------------------------------
-
-
 class TestFactoryValidation(unittest.TestCase):
 	def test_both_defaultValue_and_defaultValueGetter_raises(self):
 		with self.assertRaises(ValueError):
 			protocol.attributeReceiver("x", defaultValue=1, defaultValueGetter=lambda _s, _a: 2)
-
-
-# ---------------------------------------------------------------------------
-# 7. Wildcard receiver: catch-all receives concrete attribute as first arg.
-# ---------------------------------------------------------------------------
 
 
 class WildcardSettingReceiver(FakeHandlerBase):
@@ -244,6 +214,8 @@ class WildcardSettingReceiver(FakeHandlerBase):
 
 
 class TestWildcardReceiver(unittest.TestCase):
+	"""The wildcard catch-all receiver gets the concrete attribute as its first argument."""
+
 	def setUp(self):
 		self.handler = WildcardSettingReceiver()
 		self.addCleanup(self.handler.terminate)
@@ -259,11 +231,6 @@ class TestWildcardReceiver(unittest.TestCase):
 		self.handler._onReceive(_attrPush("setting_rate", 50))
 		val = self.handler._attributeValueProcessor.getValue("setting_rate", fallBackToDefault=False)
 		self.assertEqual(val, 50)
-
-
-# ---------------------------------------------------------------------------
-# 8. Exact beats wildcard for setting_voice.
-# ---------------------------------------------------------------------------
 
 
 class ExactBeatWildcardReceiver(FakeHandlerBase):
@@ -302,11 +269,6 @@ class TestExactBeatsWildcard(unittest.TestCase):
 		self.assertEqual(self.handler.exact_calls, [])
 
 
-# ---------------------------------------------------------------------------
-# 9. Wildcard sender: function receives concrete attribute.
-# ---------------------------------------------------------------------------
-
-
 class WildcardSenderHandler(FakeHandlerBase):
 	def __init__(self):
 		self.sender_calls: list[str] = []
@@ -319,6 +281,8 @@ class WildcardSenderHandler(FakeHandlerBase):
 
 
 class TestWildcardSender(unittest.TestCase):
+	"""The wildcard sender function receives the concrete attribute it must serve."""
+
 	def setUp(self):
 		self.handler = WildcardSenderHandler()
 		self.addCleanup(self.handler.terminate)
@@ -341,11 +305,6 @@ class TestWildcardSender(unittest.TestCase):
 		written = self.handler._dev.writes[0]
 		# The value is pickled; the string's UTF-8 bytes appear inside the pickle.
 		self.assertIn(b"data_for_availableVoices", written)
-
-
-# ---------------------------------------------------------------------------
-# 10. isAttributeSupported.
-# ---------------------------------------------------------------------------
 
 
 class TestIsAttributeSupported(unittest.TestCase):
@@ -385,11 +344,6 @@ class TestIsAttributeSupported(unittest.TestCase):
 		)
 
 
-# ---------------------------------------------------------------------------
-# 11. Unknown attribute dispatch raises NotImplementedError.
-# ---------------------------------------------------------------------------
-
-
 class TestUnknownAttributeDispatch(unittest.TestCase):
 	def setUp(self):
 		self.handler = LanguageReceiver()
@@ -402,11 +356,6 @@ class TestUnknownAttributeDispatch(unittest.TestCase):
 	def test_unknown_sender_raises(self):
 		with self.assertRaises(NotImplementedError):
 			self.handler._attributeSenderStore("nope")
-
-
-# ---------------------------------------------------------------------------
-# 12. hasNewValueSince.
-# ---------------------------------------------------------------------------
 
 
 class TestHasNewValueSince(unittest.TestCase):
@@ -432,11 +381,6 @@ class TestHasNewValueSince(unittest.TestCase):
 				t,
 			),
 		)
-
-
-# ---------------------------------------------------------------------------
-# 13. clearValue and clearCache.
-# ---------------------------------------------------------------------------
 
 
 class TestClearValueAndCache(unittest.TestCase):
@@ -479,11 +423,6 @@ class TestClearValueAndCache(unittest.TestCase):
 		)
 
 
-# ---------------------------------------------------------------------------
-# 14. setAttributeRequestPending cleared by an incoming push.
-# ---------------------------------------------------------------------------
-
-
 class TestPendingCleared(unittest.TestCase):
 	def setUp(self):
 		self.handler = LanguageReceiver()
@@ -496,11 +435,6 @@ class TestPendingCleared(unittest.TestCase):
 
 		self.handler._onReceive(_attrPush(protocol.SpeechAttribute.LANGUAGE, "nl"))
 		self.assertFalse(avp.isAttributeRequestPending(protocol.SpeechAttribute.LANGUAGE))
-
-
-# ---------------------------------------------------------------------------
-# 15. capsLockToggle attribute: v2-only feature, exercised over JSON.
-# ---------------------------------------------------------------------------
 
 
 class CapsLockToggleReceiver(FakeHandlerBase):
@@ -529,6 +463,8 @@ def _jsonAttrPush(handler: FakeHandlerBase, attribute: str, value) -> bytes:
 
 
 class TestCapsLockToggleReceiver(unittest.TestCase):
+	"""capsLockToggle is a v2-only attribute; pushes arrive as JSON lines."""
+
 	def setUp(self):
 		self.handler = CapsLockToggleReceiver()
 		self.addCleanup(self.handler.terminate)
