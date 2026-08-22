@@ -25,6 +25,7 @@ from serial.win32 import (
 from winBindings.kernel32 import PROCESSENTRY32W
 
 from .ioBase import OverlappedIoBase
+from .windowHelpers import getShellProcessId
 
 PIPE_DIRECTORY = "\\\\.\\pipe\\"
 RD_PIPE_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
@@ -77,6 +78,10 @@ MAX_PIPE_MESSAGE_SIZE = 1024 * 64
 class NamedPipeClient(OverlappedIoBase):
 	pipeProcessId: int | None = None
 	pipeParentProcessId: int | None = None
+	"""The parent of the pipe server process when that parent could own the session windows.
+
+	None when the pipe server process was started by the shell.
+	"""
 	pipeMode: PipeMode
 	pipeName: str
 
@@ -109,7 +114,10 @@ class NamedPipeClient(OverlappedIoBase):
 			if not windll.kernel32.GetNamedPipeServerProcessId(HANDLE(fileHandle), byref(serverProcessId)):
 				raise WinError()
 			self.pipeProcessId = serverProcessId.value
-			self.pipeParentProcessId = getParentProcessId(self.pipeProcessId)
+			parentProcessId = getParentProcessId(self.pipeProcessId)
+			if parentProcessId == getShellProcessId():
+				parentProcessId = None
+			self.pipeParentProcessId = parentProcessId
 		except Exception:
 			winKernel.closeHandle(fileHandle)
 			raise

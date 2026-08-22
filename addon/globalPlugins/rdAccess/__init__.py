@@ -30,10 +30,6 @@ from .synthDetect import SynthDetector
 
 addon: addonHandler.Addon = addonHandler.getCodeAddon()
 
-# Milliseconds between a caps lock gesture passing to the OS and reading the resulting toggle state.
-CAPS_LOCK_PUSH_DELAY = 50
-
-
 if typing.TYPE_CHECKING:
 	from ...lib import (
 		configuration,
@@ -41,6 +37,7 @@ if typing.TYPE_CHECKING:
 		namedPipe,
 		protocol,
 		rdPipe,
+		windowHelpers,
 	)
 else:
 	configuration = addon.loadModule("lib.configuration")
@@ -48,6 +45,10 @@ else:
 	namedPipe = addon.loadModule("lib.namedPipe")
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
+	windowHelpers = addon.loadModule("lib.windowHelpers")
+
+# Milliseconds between a caps lock gesture passing to the OS and reading the resulting toggle state.
+CAPS_LOCK_PUSH_DELAY = 50
 
 
 class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
@@ -368,13 +369,15 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		"""Swallows caps lock gestures that NVDA would otherwise pass to the OS.
 
 		Applies while caps lock is configured as an NVDA modifier key and a remote
-		desktop client process has focus.
+		desktop client process has focus with its session full screen, i.e. the mode in
+		which the client feeds caps lock presses back into the system.
 		"""
 		return not (
 			self._isCapsLockPassThroughGesture(gesture)
 			and configuration.getSynchronizeCapsLock()
 			and keyboardHandler.isNVDAModifierKey(gesture.vkCode, gesture.isExtended)
 			and any(handler._remoteProcessHasFocus for handler in list(self._handlers.values()))
+			and windowHelpers.isForegroundWindowFullScreen()
 		)
 
 	def _detectCapsLockToggle(self, gesture: inputCore.InputGesture) -> bool:
