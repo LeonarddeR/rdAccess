@@ -1,0 +1,216 @@
+name: Bug report
+description: Create a bug report to help us improve RDAccess
+labels: [bug]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Attention!
+
+        Please read the instructions carefully before filling out this template.
+        Issues may be closed if required information is missing.
+        RDAccess runs on two computers at once, so attach NVDA log files from both the client and the server whenever possible,
+        together with the diagnostics report (NVDA menu > Preferences > Settings > Remote Desktop > Open diagnostics report).
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Brief summary
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproSteps
+    attributes:
+      label: Steps to reproduce
+      description: |
+        A clear and concise list of steps to reproduce the problem.
+        Include any sample files or links required to reproduce the issue.
+      placeholder: |
+        Example:
+        1. Start NVDA with RDAccess installed on both the client and the server
+        2. Connect to the server using Microsoft Remote Desktop
+        3. On the server, press NVDA+n to open the NVDA menu
+    validations:
+      required: true
+
+  - type: textarea
+    id: actualBehavior
+    attributes:
+      label: Actual behavior
+      description: |
+        Describe what actually happens when these steps are taken.
+        Include verbatim speech/braille viewer output if relevant, or error sounds heard.
+        Mention on which side (client or server) you observe the behavior.
+      placeholder: |
+        Example:
+        The client stays silent and an NVDA error sound is heard on the server.
+        NVDA Speech (server): "error"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expectedBehavior
+    attributes:
+      label: Expected behavior
+      description: |
+        Describe what you expected to happen when these steps are taken.
+      placeholder: |
+        Example:
+        The NVDA menu on the server is spoken and displayed in braille on the client.
+    validations:
+      required: true
+
+  - type: textarea
+    id: attachedFiles
+    attributes:
+      label: NVDA logs, diagnostics report and other attachments
+      description: |
+        In most cases NVDA log files are incredibly helpful when trying to understand or fix an issue.
+        Please attach the NVDA log file from the client, the NVDA log file from the server,
+        and the RDAccess diagnostics report (NVDA menu > Preferences > Settings > Remote Desktop > Open diagnostics report),
+        plus any relevant screenshots/files.
+
+  - type: markdown
+    attributes:
+      value: |
+        ### System Configuration
+
+        Please provide information about your system and add-on setup.
+        RDAccess involves two copies of NVDA; when the client and the server differ, list both.
+
+  - type: dropdown
+    id: remoteTechnology
+    attributes:
+      label: Remote desktop technology
+      description: Which remote desktop technology is used for the session?
+      multiple: true
+      options:
+        - "Microsoft Remote Desktop (mstsc)"
+        - "Azure Virtual Desktop / Windows 365 Cloud PC (Windows App)"
+        - "Citrix Workspace"
+        - "Parallels RAS"
+        - "VMware Horizon"
+        - "Other (describe under Other information about your system)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affectedSide
+    attributes:
+      label: Affected side
+      description: On which side of the connection does the problem show up?
+      options:
+        - "Client (local NVDA)"
+        - "Server (NVDA inside the remote session)"
+        - "Both / not sure"
+    validations:
+      required: true
+
+  - type: input
+    id: addonVersion
+    attributes:
+      label: RDAccess version
+      description: |
+        Which version of RDAccess are you using on the client and on the server?
+        You can check this in NVDA's Add-on Store.
+      placeholder: |
+        Example: 2.0.1 on both; or client 2.0.1, server 2.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: nvdaType
+    attributes:
+      label: NVDA type
+      description: Is this reproduced with NVDA installed/portable/running from source? Select all that apply to the client and the server.
+      multiple: true
+      options: ["installed copy", "portable copy", "installer/launcher copy", "source copy"]
+    validations:
+      required: true
+
+  - type: input
+    id: nvdaVersion
+    attributes:
+      label: NVDA version
+      description: |
+        Which version(s) of NVDA can you reproduce this issue with, on the client and on the server?
+        This can be copied from the NVDA About dialog (NVDA menu, Help, About).
+    validations:
+      required: true
+
+  - type: textarea
+    id: otherNvdaVersions
+    attributes:
+      label: Have you tried any other versions of NVDA? If so, please report their behaviors.
+      description: |
+        Knowing whether this issue occurs in previous releases helps us determine if a change in NVDA or RDAccess introduced the problem.
+
+  - type: input
+    id: winVersion
+    attributes:
+      label: Windows version
+      description: |
+        The version of Windows you are using on the client and on the server.
+      placeholder: |
+        Example: client Windows 11 Version 25H2 Build 26220.8925, server Windows Server 2022
+    validations:
+      required: true
+
+  - type: input
+    id: rdClientVersion
+    attributes:
+      label: Remote desktop client software and version
+      description: |
+        The remote desktop client application used on the client computer, including its version.
+      placeholder: |
+        Example: Windows App 2.0.x; Citrix Workspace app 2402; VMware Horizon Client 8.12
+
+  - type: textarea
+    id: otherVersions
+    attributes:
+      label: Name and version of other software in use when reproducing the issue
+      placeholder: |
+        Example: Chrome version 126.0.6478.127
+
+  - type: textarea
+    id: otherSysInfo
+    attributes:
+      label: Other information about your system
+      description: |
+        For example the processor architecture (x64 or ARM64), whether NVDA runs with administrative privileges,
+        or the remote desktop technology if you selected "Other".
+
+  - type: markdown
+    attributes:
+      value: |
+        ### Troubleshooting steps
+
+  - type: dropdown
+    id: restart
+    validations:
+      required: true
+    attributes:
+      label: Does the issue still occur after restarting your computer?
+      options: [
+        "I have not restarted my computer",
+        "I have restarted my computer and the issue still occurs",
+        "Restarting my computer fixes the issue temporarily, but it comes back later",
+        "Restarting my computer fixed the issue",
+      ]
+
+  - type: dropdown
+    id: addonConflicts
+    validations:
+      required: true
+    attributes:
+      label: Does the issue still occur when other NVDA add-ons are disabled (keeping only RDAccess active)?
+      description: |
+        Issues can sometimes be caused by conflicts between multiple add-ons.
+      options: [
+        "I have not tested with other add-ons disabled",
+        "I have disabled other add-ons and the issue still occurs with only RDAccess enabled",
+        "The issue no longer occurs when other add-ons are disabled",
+        "I do not have any other NVDA add-ons installed",
+      ]
