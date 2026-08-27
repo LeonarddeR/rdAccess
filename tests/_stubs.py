@@ -8,7 +8,9 @@ Only leaf modules are stubbed. ``baseObject``, ``extensionPoints``, ``winKernel`
 ``hwIo`` submodules, ``speech.commands`` and ``braille.constants`` are imported for real from the
 sibling NVDA source checkout; their dependencies (``logHandler``, ``garbageHandler``, ``NVDAState``,
 ``config``, ``synthDriverHandler.getSynth``) are covered here, as is the ``_`` gettext builtin that
-NVDA installs at startup.
+NVDA installs at startup. ``winUser`` and ``keyboardHandler`` expose just what ``lib.capsLock``
+reads: the caps lock virtual key code, the ``ignoreInjected`` flag and ``isNVDAModifierKey``,
+which treats caps lock as the NVDA modifier key.
 """
 
 from __future__ import annotations
@@ -146,6 +148,7 @@ def install():
 	_installDriverSettingAndSynthVoiceStubs()
 	_installSpeechCommands(speech)
 	_installInputCoreStub()
+	_installKeyboardStubs()
 
 
 def _installHwIo() -> None:
@@ -163,13 +166,15 @@ def _installHwIo() -> None:
 
 
 def _installBraille() -> None:
-	"""Cover the ``braille`` submodules that ``nvdaCompat`` reaches for on NVDA 2026.3.
+	"""Cover the ``braille`` symbols that ``nvdaCompat`` reaches for on either side of NVDA 2026.3.
 
 	Like ``hwIo``, the ``braille`` package is registered with ``__path__`` pointing straight at the
 	real sources, so ``braille.constants`` (which imports nothing but ``typing``) resolves against
 	the NVDA checkout without ``braille/__init__.py`` ever running. The remaining submodules are
 	pre-registered as stubs, both because they bottom out in ``inputCore.InputGesture`` and
-	``bdDetect``, and so that the import above cannot pull them in.
+	``bdDetect``, and so that the import above cannot pull them in. The same objects are also
+	exposed under the pre-2026.3 names (the ``braille`` facade and the ``brailleInput`` module),
+	so ``nvdaCompat`` can be reloaded as an older NVDA would import it.
 	"""
 	braille = _module("braille")
 	braille.__path__ = [str(_NVDA_SOURCE / "braille")]
@@ -213,6 +218,14 @@ def _installBraille() -> None:
 		pass
 
 	brailleInputGesture.BrailleInputGesture = BrailleInputGesture
+
+	braille.AUTOMATIC_PORT = braille.constants.AUTOMATIC_PORT
+	braille.BrailleDisplayDriver = BrailleDisplayDriver
+	braille.BrailleDisplayGesture = BrailleDisplayGesture
+	braille.decide_enabled = brailleExtensions.decide_enabled
+	braille.displayChanged = brailleExtensions.displayChanged
+	brailleInput = _module("brailleInput")
+	brailleInput.BrailleInputGesture = BrailleInputGesture
 
 
 def _setStubIdentity(cls: type, module: str) -> None:
@@ -354,3 +367,16 @@ def _installInputCoreStub() -> None:
 
 	_setStubIdentity(GlobalGestureMap, "inputCore")
 	inputCore.GlobalGestureMap = GlobalGestureMap
+
+
+def _installKeyboardStubs() -> None:
+	winUser = _module("winUser")
+	winUser.VK_CAPITAL = 0x14
+
+	keyboardHandler = _module("keyboardHandler")
+	keyboardHandler.ignoreInjected = False
+
+	def isNVDAModifierKey(vkCode: int, _extended: bool) -> bool:
+		return vkCode == winUser.VK_CAPITAL
+
+	keyboardHandler.isNVDAModifierKey = isNVDAModifierKey

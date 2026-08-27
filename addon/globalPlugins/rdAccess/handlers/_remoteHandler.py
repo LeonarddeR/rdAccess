@@ -21,11 +21,12 @@ from hwIo.ioThread import IoThread
 from logHandler import log
 
 if typing.TYPE_CHECKING:
-	from ....lib import configuration, namedPipe, protocol
+	from ....lib import configuration, namedPipe, nvdaCompat, protocol
 else:
 	addon: addonHandler.Addon = addonHandler.getCodeAddon()
 	configuration = addon.loadModule("lib.configuration")
 	namedPipe = addon.loadModule("lib.namedPipe")
+	nvdaCompat = addon.loadModule("lib.nvdaCompat")
 	protocol = addon.loadModule("lib.protocol")
 
 
@@ -214,9 +215,10 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 		"""Aligns the local caps lock toggle state with the state last pushed by the server.
 
 		Runs only while the remote desktop client process does not have focus; otherwise
-		application is deferred to the next focus change.
+		application is deferred to the next focus change. Does nothing on NVDA versions
+		without the client side of the caps lock synchronization.
 		"""
-		if not configuration.getSynchronizeCapsLock():
+		if not (nvdaCompat.CAPS_LOCK_SYNC_SUPPORTED and configuration.getSynchronizeCapsLock()):
 			return
 		value = self._attributeValueProcessor.getValue(
 			protocol.GenericAttribute.CAPS_LOCK_TOGGLE,

@@ -22,6 +22,14 @@ This enables a user experience where managing a remote system feels as seamless 
 
 ## Changelog
 
+### Version 2.0.3
+
+* Caps lock synchronization on the client now relies on NVDA 2026.3, which lets RDAccess tell caps lock presses fed back by the remote desktop client apart from real key presses. Synchronization therefore also works when the session is not full screen but Windows key combinations are applied on the remote computer, and when the NVDA setting "Handle keys from other applications" is disabled. The client side of the synchronization requires NVDA 2026.3 or later and is no longer available on older versions of NVDA; the server side keeps working on every supported version.
+
+### Version 2.0.2
+
+* Fixed caps lock going out of sync between the client and the server when both NVDA instances use caps lock as an NVDA modifier key. Quickly repeated caps lock presses in a full screen session no longer toggle caps lock on the client, and when caps lock is really toggled within the session, the client now follows as soon as the session loses focus. This behavior is controlled by the new setting "Synchronize the caps lock key between client and server", which is enabled by default and needs to be enabled on both the client and the server to work correctly. Note that with the setting "Handle keys from other applications" disabled on the client, caps lock can still get out of sync.
+
 ### Version 2.0.1
 
 * When remote speech is switched on automatically, it now keeps speaking after a configuration profile switch. Previously, NVDA fell back to the synthesizer you have configured as soon as a profile was activated, for example when you moved to an application with its own profile.
@@ -119,12 +127,13 @@ However, you are encouraged to disable server or client mode as appropriate.
 
 ### Synchronize the Caps Lock Key between Client and Server
 
-When both the client and the server run NVDA with caps lock as an NVDA modifier key, the caps lock state can get out of sync, since the remote desktop client feeds caps lock presses back into the client system when the session is full screen.
-When this option is enabled on the client, caps lock presses aimed at a full screen remote session no longer toggle caps lock on the client.
+When both the client and the server run NVDA with caps lock as an NVDA modifier key, the caps lock state can get out of sync, since the remote desktop client feeds caps lock presses back into the client system whenever it captures the keyboard, for example in a full screen session.
+When this option is enabled on the client, these fed back caps lock presses no longer toggle caps lock on the client.
 When it is enabled on the server, the server reports its caps lock state to the client, which applies it as soon as the remote session loses focus.
 For correct behavior, this option needs to be enabled on both the client and the server; it is enabled by default on both.
+On the client, this option requires NVDA 2026.3 or later; the server side works with every NVDA version supported by the add-on.
 
-Note that with the NVDA setting "Handle keys from other applications" disabled on the client, caps lock can still get out of sync.
+Note that while a remote desktop session window has focus, caps lock presses sent by other software, such as NVDA Remote Access, are suppressed on the client as well.
 
 ### Automatically Switch to Remote Speech when Available
 

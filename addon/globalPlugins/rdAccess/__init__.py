@@ -32,20 +32,22 @@ addon: addonHandler.Addon = addonHandler.getCodeAddon()
 
 if typing.TYPE_CHECKING:
 	from ...lib import (
+		capsLock,
 		configuration,
 		driver,
 		namedPipe,
+		nvdaCompat,
 		protocol,
 		rdPipe,
-		windowHelpers,
 	)
 else:
+	capsLock = addon.loadModule("lib.capsLock")
 	configuration = addon.loadModule("lib.configuration")
 	driver = addon.loadModule("lib.driver")
 	namedPipe = addon.loadModule("lib.namedPipe")
+	nvdaCompat = addon.loadModule("lib.nvdaCompat")
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
-	windowHelpers = addon.loadModule("lib.windowHelpers")
 
 # Milliseconds between a caps lock gesture passing to the OS and reading the resulting toggle state.
 CAPS_LOCK_PUSH_DELAY = 50
@@ -55,6 +57,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	_synthDetector: SynthDetector | None = None
 	_ioThread: ioThread.IoThread | None = None
 	_capsLockPushPending: bool = False
+	_capsLockVeto: capsLock.InjectedCapsLockVeto | None = None
 
 	@classmethod
 	def _updateRegistryForRdPipe(cls, install: bool, rdp: bool, citrix: bool) -> bool:
@@ -135,7 +138,12 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._pipeWatcher.directoryChanged.register(self._reconcilePipes)
 		self._pipeWatcher.start()
 		self._reconcilePipes()
-		inputCore.decide_executeGesture.register(self._vetoCapsLockToggle)
+		if nvdaCompat.CAPS_LOCK_SYNC_SUPPORTED:
+			self._capsLockVeto = capsLock.InjectedCapsLockVeto(
+				isEnabled=configuration.getSynchronizeCapsLock,
+				remoteProcessHasFocus=self._remoteProcessHasFocus,
+			)
+			inputCore.decide_handleRawKey.register(self._capsLockVeto.decide)
 
 	def __init__(self):
 		super().__init__()
@@ -213,7 +221,9 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._synthDetector.terminate()
 
 	def terminateOperatingModeClient(self):
-		inputCore.decide_executeGesture.unregister(self._vetoCapsLockToggle)
+		if self._capsLockVeto is not None:
+			inputCore.decide_handleRawKey.unregister(self._capsLockVeto.decide)
+			self._capsLockVeto = None
 		if self._pipeWatcher:
 			self._pipeWatcher.stop()
 			self._pipeWatcher = None
@@ -365,20 +375,9 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			and not gesture.isNVDAModifierKey  # ty: ignore[unresolved-attribute]
 		)
 
-	def _vetoCapsLockToggle(self, gesture: inputCore.InputGesture) -> bool:
-		"""Swallows caps lock gestures that NVDA would otherwise pass to the OS.
-
-		Applies while caps lock is configured as an NVDA modifier key and a remote
-		desktop client process has focus with its session full screen, i.e. the mode in
-		which the client feeds caps lock presses back into the system.
-		"""
-		return not (
-			self._isCapsLockPassThroughGesture(gesture)
-			and configuration.getSynchronizeCapsLock()
-			and keyboardHandler.isNVDAModifierKey(gesture.vkCode, gesture.isExtended)
-			and any(handler._remoteProcessHasFocus for handler in list(self._handlers.values()))
-			and windowHelpers.isForegroundWindowFullScreen()
-		)
+	def _remoteProcessHasFocus(self) -> bool:
+		"""Whether the remote desktop client process behind any connected handler has focus."""
+		return any(handler._remoteProcessHasFocus for handler in list(self._handlers.values()))
 
 	def _detectCapsLockToggle(self, gesture: inputCore.InputGesture) -> bool:
 		"""Schedules a caps lock state push to connected clients when a gesture is about
