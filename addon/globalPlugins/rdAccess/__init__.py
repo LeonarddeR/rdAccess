@@ -32,7 +32,6 @@ addon: addonHandler.Addon = addonHandler.getCodeAddon()
 
 if typing.TYPE_CHECKING:
 	from ...lib import (
-		capsLock,
 		configuration,
 		driver,
 		namedPipe,
@@ -41,7 +40,6 @@ if typing.TYPE_CHECKING:
 		rdPipe,
 	)
 else:
-	capsLock = addon.loadModule("lib.capsLock")
 	configuration = addon.loadModule("lib.configuration")
 	driver = addon.loadModule("lib.driver")
 	namedPipe = addon.loadModule("lib.namedPipe")
@@ -57,7 +55,6 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 	_synthDetector: SynthDetector | None = None
 	_ioThread: ioThread.IoThread | None = None
 	_capsLockPushPending: bool = False
-	_capsLockVeto: capsLock.InjectedCapsLockVeto | None = None
 
 	@classmethod
 	def _updateRegistryForRdPipe(cls, install: bool, rdp: bool, citrix: bool) -> bool:
@@ -139,11 +136,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._pipeWatcher.start()
 		self._reconcilePipes()
 		if nvdaCompat.CAPS_LOCK_SYNC_SUPPORTED:
-			self._capsLockVeto = capsLock.InjectedCapsLockVeto(
-				isEnabled=configuration.getSynchronizeCapsLock,
-				remoteProcessHasFocus=self._remoteProcessHasFocus,
-			)
-			inputCore.decide_handleRawKey.register(self._capsLockVeto.decide)
+			inputCore.decide_handleRawKey.register(self._vetoInjectedCapsLock)
 
 	def __init__(self):
 		super().__init__()
@@ -221,9 +214,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._synthDetector.terminate()
 
 	def terminateOperatingModeClient(self):
-		if self._capsLockVeto is not None:
-			inputCore.decide_handleRawKey.unregister(self._capsLockVeto.decide)
-			self._capsLockVeto = None
+		inputCore.decide_handleRawKey.unregister(self._vetoInjectedCapsLock)
 		if self._pipeWatcher:
 			self._pipeWatcher.stop()
 			self._pipeWatcher = None
@@ -375,9 +366,19 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			and not gesture.isNVDAModifierKey  # ty: ignore[unresolved-attribute]
 		)
 
-	def _remoteProcessHasFocus(self) -> bool:
-		"""Whether the remote desktop client process behind any connected handler has focus."""
-		return any(handler._remoteProcessHasFocus for handler in list(self._handlers.values()))
+	def _vetoInjectedCapsLock(self, vkCode: int, extended: bool, injected: bool) -> bool:
+		"""Swallows caps lock key events that a focused remote desktop client feeds back into
+		the system. Applies while caps lock is configured as an NVDA modifier key; key events
+		injected by NVDA itself pass through.
+		"""
+		return not (
+			vkCode == winUser.VK_CAPITAL
+			and injected
+			and not keyboardHandler.ignoreInjected
+			and configuration.getSynchronizeCapsLock()
+			and keyboardHandler.isNVDAModifierKey(vkCode, extended)
+			and any(handler._remoteProcessHasFocus for handler in list(self._handlers.values()))
+		)
 
 	def _detectCapsLockToggle(self, gesture: inputCore.InputGesture) -> bool:
 		"""Schedules a caps lock state push to connected clients when a gesture is about

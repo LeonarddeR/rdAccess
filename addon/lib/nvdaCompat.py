@@ -4,10 +4,6 @@
 
 """Version-gated access to NVDA behavior that differs across the supported NVDA versions.
 
-Covers the braille symbols that moved when the ``braille`` module became a package in NVDA
-2026.3, helpers that read and write a gesture's cell index across that split, and a flag for
-the raw keyboard extension point gaining its ``injected`` argument in the same release.
-
 On NVDA 2026.3 and later the braille symbols live in the ``braille.display``, ``braille.constants`` and
 ``braille.extensions`` submodules, the former ``brailleInput`` module lives in the ``braille.input``
 package, and ``BrailleDisplayGesture`` exposes ``cellIndexes`` (a list) in place of the deprecated
@@ -22,8 +18,9 @@ from __future__ import annotations
 
 import buildVersion
 
-_BRAILLE_IS_PACKAGE = (buildVersion.version_year, buildVersion.version_major) >= (2026, 3)
-CAPS_LOCK_SYNC_SUPPORTED = (buildVersion.version_year, buildVersion.version_major) >= (2026, 3)
+_NVDA_2026_3_OR_LATER = (buildVersion.version_year, buildVersion.version_major) >= (2026, 3)
+_BRAILLE_IS_PACKAGE = _NVDA_2026_3_OR_LATER
+CAPS_LOCK_SYNC_SUPPORTED = _NVDA_2026_3_OR_LATER
 """Whether NVDA passes ``injected`` to ``inputCore.decide_handleRawKey`` handlers, which the
 client side of the caps lock synchronization relies on."""
 
@@ -47,7 +44,6 @@ else:
 	from brailleInput import BrailleInputGesture
 
 __all__ = (
-	"CAPS_LOCK_SYNC_SUPPORTED",
 	"BRAILLE_AUTOMATIC_PORT",
 	"BrailleDisplayDriver",
 	"BrailleDisplayGesture",
@@ -56,6 +52,7 @@ __all__ = (
 	"braille_displayChanged",
 	"getRoutingIndex",
 	"applyRoutingIndex",
+	"CAPS_LOCK_SYNC_SUPPORTED",
 )
 
 

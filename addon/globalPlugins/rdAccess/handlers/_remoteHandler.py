@@ -215,8 +215,7 @@ class RemoteHandler[DriverT: Driver](protocol.RemoteProtocolHandler[namedPipe.Na
 		"""Aligns the local caps lock toggle state with the state last pushed by the server.
 
 		Runs only while the remote desktop client process does not have focus; otherwise
-		application is deferred to the next focus change. Does nothing on NVDA versions
-		without the client side of the caps lock synchronization.
+		application is deferred to the next focus change.
 		"""
 		if not (nvdaCompat.CAPS_LOCK_SYNC_SUPPORTED and configuration.getSynchronizeCapsLock()):
 			return
