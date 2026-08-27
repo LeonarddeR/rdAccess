@@ -26,8 +26,11 @@ class InjectedCapsLockVeto:
 		self._isEnabled = isEnabled
 		self._remoteProcessHasFocus = remoteProcessHasFocus
 
-	def decide(self, vkCode: int, extended: bool, injected: bool) -> bool:
-		"""Handler for ``inputCore.decide_handleRawKey``; ``False`` swallows the key event."""
+	def decide(self, vkCode: int, extended: bool, injected: bool | None = None) -> bool:
+		"""Handler for ``inputCore.decide_handleRawKey``; ``False`` swallows the key event.
+
+		NVDA builds that do not pass ``injected`` get plain pass-through.
+		"""
 		return not (
 			vkCode == winUser.VK_CAPITAL
 			and injected

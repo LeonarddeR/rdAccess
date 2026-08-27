@@ -73,3 +73,7 @@ class TestInjectedCapsLockVeto(unittest.TestCase):
 	def test_passes_when_no_remote_process_has_focus(self):
 		self.remoteProcessHasFocus = False
 		self.assertTrue(self._decide())
+
+	def test_passes_when_nvda_does_not_report_injection(self):
+		"""NVDA builds without the injected flag call the handler without that argument."""
+		self.assertTrue(self.veto.decide(vkCode=winUser.VK_CAPITAL, extended=False))
