@@ -214,7 +214,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._synthDetector.terminate()
 
 	def terminateOperatingModeClient(self):
-		inputCore.decide_handleRawKey.unregister(self._vetoInjectedCapsLock)
+		if nvdaCompat.CAPS_LOCK_SYNC_SUPPORTED:
+			inputCore.decide_handleRawKey.unregister(self._vetoInjectedCapsLock)
 		if self._pipeWatcher:
 			self._pipeWatcher.stop()
 			self._pipeWatcher = None

@@ -5,17 +5,19 @@
 import os
 from collections.abc import Callable, Iterator
 from ctypes import (
+	WINFUNCTYPE,
 	WinError,
 	byref,
 	c_ulong,
 	sizeof,
 	windll,
 )
-from ctypes.wintypes import DWORD, HANDLE
+from ctypes.wintypes import DWORD, HANDLE, HWND
 from enum import IntFlag
 from glob import iglob
 
 import winKernel
+import winUser
 from hwIo.ioThread import IoThread
 from serial.win32 import (
 	FILE_FLAG_OVERLAPPED,
@@ -25,11 +27,28 @@ from serial.win32 import (
 from winBindings.kernel32 import PROCESSENTRY32W
 
 from .ioBase import OverlappedIoBase
-from .windowHelpers import getShellProcessId
 
 PIPE_DIRECTORY = "\\\\.\\pipe\\"
 RD_PIPE_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
 TH32CS_SNAPPROCESS = 0x00000002
+
+GetShellWindow = WINFUNCTYPE(None)(("GetShellWindow", windll.user32))
+"""
+Retrieves a handle to the Shell's desktop window.
+
+.. seealso::
+	https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getshellwindow
+"""
+GetShellWindow.restype = HWND
+GetShellWindow.argtypes = ()
+
+
+def getShellProcessId() -> int | None:
+	"""The id of the process owning the shell's desktop window."""
+	shellWindow = GetShellWindow()
+	if not shellWindow:
+		return None
+	return winUser.getWindowThreadProcessID(shellWindow)[0] or None
 
 
 def getParentProcessId(processId: int) -> int | None:
