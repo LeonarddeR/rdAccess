@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nvdaaddons\n"
 "Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
-"POT-Creation-Date: 2026-08-27 06:02+0000\n"
-"PO-Revision-Date: 2026-08-27 06:02\n"
+"POT-Creation-Date: 2026-08-28 17:37+0000\n"
+"PO-Revision-Date: 2026-08-28 17:38\n"
 "Last-Translator: \n"
 "Language-Team: Finnish\n"
 "Language: fi_FI\n"
@@ -205,6 +205,6 @@ msgid "&Fallback synthesizer"
 msgstr "Vai&htoehtoinen syntetisaattori"
 
 #: buildVars.py:29
-msgid "Allows using speech and braille with Microsoft Remote Desktop, "
+msgid "Allows using speech and braille with Microsoft Remote Desktop, Citrix Workspace, Parallels RAS and VMware Horizon"
 msgstr ""
 

@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nvdaaddons\n"
 "Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
-"POT-Creation-Date: 2026-08-27 06:02+0000\n"
-"PO-Revision-Date: 2026-08-28 06:28\n"
+"POT-Creation-Date: 2026-08-28 17:37+0000\n"
+"PO-Revision-Date: 2026-08-28 17:38\n"
 "Last-Translator: \n"
 "Language-Team: Dutch\n"
 "Language: nl_NL\n"
@@ -33,7 +33,7 @@ msgstr "RDAccess Diagnostiek"
 #. Translators: The title of the RdPipe Log Viewer
 #: addon\globalPlugins\rdAccess\rdPipeLogViewer.py:23
 msgid "RdPipe Log Viewer"
-msgstr ""
+msgstr "RdPipe Loglezer"
 
 #. Translators: The label for the NVDA Remote Desktop settings panel.
 #. Add-on summary/title, usually the user visible name of the add-on
@@ -55,7 +55,7 @@ msgstr "Toegankelijkheid van &extern bureaublad inschakelen voor"
 #. in sync between the client and the server.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:55
 msgid "S&ynchronize the caps lock key between client and server"
-msgstr ""
+msgstr "S&ynchroniseer de Caps Lock-toets tussen client en server."
 
 #. Translators: This is the label for a group of options in the
 #. Remote Desktop settings panel.
@@ -67,7 +67,7 @@ msgstr "Server"
 #. activate remote speech whenever a remote session offers it.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:71
 msgid "&Automatically switch to remote speech when available"
-msgstr ""
+msgstr "&Automatisch overschakelen naar externe spraak wanneer beschikbaar"
 
 #. Translators: This is the label for a group of options in the
 #. Remote Desktop settings panel.
@@ -91,7 +91,7 @@ msgstr "&Client-ondersteuning behouden bij afsluiten NVDA"
 #. registration of RD Pipe to the Windows registry for remote desktop support.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:103
 msgid "Enable default &Remote Desktop support"
-msgstr ""
+msgstr "Standaar&dondersteuning voor Extern bureaublad inschakelen"
 
 #. Translators: The label for a setting in RDAccess settings to enable
 #. registration of RD Pipe to the Windows registry for Citrix support.
@@ -108,17 +108,17 @@ msgstr "Wijzigi&ngen in verbinding melden met"
 #. pitch change percentage applied to incoming remote speech.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:129
 msgid "Incoming speech &pitch change percentage"
-msgstr ""
+msgstr "&Percentage toonhoogteverandering voor binnenkomende spraak"
 
 #. Translators: The label for a combobox in RDAccess settings to control RdPIpe log level.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:139
 msgid "&RdPipe log level"
-msgstr ""
+msgstr "&RdPipe logniveau"
 
 #. Translators: The label for a button in RDAccess settings to open the rdPipe Log
 #: addon\globalPlugins\rdAccess\settingsPanel.py:149
 msgid "Open RdPipe Log..."
-msgstr ""
+msgstr "RdPipe logboek openen..."
 
 #. Translators: The label for a button in RDAccess settings to open a diagnostics report.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:154
@@ -205,6 +205,6 @@ msgid "&Fallback synthesizer"
 msgstr "&Terugvallen op synthesizer"
 
 #: buildVars.py:29
-msgid "Allows using speech and braille with Microsoft Remote Desktop, "
+msgid "Allows using speech and braille with Microsoft Remote Desktop, Citrix Workspace, Parallels RAS and VMware Horizon"
 msgstr ""
 
