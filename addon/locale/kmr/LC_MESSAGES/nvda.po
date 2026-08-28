@@ -6,34 +6,34 @@ msgstr ""
 "Project-Id-Version: nvdaaddons\n"
 "Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
 "POT-Creation-Date: 2026-08-27 06:02+0000\n"
-"PO-Revision-Date: 2026-08-28 06:28\n"
+"PO-Revision-Date: 2026-08-28 06:29\n"
 "Last-Translator: \n"
-"Language-Team: Dutch\n"
-"Language: nl_NL\n"
+"Language-Team: Kurmanji (Kurdish)\n"
+"Language: kmr_TR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Crowdin-Project: nvdaaddons\n"
 "X-Crowdin-Project-ID: 780748\n"
-"X-Crowdin-Language: nl\n"
+"X-Crowdin-Language: kmr\n"
 "X-Crowdin-File: rdAccess.pot\n"
 "X-Crowdin-File-ID: 288\n"
 
 #. Translators: Name for a remote braille display.
 #: addon\brailleDisplayDrivers\remote.py:24
 msgid "Remote Braille"
-msgstr "Extern Braille"
+msgstr "Brailleya ji dûr ve"
 
 #. Translators: Title of the diagnostics report dialog.
 #: addon\globalPlugins\rdAccess\diagnostics.py:127
 msgid "RDAccess Diagnostics"
-msgstr "RDAccess Diagnostiek"
+msgstr "Tesbîtên RDAccess"
 
 #. Translators: The title of the RdPipe Log Viewer
 #: addon\globalPlugins\rdAccess\rdPipeLogViewer.py:23
 msgid "RdPipe Log Viewer"
-msgstr ""
+msgstr "Temaşevanê Tomarên RdPipe"
 
 #. Translators: The label for the NVDA Remote Desktop settings panel.
 #. Add-on summary/title, usually the user visible name of the add-on
@@ -41,7 +41,7 @@ msgstr ""
 #. to be shown on installation and add-on information found in add-on store
 #: addon\globalPlugins\rdAccess\settingsPanel.py:31 buildVars.py:25
 msgid "Remote Desktop Accessibility"
-msgstr "Toegankelijkheid van extern bureaublad"
+msgstr "Gihîştina Sermaseya Dûr"
 
 #. NVDA's BoxSizerHelper types its parent as wx.Dialog, but a SettingsPanel (a wx.Panel)
 #. is a valid parent - NVDA's own SettingsPanel.makeSettings passes self the same way.
@@ -49,162 +49,162 @@ msgstr "Toegankelijkheid van extern bureaublad"
 #. Translators: The label for a list of check boxes in RDAccess settings to set operating mode.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:39
 msgid "&Enable remote desktop accessibility for"
-msgstr "Toegankelijkheid van &extern bureaublad inschakelen voor"
+msgstr "&Gihîştina sermaseya dûr çalak bike ji bo"
 
 #. Translators: The label for a setting in RDAccess settings to keep the caps lock key
 #. in sync between the client and the server.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:55
 msgid "S&ynchronize the caps lock key between client and server"
-msgstr ""
+msgstr "Bişkojka Caps Lock di navbera xerîdar û serverê de senkronîze bike"
 
 #. Translators: This is the label for a group of options in the
 #. Remote Desktop settings panel.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:63
 msgid "Server"
-msgstr "Server"
+msgstr ""
 
 #. Translators: The label for a setting in RDAccess settings to let NVDA
 #. activate remote speech whenever a remote session offers it.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:71
 msgid "&Automatically switch to remote speech when available"
-msgstr ""
+msgstr "&Dema ku peyda bibe, otomatîkî biguhere axaftina ji dûr ve"
 
 #. Translators: This is the label for a group of options in the
 #. Remote Desktop settings panel.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:79
 msgid "Client"
-msgstr "Client"
+msgstr "Kirrîxwaz"
 
 #. Translators: The label for a setting in RDAccess settings to enable
 #. support for exchanging driver settings between the local and the remote system.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:87
 msgid "&Allow remote system to control driver settings"
-msgstr "Extern systeem toest&aan om instellingen van driver te bedienen"
+msgstr "&Destûrê bide pergala dûr ku mîhengên ajokar kontrol bike"
 
 #. Translators: The label for a setting in RDAccess settings to enable
 #. persistent registration of RD Pipe to the Windows registry.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:95
 msgid "&Persist client support when exiting NVDA"
-msgstr "&Client-ondersteuning behouden bij afsluiten NVDA"
+msgstr "&Dema ku hûn ji NVDA derdikevin, piştgiriya xerîdar bidomînin"
 
 #. Translators: The label for a setting in RDAccess settings to enable
 #. registration of RD Pipe to the Windows registry for remote desktop support.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:103
 msgid "Enable default &Remote Desktop support"
-msgstr ""
+msgstr "Piştgiriya &Desktopa Dûr a xwerû çalak bike"
 
 #. Translators: The label for a setting in RDAccess settings to enable
 #. registration of RD Pipe to the Windows registry for Citrix support.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:111
 msgid "Enable &Citrix Workspace support"
-msgstr "Ondersteuning voor &Citrix Workspace inschakelen"
+msgstr "Piştgiriya &Citrix Workspace çalak bike"
 
 #. Translators: The label for a combobox in RDAccess settings to control connection notifications.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:116
 msgid "&Notify of connection changes with"
-msgstr "Wijzigi&ngen in verbinding melden met"
+msgstr "&Agahdariya guhertinên girêdanê bi"
 
 #. Translators: The label for a spin control in RDAccess settings to set the
 #. pitch change percentage applied to incoming remote speech.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:129
 msgid "Incoming speech &pitch change percentage"
-msgstr ""
+msgstr "Rêjeya guhertina bilindahiya axaftina hatî"
 
 #. Translators: The label for a combobox in RDAccess settings to control RdPIpe log level.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:139
 msgid "&RdPipe log level"
-msgstr ""
+msgstr "Asta têketina &RdPipe"
 
 #. Translators: The label for a button in RDAccess settings to open the rdPipe Log
 #: addon\globalPlugins\rdAccess\settingsPanel.py:149
 msgid "Open RdPipe Log..."
-msgstr ""
+msgstr "Têketina RdPipe veke..."
 
 #. Translators: The label for a button in RDAccess settings to open a diagnostics report.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:154
 msgid "Open diagnostics report..."
-msgstr "Open diagnostisch rapport..."
+msgstr "Rapora teşhîsê veke..."
 
 #: addon\globalPlugins\rdAccess\settingsPanel.py:183
 msgid "You need to enable remote destkop accessibility support for at least incoming or outgoing connections."
-msgstr "Je moet toegankelijkheid van extern bureaublad tenminste inschakelen voor inkomende of uitgaande verbindingen."
+msgstr "Pêdivî ye ku hûn piştgiriya gihîştina desktop-a ji dûr ve çalak bikin qet nebe ji bo girêdanên hatinî an derketinê."
 
 #. Translators: The title of the message box
 #: addon\globalPlugins\rdAccess\settingsPanel.py:187
 msgid "Error"
-msgstr "Fout"
+msgstr "Çewtî"
 
 #. Translators: Translation of the connection type in connection messages
 #: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:89
 msgctxt "connection type"
 msgid "speech"
-msgstr "spraak"
+msgstr "axaftin"
 
 #. Translators: Translation of the connection type in connection messages
 #: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:92
 msgctxt "connection type"
 msgid "braille"
-msgstr "braille"
+msgstr "alfabeya Koran"
 
 #. Translators: Translation of the connection status in connection messages.
 #: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:96
 msgid "connected"
-msgstr "verbonden"
+msgstr "hate girêdan"
 
 #. Translators: Translation of the connection status in connection messages.
 #: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:99
 msgid "disconnected"
-msgstr "verbinding verbroken"
+msgstr "qutkirî"
 
 #. Translators: Translation of the connection message.
 #. (E.g. "Remote braille/speech  connected/disconnected")
 #: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:103
 msgid "Remote {} {}"
-msgstr "Extern {} {}"
+msgstr "Dûr {} {}"
 
 #: addon\lib\configuration.py:25
 msgid "Incoming connections (Remote Desktop Server)"
-msgstr "Binnenkomende verbindingen (Extern bureaublad Server)"
+msgstr "Girêdanên hatinî (Serverê Sermaseya Dûr)"
 
 #: addon\lib\configuration.py:26
 msgid "Outgoing connections (Remote Desktop Client)"
-msgstr "Uitgaande verbindingen (Extern bureaublad client)"
+msgstr "Girêdanên Derketî (Muwekîlê Sermaseya Dûr)"
 
 #. Translators: A choice in a combo box in RDAccess settings for connection notifications.
 #: addon\lib\configuration.py:47
 msgctxt "connection notifications"
 msgid "Off"
-msgstr "Uit"
+msgstr "Ji"
 
 #. Translators: A choice in a combo box in RDAccess settings for connection notifications.
 #: addon\lib\configuration.py:49
 msgctxt "connection notifications"
 msgid "Messages"
-msgstr "Berichten"
+msgstr "Peyam"
 
 #. Translators: A choice in a combo box in RDAccess settings for connection notifications.
 #: addon\lib\configuration.py:51
 msgctxt "connection notifications"
 msgid "Sounds"
-msgstr "Geluiden"
+msgstr "Deng"
 
 #. Translators: A choice in a combo box in RDAccess settings for connection notifications.
 #: addon\lib\configuration.py:55
 msgctxt "connection notifications"
 msgid "Both Messages and sounds"
-msgstr "Zowel berichten als geluiden"
+msgstr "Hem Peyam û hem jî Deng"
 
 #. Translators: Name for a remote braille display.
 #: addon\synthDrivers\remote.py:34
 msgid "Remote speech"
-msgstr "Externe Spraak"
+msgstr "Axaftina ji dûr ve"
 
 #. Translators: The name of a remote synthesizer setting to select the fallback synthesizer.
 #: addon\synthDrivers\remote.py:47
 msgid "&Fallback synthesizer"
-msgstr "&Terugvallen op synthesizer"
+msgstr "Sentezatorê &Destpêkê"
 
 #: buildVars.py:29
 msgid "Allows using speech and braille with Microsoft Remote Desktop, "
-msgstr ""
+msgstr "Destûrê dide karanîna axaftin û Braille bi Microsoft Remote Desktop re, "
 
