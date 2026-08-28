@@ -27,7 +27,7 @@ addon_info = AddonInfo(
 	# Translators: Long description to be shown for this add-on on add-on information from add-on store
 	addon_description=_(
 		"Allows using speech and braille with Microsoft Remote Desktop, "
-		+ "Citrix Workspace, Parallels RAS and VMware Horizon",
+		"Citrix Workspace, Parallels RAS and VMware Horizon",
 	),
 	# version
 	addon_version="2.0.2",
