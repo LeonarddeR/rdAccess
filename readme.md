@@ -185,11 +185,8 @@ You can choose between:
 
 * Off (No notifications)
 * Messages (e.g. "Remote braille connected")
-* Sounds (NVDA 2025.1+)
+* Sounds
 * Both messages and sounds
-
-Note that sounds are not available on NVDA versions older than 2025.1.
-Beeps will be used on older versions.
 
 ### Incoming Speech Pitch Change Percentage
 
@@ -235,8 +232,6 @@ To report an issue or contribute, refer to [the issues page on Github][4].
 
 This add-on relies on [RD Pipe][5], a library written in Rust backing the remote desktop client support.
 RD Pipe is redistributed as part of this add-on under the terms of [version 3 of the GNU Affero General Public License][6].
-
-[[!tag stable dev beta]]
 
 [1]: https://github.com/leonardder/
 
