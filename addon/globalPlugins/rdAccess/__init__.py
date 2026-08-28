@@ -35,17 +35,17 @@ if typing.TYPE_CHECKING:
 		configuration,
 		driver,
 		namedPipe,
+		nvdaCompat,
 		protocol,
 		rdPipe,
-		windowHelpers,
 	)
 else:
 	configuration = addon.loadModule("lib.configuration")
 	driver = addon.loadModule("lib.driver")
 	namedPipe = addon.loadModule("lib.namedPipe")
+	nvdaCompat = addon.loadModule("lib.nvdaCompat")
 	protocol = addon.loadModule("lib.protocol")
 	rdPipe = addon.loadModule("lib.rdPipe")
-	windowHelpers = addon.loadModule("lib.windowHelpers")
 
 # Milliseconds between a caps lock gesture passing to the OS and reading the resulting toggle state.
 CAPS_LOCK_PUSH_DELAY = 50
@@ -135,7 +135,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		self._pipeWatcher.directoryChanged.register(self._reconcilePipes)
 		self._pipeWatcher.start()
 		self._reconcilePipes()
-		inputCore.decide_executeGesture.register(self._vetoCapsLockToggle)
+		if nvdaCompat.CAPS_LOCK_SYNC_SUPPORTED:
+			inputCore.decide_handleRawKey.register(self._vetoInjectedCapsLock)
 
 	def __init__(self):
 		super().__init__()
@@ -213,7 +214,8 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._synthDetector.terminate()
 
 	def terminateOperatingModeClient(self):
-		inputCore.decide_executeGesture.unregister(self._vetoCapsLockToggle)
+		if nvdaCompat.CAPS_LOCK_SYNC_SUPPORTED:
+			inputCore.decide_handleRawKey.unregister(self._vetoInjectedCapsLock)
 		if self._pipeWatcher:
 			self._pipeWatcher.stop()
 			self._pipeWatcher = None
@@ -365,19 +367,18 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 			and not gesture.isNVDAModifierKey  # ty: ignore[unresolved-attribute]
 		)
 
-	def _vetoCapsLockToggle(self, gesture: inputCore.InputGesture) -> bool:
-		"""Swallows caps lock gestures that NVDA would otherwise pass to the OS.
-
-		Applies while caps lock is configured as an NVDA modifier key and a remote
-		desktop client process has focus with its session full screen, i.e. the mode in
-		which the client feeds caps lock presses back into the system.
+	def _vetoInjectedCapsLock(self, vkCode: int, extended: bool, injected: bool) -> bool:
+		"""Swallows caps lock key events that a focused remote desktop client feeds back into
+		the system. Applies while caps lock is configured as an NVDA modifier key; key events
+		injected by NVDA itself pass through.
 		"""
 		return not (
-			self._isCapsLockPassThroughGesture(gesture)
+			vkCode == winUser.VK_CAPITAL
+			and injected
+			and not keyboardHandler.ignoreInjected
 			and configuration.getSynchronizeCapsLock()
-			and keyboardHandler.isNVDAModifierKey(gesture.vkCode, gesture.isExtended)
+			and keyboardHandler.isNVDAModifierKey(vkCode, extended)
 			and any(handler._remoteProcessHasFocus for handler in list(self._handlers.values()))
-			and windowHelpers.isForegroundWindowFullScreen()
 		)
 
 	def _detectCapsLockToggle(self, gesture: inputCore.InputGesture) -> bool:
