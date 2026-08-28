@@ -1,0 +1,1622 @@
+<?xml version="1.0"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0" srcLang="en">
+<file id="readme.md" original="https://raw.githubusercontent.com/LeonarddeR/rdAccess/6b928a10853b0b336b414b1fd56407a15e573db6/readme.md">
+<skeleton>
+# $(ID:95048d11-137d-4361-9ecf-3b4fbc7a1b09)
+
+* $(ID:d4b14039-24d7-4057-ab1a-a6814b2fc672)
+* $(ID:10fd981f-629e-4b66-b8f9-bc878492ab57)
+* $(ID:ded25e58-62ea-410b-8cb7-c4ab608cde9c)
+
+$(ID:d0a5230d-8fe8-41f5-a380-a4d41e6c2f22)
+$(ID:34fdbb37-145f-400c-8edc-fd474557036a)
+$(ID:a9cab09e-c6dd-46dc-b910-d3b33209a8e2)
+
+## $(ID:2994afd2-2d35-4f09-89ae-fc6ce3a8052d)
+
+* $(ID:8178e403-e580-4d0e-99ba-d70505d5f4d1)
+* $(ID:c229d36f-7fc1-4e64-a422-1cf835aa6e2e)
+* $(ID:fc6c0674-ef80-4cf9-9cb0-2c782a39f49e)
+* $(ID:d17b3665-72e9-4547-9830-21b3b0fea5c9)
+* $(ID:bd28581e-c804-4d49-8d95-5584a7099c2f)
+* $(ID:c5082dfa-d521-4b20-9562-75dca7841332)
+* $(ID:9d07f9c9-5162-484b-931e-57e0d7a2db4f)
+* $(ID:eb55c518-b4a0-474b-b54a-3a9a3ebebfcb)
+* $(ID:f11c7502-d24a-4773-b82f-06f88f3b7154)
+
+## $(ID:a8abc727-3811-49d1-ba57-e046ec84d1e5)
+
+### $(ID:eef6ba6e-e58e-4e6f-9c34-c671a04d968b)
+
+* $(ID:53b87717-1ced-40ca-9447-42b10e866a19)
+* $(ID:16dd75a5-caae-4e19-be84-dcc1c14f6296)
+* $(ID:e1868bed-8143-4c9b-9fc0-cc30a04f98d4)
+* $(ID:600f005a-08ba-4e3a-a59a-b8fa149e7591)
+* $(ID:64e90731-afc0-4607-94c2-7eaf4d571356)
+
+### $(ID:71b5fc41-0771-4c9c-ba32-dc7b0a85bdff)
+
+* $(ID:05fb93df-e297-45e1-94f1-8dd11dac8f9c)
+* $(ID:04f8991c-39f7-4d77-b723-a29e332c3195)
+* $(ID:62c45d8a-e316-4f80-b603-3a3dac53f3bf)
+* $(ID:39ed4c14-8d86-43c6-b006-9ac0e83ebd92)
+* $(ID:6aebae2e-eda4-4d68-b6d5-4084a12c71a9)
+* $(ID:866ce718-4481-4288-a546-12c8cbc606da)
+* $(ID:8cb7fd6f-68b7-40b9-a837-8d8d3ca9b1e6)
+* $(ID:bdf92343-2795-4653-b438-107d9f75940f)
+
+### $(ID:ee9a6f0a-dbe4-4854-98f5-d9a7397cee16)
+
+* $(ID:8f41f5ed-ff6a-4a6b-8644-47f1a2f41d19)
+
+### $(ID:0b352c1a-72bd-48da-b46c-4df8104c9c2d)
+
+* $(ID:5f11c5f7-62cf-4fd3-ab44-a59234449276)
+* $(ID:5cfc9d4c-85e2-4be5-8e24-07b75062f060)
+
+### $(ID:5175ec5c-7c8c-4dae-832a-54eb7bc827b8)
+
+* $(ID:8fa75e55-ed04-467e-8e04-7471e7a81f58)
+* $(ID:bec39f6e-454f-46a5-adec-c60c3c7d1355)
+* $(ID:f99abdd6-8ff5-4f3c-9a83-296afc0a4979)
+* $(ID:912f4d72-b1f6-4d4a-84f1-79b7f853a45e)
+* $(ID:a218bbdf-8a0d-4ad9-adf6-4b066946a65a)
+* $(ID:3d9e89b7-09a7-4cda-b54e-557b247182ba)
+
+### $(ID:b19381f2-a444-4066-b896-8b1113025c44)
+
+* $(ID:e36bde02-d602-44b7-8ceb-ef5a57b5e1b0)
+* $(ID:59461546-8255-420c-9677-72f32581328a)
+* $(ID:b3a229a9-b4ad-4248-b493-d7ff4dec338f)
+* $(ID:7e27935f-86aa-4a8f-8b22-a68410de3aaf)
+* $(ID:ed8f99ca-3598-4c71-9aa7-20d4fd0121df)
+* $(ID:44a5e7b7-1e07-4c9f-a0c3-cd4022f9fd0b)
+
+### $(ID:0011f408-1bb4-429f-ac2b-1f1255dded6f)
+
+* $(ID:d4a97449-5afd-41e5-bcd8-13b6dc4e467b)
+
+### $(ID:5fd8c780-37ef-4a95-806f-a19e4c1e676b)
+
+* $(ID:f9dc8323-c1a0-4747-b607-aec9a8c522a4)
+
+### $(ID:c47c0415-2b1d-4905-8613-332875e13331)
+
+* $(ID:72b2157e-6577-4aab-99ef-b2b27deb074a)
+* $(ID:5890d21b-5b94-4866-8c1e-50b81a233635)
+* $(ID:05949283-ad1e-4f01-bfec-6dbb217cf23b)
+* $(ID:216b6511-73d4-45c3-9899-1c7c015a6809)
+
+### $(ID:e62df8ce-ed44-4e9a-8516-553af4dff602)
+
+* $(ID:9d56bc0d-1d5b-4313-ac60-0df8eefe8daf)
+* $(ID:a4ffe6ce-2bdf-4714-b883-d351cfc65272)
+
+### $(ID:6daba238-3110-476b-9e0a-5035f1ba2059)
+
+$(ID:cdb67bf1-c9ab-4146-b384-02f535448288)
+
+## $(ID:b07a67d4-d2b3-450e-b059-2d246f5deb70)
+
+1. $(ID:ab3403d7-9f88-44e8-94a6-eb8f3bfac584)
+1. $(ID:c6461f02-f22e-43ff-b9f7-f8440ccc8ca0)
+$(ID:c517b934-d10f-4147-98ea-0aff2295ed6a)
+1. $(ID:f85098ed-0d37-4190-89d8-89422e16360e)
+
+## $(ID:40e353c2-3590-4df9-8232-48fde11c4b24)
+
+$(ID:77355e2e-21f1-4f37-86f7-d577569397c6)
+$(ID:9b412dfb-c35b-48b5-bdeb-e486f3fcc0d0)
+
+$(ID:e55315d7-8a22-461f-8c31-1197687c3f11)
+
+### $(ID:cf5c8b0f-c0ae-44b7-8a9d-bf1964f5914d)
+
+$(ID:f577475f-3f25-4251-a180-220aae95654d)
+$(ID:666c9a09-1142-4eca-8514-e271320df960)
+
+* $(ID:3d6b335f-545b-4353-a239-df36f4c0d861)
+* $(ID:a57b17da-f2ca-4675-805d-ef116491c634)
+
+$(ID:d8e3195e-41ab-48bc-afee-453192454db2)
+$(ID:26801217-7731-49e0-8fc7-24226eb1cdb4)
+
+### $(ID:a34a4650-fe3a-4c9f-8766-a14dd75b6ed2)
+
+$(ID:ac328904-d0b3-4184-82c1-72ec8c09dcde)
+$(ID:1a413eca-4ed2-4e57-99c7-3d75d7eb9896)
+$(ID:68d6cde6-3cb0-4510-8fff-a8fa00c70969)
+$(ID:6aa58884-ef53-4a48-9714-d68f27159c48)
+
+$(ID:c77d6e39-277e-42d7-a2bd-f5e9a64e99d7)
+
+### $(ID:3f21d397-ee37-454d-8576-f8937f546e79)
+
+$(ID:a7de197e-ddc2-4567-8649-19ef61162b36)
+$(ID:b729e87d-96fe-486b-9d64-e28e23b976e6)
+$(ID:ea3750bb-65c6-4987-ac1e-95b8133ceb12)
+
+$(ID:29c66cc7-6290-43ae-9a3b-14d4d6e4b5cc)
+$(ID:c7f1ebb8-1a94-48f0-849b-52f9b037ff1c)
+
+### $(ID:71a47a2f-2b2b-41ce-b3c6-653925928e8c)
+
+$(ID:3feac7a4-d8ea-4718-a66c-8b81b8b5f747)
+$(ID:7dbe4605-9d32-4442-acb3-d92f72929946)
+
+### $(ID:4a1f3236-d0b5-4eb1-8ab6-bf96c27da965)
+
+$(ID:cbb81c59-0bef-46e0-b8d8-52082ede4515)
+
+$(ID:fb5f33cb-1ca7-49f9-9bea-6ff2676df8ee)
+$(ID:2c1b2ad9-ba1b-4db2-9333-ffe069625b55)
+$(ID:7cd12cac-97c5-4438-99e7-d3ccb0a2ff17)
+
+$(ID:d11849e9-90d7-4e75-bf8c-51bf2fb6058f)
+$(ID:50122384-83ef-4c48-b90b-526193262be5)
+
+### $(ID:6455e293-7525-45b7-b1f7-4a1324df9c15)
+
+$(ID:ccf9e6d6-ac55-4198-844c-312a0dafc70e)
+$(ID:a9a91841-5796-469e-92bb-43950acc7db0)
+$(ID:78594347-0d9f-4b94-a5ee-4323ec0927a0)
+
+### $(ID:7300fc8c-4a73-4e0f-b07c-8a721473ed5f)
+
+$(ID:18098b7b-1769-4581-b325-595acdf387eb)
+$(ID:6c2ffc07-88eb-49ee-82d5-575446dfa5fc)
+
+$(ID:7e37d3b4-9a27-4a7c-b893-037da6692dcd)
+
+* $(ID:004b94d0-a565-43af-a611-c402e24dc446)
+$(ID:996f8079-6bab-4193-8f07-e3aef3928088)
+* $(ID:71842b62-4186-443c-93fb-9cb80e3bdd64)
+$(ID:2a7aa237-3f36-4e0d-8e81-cbcbe2847a6c)
+
+### $(ID:54a96e96-67ba-41f0-84e8-a7d4243a1d1c)
+
+$(ID:5bf182e4-7d2b-4d4d-be1b-7b9cb5de4e4a)
+$(ID:1edc1381-6184-4d9f-a188-8fbc4d84d877)
+
+* $(ID:b7ad55c2-5fcc-4a91-88b7-6fd807a4c0c4)
+* $(ID:3c1a9850-b282-4fd5-9856-ca8cd434ca0e)
+* $(ID:21053352-d391-4d77-9d59-9dbc78e3f123)
+* $(ID:fb25fc7a-861d-46de-801a-ae8525037fd1)
+
+$(ID:51aa808d-1370-4968-8412-d537ed75e821)
+$(ID:91a814b8-a8b0-4eab-8caa-55dafa1ca5cb)
+
+### $(ID:23acfb3f-352e-4b8a-bb40-ca7fc8c6aaa1)
+
+$(ID:7ac8a6b3-2cd6-416a-b79e-6491805519eb)
+
+$(ID:7e2c4eba-4386-43b4-a39a-4e870bec03d1)
+$(ID:73e2aa2b-90bf-4073-abab-f00c0fe70279)
+$(ID:0d6c428d-bb94-4e3b-9186-7b52ef6b6dd0)
+$(ID:860577af-44e3-438a-91a2-ab6df3dc926e)
+
+$(ID:9c9b2a7e-9a0d-456c-ad01-d2f92c3d5056)
+
+### $(ID:38547a91-2767-4517-b162-6d86aaf59ad1)
+
+$(ID:061dd911-8d0b-4a33-8849-a405f1bef36d)
+$(ID:c22a1dd4-45fc-4938-8c52-647332e05620)
+
+## $(ID:81f3f942-c4ce-4a10-8e3f-aed92e0cfd70)
+
+$(ID:63d6f15a-5445-476b-906f-772c6e7d9e20)
+
+### $(ID:87e58c14-0711-4dde-88ea-d2d99e978866)
+
+1. $(ID:4c466160-b696-470b-a7fb-8881cfd72ba1)
+1. $(ID:f7147c71-5b2d-42db-ab70-b7d490766134)
+$(ID:c8e36354-55e8-4e41-805b-66264d6f9770)
+$(ID:b61e3ae5-2851-4ef6-a26d-7d5137576c1a)
+
+### $(ID:a9862eb5-c80f-4731-815d-63fc37be8860)
+
+$(ID:5dedb8a2-41d0-4ae1-8bdd-84ef7b65cb61)
+$(ID:f5516aa5-c166-4868-b568-874d5eb885c5)
+
+$(ID:171d67d3-79db-4467-9732-50a38e2dd845)
+$(ID:49d0cc16-96ea-4fb8-8298-ab342c90f6cf)
+$(ID:9c4a8138-8691-4023-8d18-69ddebc30648)
+
+## $(ID:2c389b62-2e42-4026-9b6e-24b85551fb86)
+
+$(ID:b4bb2859-0c65-4147-b0e6-4b7e0f59ebb5)
+
+## $(ID:26e99bc9-1534-44d7-ad43-433211164138)
+
+$(ID:1937b5bb-417e-4927-96ba-cd524c388964)
+$(ID:99e803df-2a88-410d-97d0-7a7b6dbd60b8)
+
+$(ID:5522668f-91b9-47f7-aa12-a7d2668c5abb)
+
+$(ID:86f06d0f-bb46-4120-9aab-7ca0b09d533f)
+
+$(ID:31af0890-4a2b-4a32-b6b7-ea3756464623)
+
+$(ID:b9510c65-731b-422e-9e32-9afd547392d2)
+
+$(ID:5adac34e-1949-4c95-b863-06595f430a5b)
+
+$(ID:441f0e78-04a8-47f1-9719-1dd550759596)
+
+$(ID:16b3d5ef-4f54-46e0-a5d9-01acbc01bd27)
+
+</skeleton>
+<unit id="95048d11-137d-4361-9ecf-3b4fbc7a1b09">
+<notes>
+<note appliesTo="source">line: 2</note>
+<note appliesTo="source">prefix: # </note>
+</notes>
+<segment>
+<source>RDAccess: Remote Desktop Accessibility</source>
+</segment>
+</unit>
+<unit id="d4b14039-24d7-4057-ab1a-a6814b2fc672">
+<notes>
+<note appliesTo="source">line: 4</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Authors: [Leonard de Ruijter][1]</source>
+</segment>
+</unit>
+<unit id="10fd981f-629e-4b66-b8f9-bc878492ab57">
+<notes>
+<note appliesTo="source">line: 5</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Download [latest stable version][2]</source>
+</segment>
+</unit>
+<unit id="ded25e58-62ea-410b-8cb7-c4ab608cde9c">
+<notes>
+<note appliesTo="source">line: 6</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>NVDA compatibility: 2026.1 and later</source>
+</segment>
+</unit>
+<unit id="d0a5230d-8fe8-41f5-a380-a4d41e6c2f22">
+<notes>
+<note appliesTo="source">line: 8</note>
+</notes>
+<segment>
+<source>The RDAccess add-on (Remote Desktop Accessibility) adds support for Microsoft Remote Desktop, Citrix, Parallels RAS, or VMware Horizon remote sessions to NVDA.</source>
+</segment>
+</unit>
+<unit id="34fdbb37-145f-400c-8edc-fd474557036a">
+<notes>
+<note appliesTo="source">line: 9</note>
+</notes>
+<segment>
+<source>When installed on both the client and the server in NVDA, speech and braille generated on the server will be spoken and displayed in braille on the client machine.</source>
+</segment>
+</unit>
+<unit id="a9cab09e-c6dd-46dc-b910-d3b33209a8e2">
+<notes>
+<note appliesTo="source">line: 10</note>
+</notes>
+<segment>
+<source>This enables a user experience where managing a remote system feels as seamless as operating the local system.</source>
+</segment>
+</unit>
+<unit id="2994afd2-2d35-4f09-89ae-fc6ce3a8052d">
+<notes>
+<note appliesTo="source">line: 12</note>
+<note appliesTo="source">prefix: ## </note>
+</notes>
+<segment>
+<source>Features</source>
+</segment>
+</unit>
+<unit id="8178e403-e580-4d0e-99ba-d70505d5f4d1">
+<notes>
+<note appliesTo="source">line: 14</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Support for Microsoft Remote Desktop (including Azure Virtual Desktop and Microsoft Cloud PC), Citrix, Parallels RAS, and VMware Horizon</source>
+</segment>
+</unit>
+<unit id="c229d36f-7fc1-4e64-a422-1cf835aa6e2e">
+<notes>
+<note appliesTo="source">line: 15</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Speech and braille output</source>
+</segment>
+</unit>
+<unit id="fc6c0674-ef80-4cf9-9cb0-2c782a39f49e">
+<notes>
+<note appliesTo="source">line: 16</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Automatic detection of remote braille using NVDA's automatic braille display detection</source>
+</segment>
+</unit>
+<unit id="d17b3665-72e9-4547-9830-21b3b0fea5c9">
+<notes>
+<note appliesTo="source">line: 17</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Automatic detection of remote speech using a dedicated detection process that can be disabled in NVDA's settings dialog</source>
+</segment>
+</unit>
+<unit id="bd28581e-c804-4d49-8d95-5584a7099c2f">
+<notes>
+<note appliesTo="source">line: 18</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Support for portable copies of NVDA running on a server (additional configuration required for Citrix)</source>
+</segment>
+</unit>
+<unit id="c5082dfa-d521-4b20-9562-75dca7841332">
+<notes>
+<note appliesTo="source">line: 19</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Full support for portable copies of NVDA running on a client (no additional administrative privileges required to install the add-on)</source>
+</segment>
+</unit>
+<unit id="9d07f9c9-5162-484b-931e-57e0d7a2db4f">
+<notes>
+<note appliesTo="source">line: 20</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Multiple active client sessions simultaneously</source>
+</segment>
+</unit>
+<unit id="eb55c518-b4a0-474b-b54a-3a9a3ebebfcb">
+<notes>
+<note appliesTo="source">line: 21</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Remote desktop instantly available after NVDA start</source>
+</segment>
+</unit>
+<unit id="f11c7502-d24a-4773-b82f-06f88f3b7154">
+<notes>
+<note appliesTo="source">line: 22</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Ability to control specific synthesizer and braille display settings without leaving the remote session</source>
+</segment>
+</unit>
+<unit id="a8abc727-3811-49d1-ba57-e046ec84d1e5">
+<notes>
+<note appliesTo="source">line: 24</note>
+<note appliesTo="source">prefix: ## </note>
+</notes>
+<segment>
+<source>Changelog</source>
+</segment>
+</unit>
+<unit id="eef6ba6e-e58e-4e6f-9c34-c671a04d968b">
+<notes>
+<note appliesTo="source">line: 26</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Version 2.0.1</source>
+</segment>
+</unit>
+<unit id="53b87717-1ced-40ca-9447-42b10e866a19">
+<notes>
+<note appliesTo="source">line: 28</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>When remote speech is switched on automatically, it now keeps speaking after a configuration profile switch. Previously, NVDA fell back to the synthesizer you have configured as soon as a profile was activated, for example when you moved to an application with its own profile.</source>
+</segment>
+</unit>
+<unit id="16dd75a5-caae-4e19-be84-dcc1c14f6296">
+<notes>
+<note appliesTo="source">line: 29</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Renamed the option "Automatically recover remote speech after connection loss" to "Automatically switch to remote speech when available", which better describes what it does.</source>
+</segment>
+</unit>
+<unit id="e1868bed-8143-4c9b-9fc0-cc30a04f98d4">
+<notes>
+<note appliesTo="source">line: 30</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Fixed frequent errors on the remote system when automatic language switching was enabled while using the remote synthesizer. Reporting of unsupported languages now reflects the languages supported by the speech synthesizer on the client.</source>
+</segment>
+</unit>
+<unit id="600f005a-08ba-4e3a-a59a-b8fa149e7591">
+<notes>
+<note appliesTo="source">line: 31</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>On ARM64 versions of Windows, remote desktop clients that run under x64 emulation can now use RDAccess.</source>
+</segment>
+</unit>
+<unit id="64e90731-afc0-4607-94c2-7eaf4d571356">
+<notes>
+<note appliesTo="source">line: 32</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Adapted to the braille input changes introduced in NVDA 2026.3.</source>
+</segment>
+</unit>
+<unit id="71b5fc41-0771-4c9c-ba32-dc7b0a85bdff">
+<notes>
+<note appliesTo="source">line: 34</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Version 2.0</source>
+</segment>
+</unit>
+<unit id="05fb93df-e297-45e1-94f1-8dd11dac8f9c">
+<notes>
+<note appliesTo="source">line: 36</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Speech and braille coming from the remote system are now presented sooner, which makes working in a remote session feel more responsive.</source>
+</segment>
+</unit>
+<unit id="04f8991c-39f7-4d77-b723-a29e332c3195">
+<notes>
+<note appliesTo="source">line: 37</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>When starting a remote server instance of NVDA, braille is now shown as soon as a remote session connects, instead of only after the first keypress or focus change.</source>
+</segment>
+</unit>
+<unit id="62c45d8a-e316-4f80-b603-3a3dac53f3bf">
+<notes>
+<note appliesTo="source">line: 38</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Fixed a freeze when switching away from the remote synthesizer or braille display while a session was disconnecting.</source>
+</segment>
+</unit>
+<unit id="39ed4c14-8d86-43c6-b006-9ac0e83ebd92">
+<notes>
+<note appliesTo="source">line: 39</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>RDAccess now exchanges speech and braille using a new protocol modeled on the one used by NVDA's built-in Remote Access. It is more robust and no longer relies on the pickle format that a compromised remote system could abuse. The protocol version is chosen automatically, so a client and a server running different versions of RDAccess still work together.</source>
+</segment>
+</unit>
+<unit id="6aebae2e-eda4-4d68-b6d5-4084a12c71a9">
+<notes>
+<note appliesTo="source">line: 40</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>The minimum compatible NVDA version is now 2026.1. Removed support for earlier versions.</source>
+</segment>
+</unit>
+<unit id="866ce718-4481-4288-a546-12c8cbc606da">
+<notes>
+<note appliesTo="source">line: 41</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Adapted to the braille changes introduced in NVDA 2026.3.</source>
+</segment>
+</unit>
+<unit id="8cb7fd6f-68b7-40b9-a837-8d8d3ca9b1e6">
+<notes>
+<note appliesTo="source">line: 42</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Updated RD Pipe dependency to version 0.9.0.</source>
+</segment>
+</unit>
+<unit id="bdf92343-2795-4653-b438-107d9f75940f">
+<notes>
+<note appliesTo="source">line: 43</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>RDAccess is now licensed under the GNU General Public License version 2 or later.</source>
+</segment>
+</unit>
+<unit id="ee9a6f0a-dbe4-4854-98f5-d9a7397cee16">
+<notes>
+<note appliesTo="source">line: 45</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Version 1.7.1</source>
+</segment>
+</unit>
+<unit id="8f41f5ed-ff6a-4a6b-8644-47f1a2f41d19">
+<notes>
+<note appliesTo="source">line: 47</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Hopefully fixed a bug in rd_pipe that caused the wrong virtual channel to be created.</source>
+</segment>
+</unit>
+<unit id="0b352c1a-72bd-48da-b46c-4df8104c9c2d">
+<notes>
+<note appliesTo="source">line: 49</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Version 1.7</source>
+</segment>
+</unit>
+<unit id="5f11c5f7-62cf-4fd3-ab44-a59234449276">
+<notes>
+<note appliesTo="source">line: 51</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Removed secure desktop support.</source>
+</segment>
+</unit>
+<unit id="5cfc9d4c-85e2-4be5-8e24-07b75062f060">
+<notes>
+<note appliesTo="source">line: 52</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Added a client option "Incoming speech pitch change percentage" to shift the pitch of speech rendered from a remote NVDA, making remote and local speech audibly distinguishable.</source>
+</segment>
+</unit>
+<unit id="5175ec5c-7c8c-4dae-832a-54eb7bc827b8">
+<notes>
+<note appliesTo="source">line: 54</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Version 1.6</source>
+</segment>
+</unit>
+<unit id="8fa75e55-ed04-467e-8e04-7471e7a81f58">
+<notes>
+<note appliesTo="source">line: 56</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Documented and improved Parallels RAS support.</source>
+</segment>
+</unit>
+<unit id="bec39f6e-454f-46a5-adec-c60c3c7d1355">
+<notes>
+<note appliesTo="source">line: 57</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>The minimum compatible NVDA version is now 2025.1. Removed support for earlier versions.</source>
+</segment>
+</unit>
+<unit id="f99abdd6-8ff5-4f3c-9a83-296afc0a4979">
+<notes>
+<note appliesTo="source">line: 58</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Updated RdPipe dependency.</source>
+</segment>
+</unit>
+<unit id="912f4d72-b1f6-4d4a-84f1-79b7f853a45e">
+<notes>
+<note appliesTo="source">line: 59</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Added the ability to configure RdPipe log level.</source>
+</segment>
+</unit>
+<unit id="a218bbdf-8a0d-4ad9-adf6-4b066946a65a">
+<notes>
+<note appliesTo="source">line: 60</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Added a viewer for the RdPipe log, available from the settings panel.</source>
+</segment>
+</unit>
+<unit id="3d9e89b7-09a7-4cda-b54e-557b247182ba">
+<notes>
+<note appliesTo="source">line: 61</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Improved uninstall behavior (no longer raise errors or remove Citrix support when Citrix is not available).</source>
+</segment>
+</unit>
+<unit id="b19381f2-a444-4066-b896-8b1113025c44">
+<notes>
+<note appliesTo="source">line: 63</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Version 1.5</source>
+</segment>
+</unit>
+<unit id="e36bde02-d602-44b7-8ceb-ef5a57b5e1b0">
+<notes>
+<note appliesTo="source">line: 65</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Add the ability to create a debugging diagnostics report by means of a button in the RDAccess settings panel [#23](https://github.com/leonardder/rdAccess/pull/23).</source>
+</segment>
+</unit>
+<unit id="59461546-8255-420c-9677-72f32581328a">
+<notes>
+<note appliesTo="source">line: 66</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Support for multi-line braille displays in NVDA 2025.1 and newer [#19](https://github.com/leonardder/rdAccess/pull/13).</source>
+</segment>
+</unit>
+<unit id="b3a229a9-b4ad-4248-b493-d7ff4dec338f">
+<notes>
+<note appliesTo="source">line: 67</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>The minimum compatible NVDA version is now 2024.1. Removed support for earlier versions.</source>
+</segment>
+</unit>
+<unit id="7e27935f-86aa-4a8f-8b22-a68410de3aaf">
+<notes>
+<note appliesTo="source">line: 68</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Added client connection notifications [#25](https://github.com/leonardder/rdAccess/pull/25).</source>
+</segment>
+</unit>
+<unit id="ed8f99ca-3598-4c71-9aa7-20d4fd0121df">
+<notes>
+<note appliesTo="source">line: 69</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Updated RdPipe dependency.</source>
+</segment>
+</unit>
+<unit id="44a5e7b7-1e07-4c9f-a0c3-cd4022f9fd0b">
+<notes>
+<note appliesTo="source">line: 70</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Updated translations.</source>
+</segment>
+</unit>
+<unit id="0011f408-1bb4-429f-ac2b-1f1255dded6f">
+<notes>
+<note appliesTo="source">line: 72</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Version 1.4</source>
+</segment>
+</unit>
+<unit id="d4a97449-5afd-41e5-bcd8-13b6dc4e467b">
+<notes>
+<note appliesTo="source">line: 74</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>New stable release.</source>
+</segment>
+</unit>
+<unit id="5fd8c780-37ef-4a95-806f-a19e4c1e676b">
+<notes>
+<note appliesTo="source">line: 76</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Version 1.3</source>
+</segment>
+</unit>
+<unit id="f9dc8323-c1a0-4747-b607-aec9a8c522a4">
+<notes>
+<note appliesTo="source">line: 78</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Fixed broken braille display gestures.</source>
+</segment>
+</unit>
+<unit id="c47c0415-2b1d-4905-8613-332875e13331">
+<notes>
+<note appliesTo="source">line: 80</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Version 1.2</source>
+</segment>
+</unit>
+<unit id="72b2157e-6577-4aab-99ef-b2b27deb074a">
+<notes>
+<note appliesTo="source">line: 82</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Use [Ruff](https://github.com/astral-sh/ruff) as a formatter and linter. [#13](https://github.com/leonardder/rdAccess/pull/13).</source>
+</segment>
+</unit>
+<unit id="5890d21b-5b94-4866-8c1e-50b81a233635">
+<notes>
+<note appliesTo="source">line: 83</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Fixed an issue where NVDA on the client generates an error when pausing speech on the server.</source>
+</segment>
+</unit>
+<unit id="05949283-ad1e-4f01-bfec-6dbb217cf23b">
+<notes>
+<note appliesTo="source">line: 84</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Fixed support for `winAPI.secureDesktop.post_secureDesktopStateChange`.</source>
+</segment>
+</unit>
+<unit id="216b6511-73d4-45c3-9899-1c7c015a6809">
+<notes>
+<note appliesTo="source">line: 85</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Improved driver initialization on the server.</source>
+</segment>
+</unit>
+<unit id="e62df8ce-ed44-4e9a-8516-553af4dff602">
+<notes>
+<note appliesTo="source">line: 87</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Version 1.1</source>
+</segment>
+</unit>
+<unit id="9d56bc0d-1d5b-4313-ac60-0df8eefe8daf">
+<notes>
+<note appliesTo="source">line: 89</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Added support for NVDA 2023.3 style device registration for automatic detection of braille displays. [#11](https://github.com/leonardder/rdAccess/pull/11).</source>
+</segment>
+</unit>
+<unit id="a4ffe6ce-2bdf-4714-b883-d351cfc65272">
+<notes>
+<note appliesTo="source">line: 90</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Added support for NVDA 2024.1 Alpha `winAPI.secureDesktop.post_secureDesktopStateChange` extension point. [#12](https://github.com/leonardder/rdAccess/pull/12).</source>
+</segment>
+</unit>
+<unit id="6daba238-3110-476b-9e0a-5035f1ba2059">
+<notes>
+<note appliesTo="source">line: 92</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Version 1.0</source>
+</segment>
+</unit>
+<unit id="cdb67bf1-c9ab-4146-b384-02f535448288">
+<notes>
+<note appliesTo="source">line: 94</note>
+</notes>
+<segment>
+<source>Initial stable release.</source>
+</segment>
+</unit>
+<unit id="b07a67d4-d2b3-450e-b059-2d246f5deb70">
+<notes>
+<note appliesTo="source">line: 96</note>
+<note appliesTo="source">prefix: ## </note>
+</notes>
+<segment>
+<source>Getting Started</source>
+</segment>
+</unit>
+<unit id="ab3403d7-9f88-44e8-94a6-eb8f3bfac584">
+<notes>
+<note appliesTo="source">line: 98</note>
+<note appliesTo="source">prefix: 1. </note>
+</notes>
+<segment>
+<source>Install RDAccess on both a client and server copy of NVDA.</source>
+</segment>
+</unit>
+<unit id="c6461f02-f22e-43ff-b9f7-f8440ccc8ca0">
+<notes>
+<note appliesTo="source">line: 99</note>
+<note appliesTo="source">prefix: 1. </note>
+</notes>
+<segment>
+<source>The remote system should automatically start speaking using the local speech synthesizer.</source>
+</segment>
+</unit>
+<unit id="c517b934-d10f-4147-98ea-0aff2295ed6a">
+<notes>
+<note appliesTo="source">line: 100</note>
+</notes>
+<segment>
+<source>   If not, in the NVDA instance on the server, select the remote speech synthesizer from NVDA's synthesizer selection dialog.</source>
+</segment>
+</unit>
+<unit id="f85098ed-0d37-4190-89d8-89422e16360e">
+<notes>
+<note appliesTo="source">line: 101</note>
+<note appliesTo="source">prefix: 1. </note>
+</notes>
+<segment>
+<source>To use braille, enable automatic braille display detection using the braille display selection dialog.</source>
+</segment>
+</unit>
+<unit id="40e353c2-3590-4df9-8232-48fde11c4b24">
+<notes>
+<note appliesTo="source">line: 103</note>
+<note appliesTo="source">prefix: ## </note>
+</notes>
+<segment>
+<source>Configuration</source>
+</segment>
+</unit>
+<unit id="77355e2e-21f1-4f37-86f7-d577569397c6">
+<notes>
+<note appliesTo="source">line: 105</note>
+</notes>
+<segment>
+<source>After installation, the RDAccess add-on can be configured using NVDA's settings dialog, accessible from the NVDA Menu by choosing Preferences &gt; Settings...</source>
+</segment>
+</unit>
+<unit id="9b412dfb-c35b-48b5-bdeb-e486f3fcc0d0">
+<notes>
+<note appliesTo="source">line: 106</note>
+</notes>
+<segment>
+<source>Then, choose the Remote Desktop category.</source>
+</segment>
+</unit>
+<unit id="e55315d7-8a22-461f-8c31-1197687c3f11">
+<notes>
+<note appliesTo="source">line: 108</note>
+</notes>
+<segment>
+<source>This dialog contains the following settings:</source>
+</segment>
+</unit>
+<unit id="cf5c8b0f-c0ae-44b7-8a9d-bf1964f5914d">
+<notes>
+<note appliesTo="source">line: 110</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Enable Remote Desktop Accessibility for</source>
+</segment>
+</unit>
+<unit id="f577475f-3f25-4251-a180-220aae95654d">
+<notes>
+<note appliesTo="source">line: 112</note>
+</notes>
+<segment>
+<source>This list of checkboxes controls the operating mode of the add-on.</source>
+</segment>
+</unit>
+<unit id="666c9a09-1142-4eca-8514-e271320df960">
+<notes>
+<note appliesTo="source">line: 113</note>
+</notes>
+<segment>
+<source>Choose between:</source>
+</segment>
+</unit>
+<unit id="3d6b335f-545b-4353-a239-df36f4c0d861">
+<notes>
+<note appliesTo="source">line: 115</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Incoming connections (Remote Desktop Server): Choose this option if the current instance of NVDA is running on a remote desktop server.</source>
+</segment>
+</unit>
+<unit id="a57b17da-f2ca-4675-805d-ef116491c634">
+<notes>
+<note appliesTo="source">line: 116</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Outgoing connections (Remote Desktop Client): Choose this option if the current instance of NVDA is running on a remote desktop client that connects to one or more servers.</source>
+</segment>
+</unit>
+<unit id="d8e3195e-41ab-48bc-afee-453192454db2">
+<notes>
+<note appliesTo="source">line: 118</note>
+</notes>
+<segment>
+<source>To ensure a smooth start with the add-on, all options are enabled by default.</source>
+</segment>
+</unit>
+<unit id="26801217-7731-49e0-8fc7-24226eb1cdb4">
+<notes>
+<note appliesTo="source">line: 119</note>
+</notes>
+<segment>
+<source>However, you are encouraged to disable server or client mode as appropriate.</source>
+</segment>
+</unit>
+<unit id="a34a4650-fe3a-4c9f-8766-a14dd75b6ed2">
+<notes>
+<note appliesTo="source">line: 121</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Synchronize the Caps Lock Key between Client and Server</source>
+</segment>
+</unit>
+<unit id="ac328904-d0b3-4184-82c1-72ec8c09dcde">
+<notes>
+<note appliesTo="source">line: 123</note>
+</notes>
+<segment>
+<source>When both the client and the server run NVDA with caps lock as an NVDA modifier key, the caps lock state can get out of sync, since the remote desktop client feeds caps lock presses back into the client system when the session is full screen.</source>
+</segment>
+</unit>
+<unit id="1a413eca-4ed2-4e57-99c7-3d75d7eb9896">
+<notes>
+<note appliesTo="source">line: 124</note>
+</notes>
+<segment>
+<source>When this option is enabled on the client, caps lock presses aimed at a full screen remote session no longer toggle caps lock on the client.</source>
+</segment>
+</unit>
+<unit id="68d6cde6-3cb0-4510-8fff-a8fa00c70969">
+<notes>
+<note appliesTo="source">line: 125</note>
+</notes>
+<segment>
+<source>When it is enabled on the server, the server reports its caps lock state to the client, which applies it as soon as the remote session loses focus.</source>
+</segment>
+</unit>
+<unit id="6aa58884-ef53-4a48-9714-d68f27159c48">
+<notes>
+<note appliesTo="source">line: 126</note>
+</notes>
+<segment>
+<source>For correct behavior, this option needs to be enabled on both the client and the server; it is enabled by default on both.</source>
+</segment>
+</unit>
+<unit id="c77d6e39-277e-42d7-a2bd-f5e9a64e99d7">
+<notes>
+<note appliesTo="source">line: 128</note>
+</notes>
+<segment>
+<source>Note that with the NVDA setting "Handle keys from other applications" disabled on the client, caps lock can still get out of sync.</source>
+</segment>
+</unit>
+<unit id="3f21d397-ee37-454d-8576-f8937f546e79">
+<notes>
+<note appliesTo="source">line: 130</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Automatically Switch to Remote Speech when Available</source>
+</segment>
+</unit>
+<unit id="a7de197e-ddc2-4567-8649-19ef61162b36">
+<notes>
+<note appliesTo="source">line: 132</note>
+</notes>
+<segment>
+<source>This option is only available in server mode.</source>
+</segment>
+</unit>
+<unit id="b729e87d-96fe-486b-9d64-e28e23b976e6">
+<notes>
+<note appliesTo="source">line: 133</note>
+</notes>
+<segment>
+<source>It ensures that Remote Speech is activated as soon as a remote desktop client offers it, similar to braille display auto-detection, and that the connection is automatically re-established when it is lost.</source>
+</segment>
+</unit>
+<unit id="ea3750bb-65c6-4987-ac1e-95b8133ceb12">
+<notes>
+<note appliesTo="source">line: 134</note>
+</notes>
+<segment>
+<source>While Remote Speech is active this way, your configured synthesizer is left untouched, and switching configuration profiles no longer falls back to it.</source>
+</segment>
+</unit>
+<unit id="29c66cc7-6290-43ae-9a3b-14d4d6e4b5cc">
+<notes>
+<note appliesTo="source">line: 136</note>
+</notes>
+<segment>
+<source>This option is enabled by default.</source>
+</segment>
+</unit>
+<unit id="c7f1ebb8-1a94-48f0-849b-52f9b037ff1c">
+<notes>
+<note appliesTo="source">line: 137</note>
+</notes>
+<segment>
+<source>It is strongly encouraged to leave this option enabled if the Remote Desktop server has no audio output.</source>
+</segment>
+</unit>
+<unit id="71a47a2f-2b2b-41ce-b3c6-653925928e8c">
+<notes>
+<note appliesTo="source">line: 139</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Allow Remote System to Control Driver Settings</source>
+</segment>
+</unit>
+<unit id="3feac7a4-d8ea-4718-a66c-8b81b8b5f747">
+<notes>
+<note appliesTo="source">line: 141</note>
+</notes>
+<segment>
+<source>When enabled in the client, this option allows you to control driver settings (such as synthesizer voice and pitch) from the remote system.</source>
+</segment>
+</unit>
+<unit id="7dbe4605-9d32-4442-acb3-d92f72929946">
+<notes>
+<note appliesTo="source">line: 142</note>
+</notes>
+<segment>
+<source>Changes made on the remote system will automatically reflect locally.</source>
+</segment>
+</unit>
+<unit id="4a1f3236-d0b5-4eb1-8ab6-bf96c27da965">
+<notes>
+<note appliesTo="source">line: 144</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Persist Client Support When Exiting NVDA</source>
+</segment>
+</unit>
+<unit id="cbb81c59-0bef-46e0-b8d8-52082ede4515">
+<notes>
+<note appliesTo="source">line: 146</note>
+</notes>
+<segment>
+<source>This client option, available on installed copies of NVDA, ensures that the client portion of NVDA is loaded in your remote desktop client even when NVDA is not running.</source>
+</segment>
+</unit>
+<unit id="fb5f33cb-1ca7-49f9-9bea-6ff2676df8ee">
+<notes>
+<note appliesTo="source">line: 148</note>
+</notes>
+<segment>
+<source>To use the client portion of RDAccess, changes need to be made in the Windows Registry.</source>
+</segment>
+</unit>
+<unit id="2c1b2ad9-ba1b-4db2-9333-ffe069625b55">
+<notes>
+<note appliesTo="source">line: 149</note>
+</notes>
+<segment>
+<source>The add-on ensures that these changes are made under the profile of the current user, requiring no administrative privileges.</source>
+</segment>
+</unit>
+<unit id="7cd12cac-97c5-4438-99e7-d3ccb0a2ff17">
+<notes>
+<note appliesTo="source">line: 150</note>
+</notes>
+<segment>
+<source>Therefore, NVDA can automatically apply the necessary changes when loaded and undo these changes when exiting NVDA, ensuring compatibility with portable versions of NVDA.</source>
+</segment>
+</unit>
+<unit id="d11849e9-90d7-4e75-bf8c-51bf2fb6058f">
+<notes>
+<note appliesTo="source">line: 152</note>
+</notes>
+<segment>
+<source>This option is disabled by default.</source>
+</segment>
+</unit>
+<unit id="50122384-83ef-4c48-b90b-526193262be5">
+<notes>
+<note appliesTo="source">line: 153</note>
+</notes>
+<segment>
+<source>However, if you are running an installed copy and you are the only user of the system, it is advised to enable this option for smooth operation when connecting to a remote system after NVDA starts.</source>
+</segment>
+</unit>
+<unit id="6455e293-7525-45b7-b1f7-4a1324df9c15">
+<notes>
+<note appliesTo="source">line: 155</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Enable Default Remote Desktop Support</source>
+</segment>
+</unit>
+<unit id="ccf9e6d6-ac55-4198-844c-312a0dafc70e">
+<notes>
+<note appliesTo="source">line: 157</note>
+</notes>
+<segment>
+<source>This option, enabled by default, ensures that the client portion of RDAccess is loaded in the Microsoft Remote Desktop client (mstsc) when starting NVDA.</source>
+</segment>
+</unit>
+<unit id="a9a91841-5796-469e-92bb-43950acc7db0">
+<notes>
+<note appliesTo="source">line: 158</note>
+</notes>
+<segment>
+<source>This is also required for VMware Horizon, Parallels RAS, Azure Virtual Desktop. etc.</source>
+</segment>
+</unit>
+<unit id="78594347-0d9f-4b94-a5ee-4323ec0927a0">
+<notes>
+<note appliesTo="source">line: 159</note>
+</notes>
+<segment>
+<source>Changes made through this option will be automatically undone when exiting NVDA unless persistent client support is enabled.</source>
+</segment>
+</unit>
+<unit id="7300fc8c-4a73-4e0f-b07c-8a721473ed5f">
+<notes>
+<note appliesTo="source">line: 161</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Enable Citrix Workspace Support</source>
+</segment>
+</unit>
+<unit id="18098b7b-1769-4581-b325-595acdf387eb">
+<notes>
+<note appliesTo="source">line: 163</note>
+</notes>
+<segment>
+<source>This option, enabled by default, ensures that the client portion of RDAccess is loaded in the Citrix Workspace app when starting NVDA.</source>
+</segment>
+</unit>
+<unit id="6c2ffc07-88eb-49ee-82d5-575446dfa5fc">
+<notes>
+<note appliesTo="source">line: 164</note>
+</notes>
+<segment>
+<source>Changes made through this option will be automatically undone when exiting NVDA unless persistent client support is enabled.</source>
+</segment>
+</unit>
+<unit id="7e37d3b4-9a27-4a7c-b893-037da6692dcd">
+<notes>
+<note appliesTo="source">line: 166</note>
+</notes>
+<segment>
+<source>This option is available only under the following conditions:</source>
+</segment>
+</unit>
+<unit id="004b94d0-a565-43af-a611-c402e24dc446">
+<notes>
+<note appliesTo="source">line: 168</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Citrix Workspace is installed.</source>
+</segment>
+</unit>
+<unit id="996f8079-6bab-4193-8f07-e3aef3928088">
+<notes>
+<note appliesTo="source">line: 169</note>
+</notes>
+<segment>
+<source>  Note that the Windows Store version of the app is not supported due to limitations in the app itself.</source>
+</segment>
+</unit>
+<unit id="71842b62-4186-443c-93fb-9cb80e3bdd64">
+<notes>
+<note appliesTo="source">line: 170</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>It is possible to register RDAccess under the current user context.</source>
+</segment>
+</unit>
+<unit id="2a7aa237-3f36-4e0d-8e81-cbcbe2847a6c">
+<notes>
+<note appliesTo="source">line: 171</note>
+</notes>
+<segment>
+<source>  After installing the app, you have to start a remote session once to enable this.</source>
+</segment>
+</unit>
+<unit id="54a96e96-67ba-41f0-84e8-a7d4243a1d1c">
+<notes>
+<note appliesTo="source">line: 173</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Notify of connection changes with</source>
+</segment>
+</unit>
+<unit id="5bf182e4-7d2b-4d4d-be1b-7b9cb5de4e4a">
+<notes>
+<note appliesTo="source">line: 175</note>
+</notes>
+<segment>
+<source>This combo box allows you to control notifications received when a remote system opens or closes the remote speech or braille connection.</source>
+</segment>
+</unit>
+<unit id="1edc1381-6184-4d9f-a188-8fbc4d84d877">
+<notes>
+<note appliesTo="source">line: 176</note>
+</notes>
+<segment>
+<source>You can choose between:</source>
+</segment>
+</unit>
+<unit id="b7ad55c2-5fcc-4a91-88b7-6fd807a4c0c4">
+<notes>
+<note appliesTo="source">line: 178</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Off (No notifications)</source>
+</segment>
+</unit>
+<unit id="3c1a9850-b282-4fd5-9856-ca8cd434ca0e">
+<notes>
+<note appliesTo="source">line: 179</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Messages (e.g. "Remote braille connected")</source>
+</segment>
+</unit>
+<unit id="21053352-d391-4d77-9d59-9dbc78e3f123">
+<notes>
+<note appliesTo="source">line: 180</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Sounds (NVDA 2025.1+)</source>
+</segment>
+</unit>
+<unit id="fb25fc7a-861d-46de-801a-ae8525037fd1">
+<notes>
+<note appliesTo="source">line: 181</note>
+<note appliesTo="source">prefix: * </note>
+</notes>
+<segment>
+<source>Both messages and sounds</source>
+</segment>
+</unit>
+<unit id="51aa808d-1370-4968-8412-d537ed75e821">
+<notes>
+<note appliesTo="source">line: 183</note>
+</notes>
+<segment>
+<source>Note that sounds are not available on NVDA versions older than 2025.1.</source>
+</segment>
+</unit>
+<unit id="91a814b8-a8b0-4eab-8caa-55dafa1ca5cb">
+<notes>
+<note appliesTo="source">line: 184</note>
+</notes>
+<segment>
+<source>Beeps will be used on older versions.</source>
+</segment>
+</unit>
+<unit id="23acfb3f-352e-4b8a-bb40-ca7fc8c6aaa1">
+<notes>
+<note appliesTo="source">line: 186</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Incoming Speech Pitch Change Percentage</source>
+</segment>
+</unit>
+<unit id="7ac8a6b3-2cd6-416a-b79e-6491805519eb">
+<notes>
+<note appliesTo="source">line: 188</note>
+</notes>
+<segment>
+<source>This client option shifts the pitch of speech rendered locally when it originates from a remote NVDA, making remote and local speech audibly distinguishable.</source>
+</segment>
+</unit>
+<unit id="7e2c4eba-4386-43b4-a39a-4e870bec03d1">
+<notes>
+<note appliesTo="source">line: 190</note>
+</notes>
+<segment>
+<source>The value is a percentage between -100 and 100.</source>
+</segment>
+</unit>
+<unit id="73e2aa2b-90bf-4073-abab-f00c0fe70279">
+<notes>
+<note appliesTo="source">line: 191</note>
+</notes>
+<segment>
+<source>Positive values raise pitch, negative values lower it.</source>
+</segment>
+</unit>
+<unit id="0d6c428d-bb94-4e3b-9186-7b52ef6b6dd0">
+<notes>
+<note appliesTo="source">line: 192</note>
+</notes>
+<segment>
+<source>A value of 0 disables the shift.</source>
+</segment>
+</unit>
+<unit id="860577af-44e3-438a-91a2-ab6df3dc926e">
+<notes>
+<note appliesTo="source">line: 193</note>
+</notes>
+<segment>
+<source>The default is 10.</source>
+</segment>
+</unit>
+<unit id="9c9b2a7e-9a0d-456c-ad01-d2f92c3d5056">
+<notes>
+<note appliesTo="source">line: 195</note>
+</notes>
+<segment>
+<source>The shift is applied only when the local synthesizer supports pitch commands; synthesizers without pitch support are unaffected.</source>
+</segment>
+</unit>
+<unit id="38547a91-2767-4517-b162-6d86aaf59ad1">
+<notes>
+<note appliesTo="source">line: 197</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Open diagnostics report</source>
+</segment>
+</unit>
+<unit id="061dd911-8d0b-4a33-8849-a405f1bef36d">
+<notes>
+<note appliesTo="source">line: 199</note>
+</notes>
+<segment>
+<source>This button opens a browsable message with JSON output containing several diagnostics that can possibly aid in debugging.</source>
+</segment>
+</unit>
+<unit id="c22a1dd4-45fc-4938-8c52-647332e05620">
+<notes>
+<note appliesTo="source">line: 200</note>
+</notes>
+<segment>
+<source>When [filing an issue at GitHub][4], you might be asked to provide this report.</source>
+</segment>
+</unit>
+<unit id="81f3f942-c4ce-4a10-8e3f-aed92e0cfd70">
+<notes>
+<note appliesTo="source">line: 202</note>
+<note appliesTo="source">prefix: ## </note>
+</notes>
+<segment>
+<source>Citrix Specific Instructions</source>
+</segment>
+</unit>
+<unit id="63d6f15a-5445-476b-906f-772c6e7d9e20">
+<notes>
+<note appliesTo="source">line: 204</note>
+</notes>
+<segment>
+<source>There are important points to note when using RDAccess with the Citrix Workspace app:</source>
+</segment>
+</unit>
+<unit id="87e58c14-0711-4dde-88ea-d2d99e978866">
+<notes>
+<note appliesTo="source">line: 206</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Client-Side Requirements</source>
+</segment>
+</unit>
+<unit id="4c466160-b696-470b-a7fb-8881cfd72ba1">
+<notes>
+<note appliesTo="source">line: 208</note>
+<note appliesTo="source">prefix: 1. </note>
+</notes>
+<segment>
+<source>The Windows Store variant of the app is *not* supported.</source>
+</segment>
+</unit>
+<unit id="f7147c71-5b2d-42db-ab70-b7d490766134">
+<notes>
+<note appliesTo="source">line: 209</note>
+<note appliesTo="source">prefix: 1. </note>
+</notes>
+<segment>
+<source>After installing Citrix Workspace, you need to start a remote session once to let RDAccess register itself.</source>
+</segment>
+</unit>
+<unit id="c8e36354-55e8-4e41-805b-66264d6f9770">
+<notes>
+<note appliesTo="source">line: 210</note>
+</notes>
+<segment>
+<source>   This occurs because the application copies system settings to user settings during the initial session setup.</source>
+</segment>
+</unit>
+<unit id="b61e3ae5-2851-4ef6-a26d-7d5137576c1a">
+<notes>
+<note appliesTo="source">line: 211</note>
+</notes>
+<segment>
+<source>   Following this, RDAccess can register itself under the current user context.</source>
+</segment>
+</unit>
+<unit id="a9862eb5-c80f-4731-815d-63fc37be8860">
+<notes>
+<note appliesTo="source">line: 213</note>
+<note appliesTo="source">prefix: ### </note>
+</notes>
+<segment>
+<source>Server-Side Requirement</source>
+</segment>
+</unit>
+<unit id="5dedb8a2-41d0-4ae1-8bdd-84ef7b65cb61">
+<notes>
+<note appliesTo="source">line: 215</note>
+</notes>
+<segment>
+<source>In Citrix Virtual Apps and Desktops 2109, Citrix enabled the so-called virtual channel allow list, restricting third-party virtual channels, including the channel required by RDAccess, by default.</source>
+</segment>
+</unit>
+<unit id="f5516aa5-c166-4868-b568-874d5eb885c5">
+<notes>
+<note appliesTo="source">line: 216</note>
+</notes>
+<segment>
+<source>For more information, [see this Citrix blog post](https://www.citrix.com/blogs/2021/10/14/virtual-channel-allow-list-now-enabled-by-default/).</source>
+</segment>
+</unit>
+<unit id="171d67d3-79db-4467-9732-50a38e2dd845">
+<notes>
+<note appliesTo="source">line: 218</note>
+</notes>
+<segment>
+<source>Explicitly allowing the RdPipe channel required by RDAccess is not yet tested.</source>
+</segment>
+</unit>
+<unit id="49d0cc16-96ea-4fb8-8298-ab342c90f6cf">
+<notes>
+<note appliesTo="source">line: 219</note>
+</notes>
+<segment>
+<source>For now, it is best to disable the allow list altogether.</source>
+</segment>
+</unit>
+<unit id="9c4a8138-8691-4023-8d18-69ddebc30648">
+<notes>
+<note appliesTo="source">line: 220</note>
+</notes>
+<segment>
+<source>If your system administrator has concerns, feel free to [address the issue here][3].</source>
+</segment>
+</unit>
+<unit id="2c389b62-2e42-4026-9b6e-24b85551fb86">
+<notes>
+<note appliesTo="source">line: 222</note>
+<note appliesTo="source">prefix: ## </note>
+</notes>
+<segment>
+<source>Issues and Contributing</source>
+</segment>
+</unit>
+<unit id="b4bb2859-0c65-4147-b0e6-4b7e0f59ebb5">
+<notes>
+<note appliesTo="source">line: 224</note>
+</notes>
+<segment>
+<source>To report an issue or contribute, refer to [the issues page on Github][4].</source>
+</segment>
+</unit>
+<unit id="26e99bc9-1534-44d7-ad43-433211164138">
+<notes>
+<note appliesTo="source">line: 226</note>
+<note appliesTo="source">prefix: ## </note>
+</notes>
+<segment>
+<source>External Components</source>
+</segment>
+</unit>
+<unit id="1937b5bb-417e-4927-96ba-cd524c388964">
+<notes>
+<note appliesTo="source">line: 228</note>
+</notes>
+<segment>
+<source>This add-on relies on [RD Pipe][5], a library written in Rust backing the remote desktop client support.</source>
+</segment>
+</unit>
+<unit id="99e803df-2a88-410d-97d0-7a7b6dbd60b8">
+<notes>
+<note appliesTo="source">line: 229</note>
+</notes>
+<segment>
+<source>RD Pipe is redistributed as part of this add-on under the terms of [version 3 of the GNU Affero General Public License][6].</source>
+</segment>
+</unit>
+<unit id="5522668f-91b9-47f7-aa12-a7d2668c5abb">
+<notes>
+<note appliesTo="source">line: 231</note>
+</notes>
+<segment>
+<source>[[!tag stable dev beta]]</source>
+</segment>
+</unit>
+<unit id="86f06d0f-bb46-4120-9aab-7ca0b09d533f">
+<notes>
+<note appliesTo="source">line: 233</note>
+</notes>
+<segment>
+<source>[1]: https://github.com/leonardder/</source>
+</segment>
+</unit>
+<unit id="31af0890-4a2b-4a32-b6b7-ea3756464623">
+<notes>
+<note appliesTo="source">line: 235</note>
+</notes>
+<segment>
+<source>[2]: https://www.nvaccess.org/addonStore/legacy?file=rdAccess</source>
+</segment>
+</unit>
+<unit id="b9510c65-731b-422e-9e32-9afd547392d2">
+<notes>
+<note appliesTo="source">line: 237</note>
+</notes>
+<segment>
+<source>[3]: https://github.com/leonardder/rdAccess/issues/1</source>
+</segment>
+</unit>
+<unit id="5adac34e-1949-4c95-b863-06595f430a5b">
+<notes>
+<note appliesTo="source">line: 239</note>
+</notes>
+<segment>
+<source>[4]: https://github.com/leonardder/rdAccess/issues</source>
+</segment>
+</unit>
+<unit id="441f0e78-04a8-47f1-9719-1dd550759596">
+<notes>
+<note appliesTo="source">line: 241</note>
+</notes>
+<segment>
+<source>[5]: https://github.com/leonardder/rd_pipe-rs</source>
+</segment>
+</unit>
+<unit id="16b3d5ef-4f54-46e0-a5d9-01acbc01bd27">
+<notes>
+<note appliesTo="source">line: 243</note>
+</notes>
+<segment>
+<source>[6]: https://github.com/leonardder/rd_pipe-rs/blob/master/LICENSE</source>
+</segment>
+</unit>
+</file>
+</xliff>
