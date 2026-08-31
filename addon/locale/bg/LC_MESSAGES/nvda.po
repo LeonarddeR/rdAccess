@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nvdaaddons\n"
 "Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
-"POT-Creation-Date: 2026-08-28 17:37+0000\n"
-"PO-Revision-Date: 2026-08-28 17:38\n"
+"POT-Creation-Date: 2026-08-31 01:58+0000\n"
+"PO-Revision-Date: 2026-08-31 01:59\n"
 "Last-Translator: \n"
 "Language-Team: Bulgarian\n"
 "Language: bg_BG\n"
@@ -135,30 +135,30 @@ msgid "Error"
 msgstr "Грешка"
 
 #. Translators: Translation of the connection type in connection messages
-#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:89
+#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:90
 msgctxt "connection type"
 msgid "speech"
 msgstr "реч"
 
 #. Translators: Translation of the connection type in connection messages
-#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:92
+#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:93
 msgctxt "connection type"
 msgid "braille"
 msgstr "брайл"
 
 #. Translators: Translation of the connection status in connection messages.
-#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:96
+#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:97
 msgid "connected"
 msgstr "има връзка"
 
 #. Translators: Translation of the connection status in connection messages.
-#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:99
+#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:100
 msgid "disconnected"
 msgstr "няма връзка"
 
 #. Translators: Translation of the connection message.
 #. (E.g. "Remote braille/speech  connected/disconnected")
-#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:103
+#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:104
 msgid "Remote {} {}"
 msgstr "Отдалечен достъп, {}, {}"
 

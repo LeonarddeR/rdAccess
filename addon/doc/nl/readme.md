@@ -22,6 +22,14 @@ Dit maakt een gebruikerservaring mogelijk waarbij het beheren van een systeem op
 
 ## Wijzigingen
 
+### Version 2.0.3
+
+* Caps lock synchronization on the client now relies on NVDA 2026.3, which lets RDAccess tell caps lock presses fed back by the remote desktop client apart from real key presses. Synchronization therefore also works when the session is not full screen but Windows key combinations are applied on the remote computer, and when the NVDA setting "Handle keys from other applications" is disabled. The client side of the synchronization requires NVDA 2026.3 or later and is no longer available on older versions of NVDA; the server side keeps working on every supported version.
+
+### Version 2.0.2
+
+* Fixed caps lock going out of sync between the client and the server when both NVDA instances use caps lock as an NVDA modifier key. Quickly repeated caps lock presses in a full screen session no longer toggle caps lock on the client, and when caps lock is really toggled within the session, the client now follows as soon as the session loses focus. This behavior is controlled by the new setting "Synchronize the caps lock key between client and server", which is enabled by default and needs to be enabled on both the client and the server to work correctly. Note that with the setting "Handle keys from other applications" disabled on the client, caps lock can still get out of sync.
+
 ### Versie 2.0.1
 
 * Wanneer externe spraak automatisch wordt ingeschakeld, blijft deze nu werken na het wisselen van configuratieprofiel. Voorheen viel NVDA, zodra een profiel werd geactiveerd, terug op de synthesizer die je hebt geconfigureerd. Dit gebeurde bijvoorbeeld wanneer je naar een toepassing met een eigen profiel ging.
@@ -119,12 +127,13 @@ Je wordt echter aangemoedigd om de server- of clientmodus uit te schakelen waar 
 
 ### Synchroniseer de Caps Lock-toets tussen client en server
 
-Wanneer zowel de client als de server NVDA draaien met Caps Lock als NVDA-toets, kan de status van Caps Lock uit de pas gaan lopen, omdat de client voor extern bureaublad Caps Lock-toetsaanslagen terugvoert naar het clientsysteem wanneer de sessie op volledig scherm staat.
-Wanneer deze optie op de client is ingeschakeld, schakelen Caps Lock-toetsaanslagen die bedoeld zijn voor een externe sessie op volledig scherm Caps Lock op de client niet langer aan of uit.
+When both the client and the server run NVDA with caps lock as an NVDA modifier key, the caps lock state can get out of sync, since the remote desktop client feeds caps lock presses back into the client system whenever it captures the keyboard, for example in a full screen session.
+When this option is enabled on the client, these fed back caps lock presses no longer toggle caps lock on the client.
 Wanneer deze optie op de server is ingeschakeld, meldt de server zijn Caps Lock-status aan de client, die deze toepast zodra de externe sessie de focus verliest.
 Voor een correcte werking moet deze optie op zowel de client als de server zijn ingeschakeld; standaard is dat op beide het geval.
+On the client, this option requires NVDA 2026.3 or later; the server side works with every NVDA version supported by the add-on.
 
-Merk op dat Caps Lock nog steeds uit de pas kan gaan lopen wanneer de NVDA-instelling "Toetsen van andere toepassingen verwerken" op de client is uitgeschakeld.
+Note that while a remote desktop session window has focus, caps lock presses sent by other software, such as NVDA Remote Access, are suppressed on the client as well.
 
 ### Automatisch overschakelen naar externe spraak wanneer beschikbaar
 
@@ -176,11 +185,8 @@ Je kunt kiezen uit:
 
 * Uit (geen meldingen)
 * Berichten (bijv. "Extern braille verbonden")
-* Geluiden (NVDA 2025.1+)
+* Sounds
 * Zowel berichten als geluiden
-
-Merk op dat geluiden niet beschikbaar zijn in NVDA-versies ouder dan 2025.1.
-In oudere versies worden pieptonen gebruikt.
 
 ### Percentage toonhoogteverandering voor binnenkomende spraak
 
@@ -226,8 +232,6 @@ Om een probleem te melden of een bijdrage te leveren, kijk je op [de pagina met 
 
 Deze add-on maakt gebruik van [RD Pipe][5], een in Rust geschreven bibliotheek die de ondersteuning voor clients voor extern bureaublad mogelijk maakt.
 RD Pipe wordt als onderdeel van deze add-on verspreid onder de voorwaarden van [versie 3 van de GNU Affero General Public License][6].
-
-[[!tag stable dev beta]]
 
 [1]: https://github.com/leonardder/
 

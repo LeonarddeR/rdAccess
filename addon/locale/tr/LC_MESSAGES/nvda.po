@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nvdaaddons\n"
 "Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
-"POT-Creation-Date: 2026-08-28 17:37+0000\n"
-"PO-Revision-Date: 2026-08-28 17:38\n"
+"POT-Creation-Date: 2026-08-31 01:58+0000\n"
+"PO-Revision-Date: 2026-08-31 02:00\n"
 "Last-Translator: \n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
@@ -135,30 +135,30 @@ msgid "Error"
 msgstr "Hata"
 
 #. Translators: Translation of the connection type in connection messages
-#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:89
+#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:90
 msgctxt "connection type"
 msgid "speech"
 msgstr "konuşma"
 
 #. Translators: Translation of the connection type in connection messages
-#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:92
+#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:93
 msgctxt "connection type"
 msgid "braille"
 msgstr "braille"
 
 #. Translators: Translation of the connection status in connection messages.
-#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:96
+#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:97
 msgid "connected"
 msgstr "bağlı"
 
 #. Translators: Translation of the connection status in connection messages.
-#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:99
+#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:100
 msgid "disconnected"
 msgstr "bağlantı kesildi"
 
 #. Translators: Translation of the connection message.
 #. (E.g. "Remote braille/speech  connected/disconnected")
-#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:103
+#: addon\globalPlugins\rdAccess\handlers\_remoteHandler.py:104
 msgid "Remote {} {}"
 msgstr "Uzak {} {} {} {}"
 
@@ -206,5 +206,5 @@ msgstr "&Yedek sentezleyici"
 
 #: buildVars.py:29
 msgid "Allows using speech and braille with Microsoft Remote Desktop, Citrix Workspace, Parallels RAS and VMware Horizon"
-msgstr ""
+msgstr "Microsoft Uzaktan Masaüstü, Citrix Workspace, Parallels RAS ve VMware Horizon ile konuşma ve Braille kullanımına olanak tanır"
 

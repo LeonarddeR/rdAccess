@@ -22,6 +22,14 @@ Ev ezmûnek bikarhêner peyda dike ku tê de birêvebirina pergalek ji dûr ve b
 
 ## Guhertinname
 
+### Version 2.0.3
+
+* Caps lock synchronization on the client now relies on NVDA 2026.3, which lets RDAccess tell caps lock presses fed back by the remote desktop client apart from real key presses. Synchronization therefore also works when the session is not full screen but Windows key combinations are applied on the remote computer, and when the NVDA setting "Handle keys from other applications" is disabled. The client side of the synchronization requires NVDA 2026.3 or later and is no longer available on older versions of NVDA; the server side keeps working on every supported version.
+
+### Version 2.0.2
+
+* Fixed caps lock going out of sync between the client and the server when both NVDA instances use caps lock as an NVDA modifier key. Quickly repeated caps lock presses in a full screen session no longer toggle caps lock on the client, and when caps lock is really toggled within the session, the client now follows as soon as the session loses focus. This behavior is controlled by the new setting "Synchronize the caps lock key between client and server", which is enabled by default and needs to be enabled on both the client and the server to work correctly. Note that with the setting "Handle keys from other applications" disabled on the client, caps lock can still get out of sync.
+
 ### Versiyon 2.0.1
 
 * Dema ku axaftina ji dûr ve bixweber tê vekirin, ew êdî piştî guhertina profîla mîhengkirinê jî diaxive. Berê, NVDA vedigeriya sentezatorê ku we mîheng kiribû gava profîlek dihat çalakkirin, mînakî dema ku hûn diçûn serîlêdanek bi profîla wê.
@@ -119,12 +127,13 @@ Lêbelê, tê pêşniyar kirin ku hûn moda server an xerîdar li gorî rewşê 
 
 ### Bişkojka Caps Lock di navbera Xerîdar û Serverê de senkronîze bike
 
-Dema ku hem xerîdar û hem jî server NVDA bi caps lock wekî bişkojka guherker a NVDA dimeşînin, rewşa caps lock dikare ji senkronîzebûnê derkeve, ji ber ku xerîdarê sermaseya dûr dema ku danişîn bi tevahî ekranê be, caps lock pressan vedigerîne pergala xerîdar.
-Dema ku ev vebijêrk li ser xerîdar çalak be, pêlên caps lock ên ku ber bi danişîna dûr a tevahî-ekranê ve armanc dikin êdî caps lock li ser xerîdar naguhezînin.
+When both the client and the server run NVDA with caps lock as an NVDA modifier key, the caps lock state can get out of sync, since the remote desktop client feeds caps lock presses back into the client system whenever it captures the keyboard, for example in a full screen session.
+When this option is enabled on the client, these fed back caps lock presses no longer toggle caps lock on the client.
 Dema ku li ser serverê çalak be, server rewşa caps lock-a xwe ji xerîdar re radigihîne, ku ew jî wê gava ku danişîna dûr balê winda dike, bicîh tîne.
 Ji bo tevgereke rast, divê ev vebijêrk hem li ser xerîdar û hem jî li ser serverê çalak be; ew bi xwerû li ser herduyan jî çalak e.
+On the client, this option requires NVDA 2026.3 or later; the server side works with every NVDA version supported by the add-on.
 
-Ji bîr mekin ku dema ku mîhenga NVDA "Bişkokên ji sepanên din bi rê ve bibe" li ser xerîdar neçalak be, dîsa jî dibe ku Caps Lock ji senkronîzebûnê derkeve.
+Note that while a remote desktop session window has focus, caps lock presses sent by other software, such as NVDA Remote Access, are suppressed on the client as well.
 
 ### Dema ku peyda bibe, bixweber biguhere ser axaftina ji dûr ve
 
@@ -176,11 +185,8 @@ Tu dikarî di navbera wan de hilbijêrî:
 
 * Girtî (Agahdarî tune)
 * Peyam (mînak "Braille ji dûr ve girêdayî ye")
-* Deng (NVDA 2025.1+)
+* Sounds
 * Hem peyam û hem jî deng
-
-Ji kerema xwe bala xwe bidinê ku deng li ser guhertoyên NVDA yên ji 2025.1 kevintir nînin.
-Bip dê li ser guhertoyên kevintir werin bikar anîn.
 
 ### Rêjeya Guhertina Bilindahiya Axaftina Hatî
 
@@ -226,8 +232,6 @@ Ji bo ragihandina pirsgirêkekê an beşdarbûnê, li [rûpela pirsgirêkan li s
 
 Ev pêvek xwe dispêre [RD Pipe][5], pirtûkxaneyek ku bi Rust hatiye nivîsandin û piştgiriya xerîdarê sermaseya dûr dike.
 RD Pipe wekî beşek ji vê pêvekê li gorî şertên [guhertoya 3-an a Lîsansa Giştî ya GNU Affero][6] ji nû ve tê belavkirin.
-
-[[!tag stabîl pêşdebir beta]]
 
 [1]: https://github.com/leonardder/
 
