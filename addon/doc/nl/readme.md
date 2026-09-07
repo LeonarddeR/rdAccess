@@ -22,13 +22,13 @@ Dit maakt een gebruikerservaring mogelijk waarbij het beheren van een systeem op
 
 ## Wijzigingen
 
-### Version 2.0.3
+### Versie 2.0.3
 
-* Caps lock synchronization on the client now relies on NVDA 2026.3, which lets RDAccess tell caps lock presses fed back by the remote desktop client apart from real key presses. Synchronization therefore also works when the session is not full screen but Windows key combinations are applied on the remote computer, and when the NVDA setting "Handle keys from other applications" is disabled. The client side of the synchronization requires NVDA 2026.3 or later and is no longer available on older versions of NVDA; the server side keeps working on every supported version.
+* De synchronisatie van de Caps Lock-toets aan de clientzijde is nu afhankelijk van NVDA 2026.3. Hiermee kan RDAccess onderscheid maken tussen Caps Lock-toetsen die door de externe desktopclient worden teruggestuurd en daadwerkelijke toetsaanslagen. Synchronisatie werkt daarom ook wanneer de sessie niet in volledig scherm is, maar Windows-toetscombinaties wel worden toegepast op de externe computer, en wanneer de NVDA-instelling "Toetsen van andere toepassingen verwerken" is uitgeschakeld. De clientzijde van de synchronisatie vereist NVDA 2026.3 of hoger en is niet langer beschikbaar in oudere versies van NVDA; de serverzijde blijft werken in alle ondersteunde versies.
 
-### Version 2.0.2
+### Versie 2.0.2
 
-* Fixed caps lock going out of sync between the client and the server when both NVDA instances use caps lock as an NVDA modifier key. Quickly repeated caps lock presses in a full screen session no longer toggle caps lock on the client, and when caps lock is really toggled within the session, the client now follows as soon as the session loses focus. This behavior is controlled by the new setting "Synchronize the caps lock key between client and server", which is enabled by default and needs to be enabled on both the client and the server to work correctly. Note that with the setting "Handle keys from other applications" disabled on the client, caps lock can still get out of sync.
+* Probleem opgelost waarbij de Caps Lock-toets niet meer synchroon liep tussen de client en de server wanneer beide NVDA-instanties Caps Lock als NVDA-toets gebruikten. Snel achter elkaar op Caps Lock drukken in een sessie op volledig scherm schakelt Caps Lock niet langer in en uit op de client. Wanneer Caps Lock daadwerkelijk wordt in- en uitgeschakeld binnen de sessie, volgt de client dit zodra de sessie de focus verliest. Dit gedrag wordt geregeld door de nieuwe instelling "Synchroniseer de Caps Lock-toets tussen client en server", die standaard is ingeschakeld en zowel op de client als op de server moet zijn ingeschakeld om correct te werken. Houd er rekening mee dat Caps Lock nog steeds niet synchroon kan lopen wanneer de instelling "Toetsen van andere toepassingen verwerken" is uitgeschakeld op de client.
 
 ### Versie 2.0.1
 
@@ -104,7 +104,7 @@ Eerste stabiele versie.
 
 1. Installeer RDAccess in zowel een client- als een serverkopie van NVDA.
 1. Het externe systeem zou automatisch moeten beginnen te spreken via de lokale spraaksynthesizer.
-      Als dit niet het geval is, selecteer je in het NVDA-exemplaar op de server de synthesizer Externe spraak in het NVDA-dialoogvenster voor synthesizerselectie.
+   Als dit niet het geval is, selecteer je in het NVDA-exemplaar op de server de synthesizer Externe spraak in het NVDA-dialoogvenster voor synthesizerselectie.
 1. Om braille te gebruiken, schakel je automatische detectie van brailleleesregels in met behulp van het selectievenster voor brailleleesregels.
 
 ## Configuratie
@@ -127,13 +127,13 @@ Je wordt echter aangemoedigd om de server- of clientmodus uit te schakelen waar 
 
 ### Synchroniseer de Caps Lock-toets tussen client en server
 
-When both the client and the server run NVDA with caps lock as an NVDA modifier key, the caps lock state can get out of sync, since the remote desktop client feeds caps lock presses back into the client system whenever it captures the keyboard, for example in a full screen session.
-When this option is enabled on the client, these fed back caps lock presses no longer toggle caps lock on the client.
+Wanneer zowel de client als de server NVDA gebruiken met Caps Lock als NVDA-toets, kan de Caps Lock-status uit balans raken. Dit komt doordat de client voor extern bureaublad Caps Lock-aanslagen terugstuurt naar het clientsysteem telkens wanneer het toetsenbord wordt overgenomen, bijvoorbeeld in een sessie op volledig scherm.
+Wanneer deze optie op de client is ingeschakeld, zullen deze Caps Lock-aanslagen de Caps Lock-functie op de client niet langer in- of uitschakelen.
 Wanneer deze optie op de server is ingeschakeld, meldt de server zijn Caps Lock-status aan de client, die deze toepast zodra de externe sessie de focus verliest.
 Voor een correcte werking moet deze optie op zowel de client als de server zijn ingeschakeld; standaard is dat op beide het geval.
-On the client, this option requires NVDA 2026.3 or later; the server side works with every NVDA version supported by the add-on.
+Aan de clientzijde vereist deze optie NVDA 2026.3 of later; aan de serverzijde werkt het met elke NVDA-versie die door de add-on wordt ondersteund.
 
-Note that while a remote desktop session window has focus, caps lock presses sent by other software, such as NVDA Remote Access, are suppressed on the client as well.
+Houd er rekening mee dat zolang een venster van een externe bureaubladsessie actief is, het indrukken van de Caps Lock-toets door andere software, zoals NVDA externe toegang, ook op de client wordt onderdrukt.
 
 ### Automatisch overschakelen naar externe spraak wanneer beschikbaar
 
@@ -174,9 +174,9 @@ Wijzigingen die via deze optie worden gemaakt, worden bij het afsluiten van NVDA
 Deze optie is alleen beschikbaar onder de volgende voorwaarden:
 
 * Citrix Workspace is geïnstalleerd.
-    Merk op dat de Windows Store-versie van de app niet wordt ondersteund vanwege beperkingen in de app zelf.
+  Merk op dat de Windows Store-versie van de app niet wordt ondersteund vanwege beperkingen in de app zelf.
 * Het is mogelijk om RDAccess te registreren onder de huidige gebruikerscontext.
-    Na installatie van de app moet je eenmalig een externe sessie starten om dit mogelijk te maken.
+  Na installatie van de app moet je eenmalig een externe sessie starten om dit mogelijk te maken.
 
 ### Verbindingswijzigingen melden met
 
@@ -185,7 +185,7 @@ Je kunt kiezen uit:
 
 * Uit (geen meldingen)
 * Berichten (bijv. "Extern braille verbonden")
-* Sounds
+* Geluiden
 * Zowel berichten als geluiden
 
 ### Percentage toonhoogteverandering voor binnenkomende spraak
@@ -212,8 +212,8 @@ Er zijn enkele belangrijke aandachtspunten bij het gebruik van RDAccess met de C
 
 1. De Windows Store-variant van de app wordt *niet* ondersteund.
 1. Na installatie van Citrix Workspace moet je eenmalig een externe sessie starten om RDAccess zichzelf te laten registreren.
-      Dit komt doordat de applicatie de systeeminstellingen naar de gebruikersinstellingen kopieert bij het opzetten van de eerste sessie.
-      Daarna kan RDAccess zichzelf registreren onder de huidige gebruikerscontext.
+   Dit komt doordat de applicatie de systeeminstellingen naar de gebruikersinstellingen kopieert bij het opzetten van de eerste sessie.
+   Daarna kan RDAccess zichzelf registreren onder de huidige gebruikerscontext.
 
 ### Vereiste aan de serverzijde
 

@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: nvdaaddons\n"
 "Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
 "POT-Creation-Date: 2026-08-31 01:58+0000\n"
-"PO-Revision-Date: 2026-09-04 23:39\n"
+"PO-Revision-Date: 2026-09-07 05:39\n"
 "Last-Translator: \n"
 "Language-Team: Dutch\n"
 "Language: nl_NL\n"
@@ -206,5 +206,5 @@ msgstr "&Terugvallen op synthesizer"
 
 #: buildVars.py:29
 msgid "Allows using speech and braille with Microsoft Remote Desktop, Citrix Workspace, Parallels RAS and VMware Horizon"
-msgstr ""
+msgstr "Maakt gebruik van spraak en braille mogelijk met Microsoft Remote Desktop, Citrix Workspace, Parallels RAS en VMware Horizon"
 
