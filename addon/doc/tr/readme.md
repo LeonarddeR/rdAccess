@@ -22,13 +22,13 @@ Bu, uzak bir sistemi yönetmenin, yerel sistemi çalıştırmak kadar kusursuz h
 
 ## Changelog
 
-### Version 2.0.3
+### Sürüm 2.0.3
 
-* Caps lock synchronization on the client now relies on NVDA 2026.3, which lets RDAccess tell caps lock presses fed back by the remote desktop client apart from real key presses. Synchronization therefore also works when the session is not full screen but Windows key combinations are applied on the remote computer, and when the NVDA setting "Handle keys from other applications" is disabled. The client side of the synchronization requires NVDA 2026.3 or later and is no longer available on older versions of NVDA; the server side keeps working on every supported version.
+* İstemci tarafındaki Büyük harf kilidi senkronizasyonu artık NVDA 2026.3 ile çalışmaktadır. Bu sürüm, Uzak Masaüstü Erişilebilirliği'nin uzak masaüstü istemcisi tarafından geri gönderilen Büyük harf kilidi tuş basımlarını gerçek tuş basımlarından ayırt etmesini sağlar. Bu nedenle senkronizasyon, oturum tam ekran modunda olmasa bile uzak bilgisayarda Windows tuş kombinasyonları uygulandığında ve NVDA ayarı "Diğer uygulamalardan gelen tuşları işle" devre dışı bırakıldığında da çalışır. Senkronizasyonun istemci tarafı NVDA 2026.3 veya daha yeni bir sürüm gerektirir ve NVDA'nın eski sürümlerinde artık kullanılamaz; sunucu tarafı ise desteklenen her sürümde çalışmaya devam eder.
 
-### Version 2.0.2
+### Sürüm 2.0.2
 
-* Fixed caps lock going out of sync between the client and the server when both NVDA instances use caps lock as an NVDA modifier key. Quickly repeated caps lock presses in a full screen session no longer toggle caps lock on the client, and when caps lock is really toggled within the session, the client now follows as soon as the session loses focus. This behavior is controlled by the new setting "Synchronize the caps lock key between client and server", which is enabled by default and needs to be enabled on both the client and the server to work correctly. Note that with the setting "Handle keys from other applications" disabled on the client, caps lock can still get out of sync.
+* NVDA örneklerinin her ikisi de Büyük harf kilidi tuşunu NVDA değiştirici tuşu olarak kullandığında, istemci ve sunucu arasında Büyük harf kilidi senkronizasyonunun bozulması sorunu düzeltildi. Tam ekran oturumunda hızlıca tekrarlanan Büyük harf kilidi basışları artık istemcide Büyük harf kilidi'ni açıp kapatmıyor ve oturum içinde Büyük harf kilidi gerçekten açılıp kapatıldığında, oturum odak kaybettiği anda istemci de aynı şekilde davranıyor. Bu davranış, varsayılan olarak etkinleştirilmiş olan ve doğru çalışması için hem istemcide hem de sunucuda etkinleştirilmesi gereken yeni "Büyük harf kilidi tuşunu istemci ve sunucu arasında senkronize et" ayarı tarafından kontrol edilir. İstemcide "Diğer uygulamalardan gelen tuşları işle" ayarı devre dışı bırakıldığında bile Büyük harf kilidi'nin senkronizasyonunun bozulabileceğini unutmayın.
 
 ### Sürüm 2.0.1
 
@@ -127,13 +127,13 @@ Ancak uygun şekilde sunucu veya istemci modunu devre dışı bırakmanız öner
 
 ### Büyük Harf Kilidi Tuşunu İstemci ve Sunucu arasında senkronize edin
 
-When both the client and the server run NVDA with caps lock as an NVDA modifier key, the caps lock state can get out of sync, since the remote desktop client feeds caps lock presses back into the client system whenever it captures the keyboard, for example in a full screen session.
-When this option is enabled on the client, these fed back caps lock presses no longer toggle caps lock on the client.
+Hem istemci hem de sunucu, NVDA'yı Büyük harf kilidi tuşuyla birlikte çalıştırdığında, Büyük harf kilidi durumu senkronizasyon dışı kalabilir; çünkü uzak masaüstü istemcisi, örneğin tam ekran oturumunda klavyeyi her yakaladığında Büyük harf kilidi tuş basımlarını istemci sisteme geri iletir.
+İstemcide bu seçenek etkinleştirildiğinde, geri beslenen bu Büyük harf kilidi tuş vuruşları artık istemcideki Büyük harf kilidi özelliğini açıp kapatmaz.
 Sunucuda etkinleştirildiğinde, sunucu büyük harf kilidi durumunu istemciye bildirir ve uzak oturum odağı kaybettiğinde istemci bu durumu uygular.
 Doğru davranış için bu seçeneğin hem istemcide hem de sunucuda etkinleştirilmesi gerekir; her ikisinde de varsayılan olarak etkindir.
-On the client, this option requires NVDA 2026.3 or later; the server side works with every NVDA version supported by the add-on.
+İstemci tarafında bu seçenek NVDA 2026.3 veya daha yeni bir sürüm gerektirir; sunucu tarafı ise eklentinin desteklediği her NVDA sürümüyle çalışır.
 
-Note that while a remote desktop session window has focus, caps lock presses sent by other software, such as NVDA Remote Access, are suppressed on the client as well.
+Uzak masaüstü oturum penceresi odaklanmış haldeyken, NVDA Uzaktan Erişim gibi diğer yazılımlar tarafından gönderilen Büyük harf kilidi tuş vuruşlarının istemci tarafında da engellendiğini unutmayın.
 
 ### Kullanılabilir Olduğunda Otomatik Olarak Uzaktan Konuşmaya Geç
 
@@ -185,7 +185,7 @@ Aşağıdakiler arasında seçim yapabilirsiniz:
 
 * Kapalı (Bildirim yok)
 * Mesajlar (ör. "Uzaktan Braille bağlı")
-* Sounds
+* Sesler
 * Both messages and sounds
 
 ### Gelen Konuşma Perdesi Değişim Yüzdesi

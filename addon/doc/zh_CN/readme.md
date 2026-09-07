@@ -22,13 +22,13 @@ RDAccess 插件（Remote Desktop Accessibility，远程桌面无障碍）为 NVD
 
 ## 更新日志
 
-### Version 2.0.3
+### 2.0.3 版
 
-* Caps lock synchronization on the client now relies on NVDA 2026.3, which lets RDAccess tell caps lock presses fed back by the remote desktop client apart from real key presses. Synchronization therefore also works when the session is not full screen but Windows key combinations are applied on the remote computer, and when the NVDA setting "Handle keys from other applications" is disabled. The client side of the synchronization requires NVDA 2026.3 or later and is no longer available on older versions of NVDA; the server side keeps working on every supported version.
+* 客户端上的大写锁定同步现在依赖于 NVDA 2026.3，该版本让 RDAccess 能够区分远程桌面客户端反馈回的大写锁定键按下操作与真实的按键按下操作。因此，即使会话不是全屏模式，但 Windows 组合键应用于远程计算机时，以及当 NVDA 设置“从其他应用程序获取键盘控制权”被禁用时，同步也能正常工作。同步的客户端侧需要 NVDA 2026.3 或更高版本，在旧版 NVDA 上不再可用；服务器侧在所有受支持的版本上均可继续工作。
 
-### Version 2.0.2
+### 2.0.2 版
 
-* Fixed caps lock going out of sync between the client and the server when both NVDA instances use caps lock as an NVDA modifier key. Quickly repeated caps lock presses in a full screen session no longer toggle caps lock on the client, and when caps lock is really toggled within the session, the client now follows as soon as the session loses focus. This behavior is controlled by the new setting "Synchronize the caps lock key between client and server", which is enabled by default and needs to be enabled on both the client and the server to work correctly. Note that with the setting "Handle keys from other applications" disabled on the client, caps lock can still get out of sync.
+* 修复了当两个 NVDA 实例均使用大写锁定键作为 NVDA 键时，客户端与服务器之间大写锁定状态不同步的问题。在全屏会话中快速重复按下大写锁定键不再切换客户端上的大写锁定状态；当在会话中实际切换了大写锁定状态时，客户端现在会在会话失去焦点后立即跟随该状态。此行为由新设置“在客户端与服务器之间同步大写锁定键状态”控制，该设置默认启用，且需要在客户端和服务器端均启用才能正常工作。请注意，如果在客户端禁用了“从其他应用程序获取键盘控制权”设置，大写锁定状态仍可能不同步。
 
 ### 2.0.1 版
 
@@ -127,13 +127,13 @@ RDAccess 插件（Remote Desktop Accessibility，远程桌面无障碍）为 NVD
 
 ### 在客户端与服务器之间同步大写锁定键状态
 
-When both the client and the server run NVDA with caps lock as an NVDA modifier key, the caps lock state can get out of sync, since the remote desktop client feeds caps lock presses back into the client system whenever it captures the keyboard, for example in a full screen session.
-When this option is enabled on the client, these fed back caps lock presses no longer toggle caps lock on the client.
+当客户端和服务器均以大写锁定键作为 NVDA 键运行 NVDA 时，大写锁定状态可能会不同步，因为远程桌面客户端在捕获键盘时（例如在全屏会话中），会将大写锁定键的按下事件反馈回客户端系统。
+当在客户端启用此选项时，这些反馈回的大写锁定键按下操作将不再切换客户端上的大写锁定状态。
 当在服务器端启用此选项时，服务器会将其大写锁定状态报告给客户端，客户端将在远程会话失去焦点时立即应用该状态。
 为确保正确行为，此选项需要在客户端和服务器端均启用；默认情况下，两端均处于启用状态。
-On the client, this option requires NVDA 2026.3 or later; the server side works with every NVDA version supported by the add-on.
+在客户端，此选项需要 NVDA 2026.3 或更高版本；服务器端适用于插件支持的所有 NVDA 版本。
 
-Note that while a remote desktop session window has focus, caps lock presses sent by other software, such as NVDA Remote Access, are suppressed on the client as well.
+请注意，当远程桌面会话窗口处于焦点时，由其他软件（如 NVDA 远程访问）发送的大写锁定键按下操作在客户端同样会被抑制。
 
 ### 连接丢失后自动恢复远程语音
 
@@ -185,7 +185,7 @@ Note that while a remote desktop session window has focus, caps lock presses sen
 
 * 关闭（无通知）
 * 消息（例如：“远程盲文设备已连接”）
-* Sounds
+* 声音
 * 消息和声音
 
 ### 传入语音音高变化百分比
