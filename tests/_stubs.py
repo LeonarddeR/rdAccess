@@ -4,8 +4,8 @@
 
 """Stand-ins for NVDA runtime modules, installed into ``sys.modules``.
 
-Only leaf modules are stubbed. ``baseObject``, ``extensionPoints``, ``winKernel``, the
-``hwIo`` submodules, ``speech.commands`` and ``braille.constants`` are imported for real from the
+Only leaf modules are stubbed. ``baseObject``, ``buildVersion``, ``extensionPoints``, ``winKernel``,
+the ``hwIo`` submodules, ``speech.commands`` and ``braille.constants`` are imported for real from the
 sibling NVDA source checkout; their dependencies (``logHandler``, ``garbageHandler``, ``NVDAState``,
 ``config``, ``synthDriverHandler.getSynth``) are covered here, as is the ``_`` gettext builtin that
 NVDA installs at startup.
@@ -136,9 +136,7 @@ def install():
 
 	_installHwIo()
 
-	buildVersion = _module("buildVersion")
-	buildVersion.version_year = 2026
-	buildVersion.version_major = 3
+	importlib.import_module("buildVersion")
 
 	_installBraille()
 

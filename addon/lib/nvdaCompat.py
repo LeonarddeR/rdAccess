@@ -10,6 +10,10 @@ package, and ``BrailleDisplayGesture`` exposes ``cellIndexes`` (a list) in place
 single-valued ``routingIndex``. On 2026.1/2026.2 they are still reached through the ``braille``
 facade, the ``brailleInput`` module and ``routingIndex``.
 
+On NVDA 2027.1 and later the ``GENERIC_READ``, ``GENERIC_WRITE`` and ``DUPLICATE_SAME_ACCESS``
+constants live in the ``winBindings.kernel32.GENERIC`` and ``winBindings.kernel32.DUPLICATE``
+enums. On earlier versions they are still module attributes of ``winKernel``.
+
 Symbols that do not already name braille are re-exported with a ``braille``/``BRAILLE`` prefix so
 they read unambiguously through the ``nvdaCompat`` namespace.
 """
@@ -18,7 +22,9 @@ from __future__ import annotations
 
 import buildVersion
 
-_NVDA_2026_3_OR_LATER = (buildVersion.version_year, buildVersion.version_major) >= (2026, 3)
+_NVDA_VERSION = (buildVersion.version_year, buildVersion.version_major)
+_NVDA_2026_3_OR_LATER = _NVDA_VERSION >= (2026, 3)
+_NVDA_2027_1_OR_LATER = _NVDA_VERSION >= (2027, 1)
 _BRAILLE_IS_PACKAGE = _NVDA_2026_3_OR_LATER
 CAPS_LOCK_SYNC_SUPPORTED = _NVDA_2026_3_OR_LATER
 """Whether NVDA passes ``injected`` to ``inputCore.decide_handleRawKey`` handlers, which the
@@ -43,6 +49,15 @@ else:
 	)
 	from brailleInput import BrailleInputGesture
 
+if _NVDA_2027_1_OR_LATER:
+	from winBindings.kernel32 import DUPLICATE, GENERIC
+
+	DUPLICATE_SAME_ACCESS = DUPLICATE.SAME_ACCESS
+	GENERIC_READ = GENERIC.READ
+	GENERIC_WRITE = GENERIC.WRITE
+else:
+	from winKernel import DUPLICATE_SAME_ACCESS, GENERIC_READ, GENERIC_WRITE
+
 __all__ = (
 	"BRAILLE_AUTOMATIC_PORT",
 	"BrailleDisplayDriver",
@@ -53,6 +68,9 @@ __all__ = (
 	"getRoutingIndex",
 	"applyRoutingIndex",
 	"CAPS_LOCK_SYNC_SUPPORTED",
+	"DUPLICATE_SAME_ACCESS",
+	"GENERIC_READ",
+	"GENERIC_WRITE",
 )
 
 

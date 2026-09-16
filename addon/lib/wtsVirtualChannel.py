@@ -30,6 +30,7 @@ from serial.win32 import INVALID_HANDLE_VALUE
 from winAPI import _wtsApi32
 
 from .ioBase import OverlappedIoBase
+from .nvdaCompat import DUPLICATE_SAME_ACCESS
 
 WTS_CHANNEL_OPTION_DYNAMIC = 0x00000001
 WTS_CHANNEL_OPTION_DYNAMIC_PRI_HIGH = 0x00000004
@@ -140,7 +141,7 @@ class WTSVirtualChannel(OverlappedIoBase):
 					curProc,
 					0,
 					False,
-					winKernel.DUPLICATE_SAME_ACCESS,
+					DUPLICATE_SAME_ACCESS,
 				)
 			finally:
 				WTSFreeMemory(fileHandlePtr)

@@ -25,6 +25,7 @@ from ctypes.wintypes import DWORD, HANDLE, LPCWSTR
 import winKernel
 from hwIo.ioThread import IoThread
 from lib.ioBase import OverlappedIoBase
+from lib.nvdaCompat import GENERIC_READ, GENERIC_WRITE
 from serial.win32 import FILE_FLAG_OVERLAPPED, CreateFile
 
 PIPE_ACCESS_DUPLEX = 0x00000003
@@ -101,7 +102,7 @@ class OverlappedIoTestCase(unittest.TestCase):
 
 	def connect(self, onReceive=None, access: int | None = None) -> OverlappedIoBase:
 		if access is None:
-			access = winKernel.GENERIC_READ | winKernel.GENERIC_WRITE
+			access = GENERIC_READ | GENERIC_WRITE
 		clientHandle = CreateFile(
 			self.pipeName,
 			access,

@@ -27,6 +27,7 @@ from serial.win32 import (
 from winBindings.kernel32 import PROCESSENTRY32W
 
 from .ioBase import OverlappedIoBase
+from .nvdaCompat import GENERIC_READ, GENERIC_WRITE
 
 PIPE_DIRECTORY = "\\\\.\\pipe\\"
 RD_PIPE_GLOB_PATTERN = os.path.join(PIPE_DIRECTORY, "RdPipe_NVDA-*")
@@ -115,7 +116,7 @@ class NamedPipeClient(OverlappedIoBase):
 	):
 		fileHandle = CreateFile(
 			pipeName,
-			winKernel.GENERIC_READ | winKernel.GENERIC_WRITE,
+			GENERIC_READ | GENERIC_WRITE,
 			0,
 			None,
 			winKernel.OPEN_EXISTING,

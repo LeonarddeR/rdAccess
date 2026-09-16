@@ -11,9 +11,11 @@ by the kernel, so consumers must rescan the directory anyway to get a reliable
 view.
 """
 
+import typing
 from ctypes import WinError, byref, create_string_buffer, sizeof, windll
 from enum import IntFlag
 
+import addonHandler
 import queueHandler
 import winKernel
 from extensionPoints import Action
@@ -26,6 +28,12 @@ from serial.win32 import (
 	OVERLAPPED,
 	CreateFile,
 )
+
+if typing.TYPE_CHECKING:
+	from ...lib import nvdaCompat
+else:
+	addon: addonHandler.Addon = addonHandler.getCodeAddon()
+	nvdaCompat = addon.loadModule("lib.nvdaCompat")
 
 FILE_FLAG_BACKUP_SEMANTICS = 0x02000000
 
@@ -59,7 +67,7 @@ class DirectoryWatcher(IoThread):
 		self.directoryChanged = Action()
 		dirHandle = CreateFile(
 			directory,
-			winKernel.GENERIC_READ,
+			nvdaCompat.GENERIC_READ,
 			winKernel.FILE_SHARE_READ | winKernel.FILE_SHARE_WRITE | winKernel.FILE_SHARE_DELETE,
 			None,
 			winKernel.OPEN_EXISTING,
