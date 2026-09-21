@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: nvdaaddons\n"
 "Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
 "POT-Creation-Date: 2026-08-31 01:58+0000\n"
-"PO-Revision-Date: 2026-08-31 04:09\n"
+"PO-Revision-Date: 2026-09-15 08:18\n"
 "Last-Translator: \n"
 "Language-Team: Finnish\n"
 "Language: fi_FI\n"
@@ -55,7 +55,7 @@ msgstr "&Ota etätyöpöydän saavutettavuus käyttöön"
 #. in sync between the client and the server.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:55
 msgid "S&ynchronize the caps lock key between client and server"
-msgstr ""
+msgstr "S&ynkronoi Caps Lock -näppäimen tila asiakas- ja palvelinkoneen välillä"
 
 #. Translators: This is the label for a group of options in the
 #. Remote Desktop settings panel.
@@ -67,7 +67,7 @@ msgstr "Palvelin"
 #. activate remote speech whenever a remote session offers it.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:71
 msgid "&Automatically switch to remote speech when available"
-msgstr ""
+msgstr "Käytä &automaattisesti etäpuhetta"
 
 #. Translators: This is the label for a group of options in the
 #. Remote Desktop settings panel.
@@ -108,7 +108,7 @@ msgstr "&Ilmoita yhteyden muutokset"
 #. pitch change percentage applied to incoming remote speech.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:129
 msgid "Incoming speech &pitch change percentage"
-msgstr ""
+msgstr "Saapuvan puheen &korkeuden muutos prosentteina"
 
 #. Translators: The label for a combobox in RDAccess settings to control RdPIpe log level.
 #: addon\globalPlugins\rdAccess\settingsPanel.py:139
@@ -206,5 +206,5 @@ msgstr "Vai&htoehtoinen syntetisaattori"
 
 #: buildVars.py:29
 msgid "Allows using speech and braille with Microsoft Remote Desktop, Citrix Workspace, Parallels RAS and VMware Horizon"
-msgstr ""
+msgstr "Mahdollistaa puheen ja pistenäytön käyttämisen Microsoftin etätyöpöydällä, Citrix Workspacella, Parallels RASilla ja VMware Horizonilla"
 
