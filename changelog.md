@@ -1,1 +1,3 @@
-* Caps lock synchronization on the client now relies on NVDA 2026.3, which lets RDAccess tell caps lock presses fed back by the remote desktop client apart from real key presses. Synchronization therefore also works when the session is not full screen but Windows key combinations are applied on the remote computer, and when the NVDA setting "Handle keys from other applications" is disabled. The client side of the synchronization requires NVDA 2026.3 or later and is no longer available on older versions of NVDA; the server side keeps working on every supported version.
+* Adapted to the Windows API changes introduced in NVDA 2027.1.
+* Updated RD Pipe dependency to version 1.1.0.
+* Updated translations.
