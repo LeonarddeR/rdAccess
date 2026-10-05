@@ -22,6 +22,12 @@ RDAccess 插件（Remote Desktop Accessibility，远程桌面无障碍）为 NVD
 
 ## 更新日志
 
+### Version 2.0.4
+
+* Adapted to the Windows API changes introduced in NVDA 2027.1.
+* Updated RD Pipe dependency to version 1.1.0.
+* Updated translations.
+
 ### 2.0.3 版
 
 * 客户端上的大写锁定同步现在依赖于 NVDA 2026.3，该版本让 RDAccess 能够区分远程桌面客户端反馈回的大写锁定键按下操作与真实的按键按下操作。因此，即使会话不是全屏模式，但 Windows 组合键应用于远程计算机时，以及当 NVDA 设置“从其他应用程序获取键盘控制权”被禁用时，同步也能正常工作。同步的客户端侧需要 NVDA 2026.3 或更高版本，在旧版 NVDA 上不再可用；服务器侧在所有受支持的版本上均可继续工作。

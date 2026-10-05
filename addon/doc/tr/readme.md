@@ -22,6 +22,12 @@ Bu, uzak bir sistemi yönetmenin, yerel sistemi çalıştırmak kadar kusursuz h
 
 ## Changelog
 
+### Version 2.0.4
+
+* Adapted to the Windows API changes introduced in NVDA 2027.1.
+* Updated RD Pipe dependency to version 1.1.0.
+* Updated translations.
+
 ### Sürüm 2.0.3
 
 * İstemci tarafındaki Büyük harf kilidi senkronizasyonu artık NVDA 2026.3 ile çalışmaktadır. Bu sürüm, Uzak Masaüstü Erişilebilirliği'nin uzak masaüstü istemcisi tarafından geri gönderilen Büyük harf kilidi tuş basımlarını gerçek tuş basımlarından ayırt etmesini sağlar. Bu nedenle senkronizasyon, oturum tam ekran modunda olmasa bile uzak bilgisayarda Windows tuş kombinasyonları uygulandığında ve NVDA ayarı "Diğer uygulamalardan gelen tuşları işle" devre dışı bırakıldığında da çalışır. Senkronizasyonun istemci tarafı NVDA 2026.3 veya daha yeni bir sürüm gerektirir ve NVDA'nın eski sürümlerinde artık kullanılamaz; sunucu tarafı ise desteklenen her sürümde çalışmaya devam eder.

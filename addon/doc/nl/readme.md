@@ -22,6 +22,12 @@ Dit maakt een gebruikerservaring mogelijk waarbij het beheren van een systeem op
 
 ## Wijzigingen
 
+### Version 2.0.4
+
+* Adapted to the Windows API changes introduced in NVDA 2027.1.
+* Updated RD Pipe dependency to version 1.1.0.
+* Updated translations.
+
 ### Versie 2.0.3
 
 * De synchronisatie van de Caps Lock-toets aan de clientzijde is nu afhankelijk van NVDA 2026.3. Hiermee kan RDAccess onderscheid maken tussen Caps Lock-toetsen die door de externe desktopclient worden teruggestuurd en daadwerkelijke toetsaanslagen. Synchronisatie werkt daarom ook wanneer de sessie niet in volledig scherm is, maar Windows-toetscombinaties wel worden toegepast op de externe computer, en wanneer de NVDA-instelling "Toetsen van andere toepassingen verwerken" is uitgeschakeld. De clientzijde van de synchronisatie vereist NVDA 2026.3 of hoger en is niet langer beschikbaar in oudere versies van NVDA; de serverzijde blijft werken in alle ondersteunde versies.
