@@ -22,11 +22,11 @@ Bu, uzak bir sistemi yönetmenin, yerel sistemi çalıştırmak kadar kusursuz h
 
 ## Changelog
 
-### Version 2.0.4
+### Sürüm 2.0.4
 
-* Adapted to the Windows API changes introduced in NVDA 2027.1.
-* Updated RD Pipe dependency to version 1.1.0.
-* Updated translations.
+* NVDA 2027.1 için yapılan API değişiklik desteği eklendi.
+* RD Pipe bağımlılığı 1.1.0 sürümüne güncellendi.
+* Çeviriler güncellendi.
 
 ### Sürüm 2.0.3
 

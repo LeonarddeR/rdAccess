@@ -22,11 +22,11 @@ RDAccess 插件（Remote Desktop Accessibility，远程桌面无障碍）为 NVD
 
 ## 更新日志
 
-### Version 2.0.4
+### 2.0.4 版
 
-* Adapted to the Windows API changes introduced in NVDA 2027.1.
-* Updated RD Pipe dependency to version 1.1.0.
-* Updated translations.
+* 适配了 NVDA 2027.1 中引入的 Windows API 变更。
+* 将 RD Pipe 依赖项更新到 1.1.0 版。
+* 更新了翻译。
 
 ### 2.0.3 版
 

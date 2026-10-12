@@ -22,11 +22,11 @@
 
 ## Журнал изменений
 
-### Version 2.0.4
+### Версия 2.0.4
 
-* Adapted to the Windows API changes introduced in NVDA 2027.1.
-* Updated RD Pipe dependency to version 1.1.0.
-* Updated translations.
+* Адаптировано к изменениям API Windows, внесённым в NVDA 2027.1.
+* Зависимость RD Pipe обновлена до версии 1.1.0.
+* Обновлены переводы.
 
 ### Версия 2.0.3
 
