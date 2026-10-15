@@ -100,7 +100,7 @@ class OverlappedIoTestCase(unittest.TestCase):
 			self.serverHandle = None
 		self.ioThread.stop()
 
-	def connect(self, onReceive=None, access: int | None = None) -> OverlappedIoBase:
+	def connect(self, onReceive=None, access: int | None = None, onReadError=None) -> OverlappedIoBase:
 		if access is None:
 			access = GENERIC_READ | GENERIC_WRITE
 		clientHandle = CreateFile(
@@ -116,6 +116,7 @@ class OverlappedIoTestCase(unittest.TestCase):
 			clientHandle,
 			onReceive if onReceive is not None else self._defaultOnReceive,
 			onReceiveSize=64,
+			onReadError=onReadError,
 			ioThread=self.ioThread,
 		)
 		return self.dev
@@ -329,6 +330,22 @@ class CloseTests(OverlappedIoTestCase):
 
 		duplicates = {handle for handle in closed if closed.count(handle) > 1}
 		self.assertEqual(duplicates, set(), f"handles closed more than once: {duplicates}")
+
+	def test_closeDetachesTheBackgroundRead(self):
+		"""A closed device must not report read errors, even when the peer goes away afterwards."""
+		readErrors: list[int] = []
+		reported = threading.Event()
+
+		def onReadError(error: int) -> bool:
+			readErrors.append(error)
+			reported.set()
+			return True
+
+		dev = self.connect(onReadError=onReadError)
+		dev.close()
+		self.closePeer()
+
+		self.assertFalse(reported.wait(0.5), f"read errors reported after close: {readErrors}")
 
 
 class WriteFailureTests(OverlappedIoTestCase):

@@ -39,8 +39,8 @@ class OverlappedIoBase(IoBase):
 		"""Release the device, absorbing any repeat call rather than passing it on."""
 		if self._closed:
 			return
-		self._closed = True
 		super().close()
+		self._closed = True
 		if self._writeEvent is not None:
 			winKernel.closeHandle(self._writeEvent)
 			self._writeEvent = None
