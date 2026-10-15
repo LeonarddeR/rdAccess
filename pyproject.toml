@@ -40,7 +40,7 @@ dependencies = [
 	# wxPython/pyserial supply the wx and serial.win32 modules NVDA bundles at runtime)
 	"ty==0.0.73",
 	"pyserial==3.5",
-	"wxpython==4.2.5",
+	"wxpython==4.3.2",
 ]
 [project.urls]
 Repository = "https://github.com/LeonarddeR/RDAccess.git"
