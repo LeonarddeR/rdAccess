@@ -22,6 +22,11 @@ This enables a user experience where managing a remote system feels as seamless 
 
 ## Changelog
 
+### Version 2.0.5
+
+* Fixed connections not being cleaned up when they close on NVDA 2027.1. Among other things, this caused errors to be logged when exiting NVDA on the remote system.
+* Updated translations.
+
 ### Version 2.0.4
 
 * Adapted to the Windows API changes introduced in NVDA 2027.1.

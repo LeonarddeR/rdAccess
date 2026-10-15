@@ -1,3 +1,2 @@
-* Adapted to the Windows API changes introduced in NVDA 2027.1.
-* Updated RD Pipe dependency to version 1.1.0.
+* Fixed connections not being cleaned up when they close on NVDA 2027.1. Among other things, this caused errors to be logged when exiting NVDA on the remote system.
 * Updated translations.
