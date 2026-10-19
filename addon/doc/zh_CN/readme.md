@@ -22,6 +22,11 @@ RDAccess 插件（Remote Desktop Accessibility，远程桌面无障碍）为 NVD
 
 ## 更新日志
 
+### Version 2.0.5
+
+* Fixed connections not being cleaned up when they close on NVDA 2027.1. Among other things, this caused errors to be logged when exiting NVDA on the remote system.
+* Updated translations.
+
 ### 2.0.4 版
 
 * 适配了 NVDA 2027.1 中引入的 Windows API 变更。

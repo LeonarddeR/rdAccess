@@ -22,6 +22,11 @@
 
 ## Журнал изменений
 
+### Version 2.0.5
+
+* Fixed connections not being cleaned up when they close on NVDA 2027.1. Among other things, this caused errors to be logged when exiting NVDA on the remote system.
+* Updated translations.
+
 ### Версия 2.0.4
 
 * Адаптировано к изменениям API Windows, внесённым в NVDA 2027.1.
