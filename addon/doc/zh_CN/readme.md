@@ -1,4 +1,4 @@
-# 远程桌面无障碍 #
+# 远程桌面无障碍
 
 * 作者： [Leonard de Ruijter][1]
 * 下载[最新稳定版][2]
@@ -22,10 +22,10 @@ RDAccess 插件（Remote Desktop Accessibility，远程桌面无障碍）为 NVD
 
 ## 更新日志
 
-### Version 2.0.5
+### 2.0.5 版
 
-* Fixed connections not being cleaned up when they close on NVDA 2027.1. Among other things, this caused errors to be logged when exiting NVDA on the remote system.
-* Updated translations.
+* 修复了在 NVDA 2027.1 上连接关闭时未被清理的问题。除其他影响外，这会导致在远程系统上退出 NVDA 时记录错误。
+* 更新了翻译。
 
 ### 2.0.4 版
 

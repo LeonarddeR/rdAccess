@@ -22,10 +22,10 @@ Bu, uzak bir sistemi yönetmenin, yerel sistemi çalıştırmak kadar kusursuz h
 
 ## Changelog
 
-### Version 2.0.5
+### Sürüm 2.0.5
 
-* Fixed connections not being cleaned up when they close on NVDA 2027.1. Among other things, this caused errors to be logged when exiting NVDA on the remote system.
-* Updated translations.
+* NVDA 2027.1'de bağlantılar kapatıldığında temizlenmemesi sorunu giderildi. Bu durum, diğer şeylerin yanı sıra, uzak sistemde NVDA'dan çıkılırken hataların kaydedilmesine neden oluyordu.
+* Çeviriler güncellendi.
 
 ### Sürüm 2.0.4
 

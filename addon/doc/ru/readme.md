@@ -22,10 +22,10 @@
 
 ## Журнал изменений
 
-### Version 2.0.5
+### Версия 2.0.5
 
-* Fixed connections not being cleaned up when they close on NVDA 2027.1. Among other things, this caused errors to be logged when exiting NVDA on the remote system.
-* Updated translations.
+* Исправлена ошибка, из-за которой соединения не очищались при закрытии в NVDA 2027.1. В частности, это приводило к появлению ошибок в журналах при выходе из NVDA на удалённой системе.
+* Обновлены переводы.
 
 ### Версия 2.0.4
 
