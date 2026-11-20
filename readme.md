@@ -25,6 +25,7 @@ This enables a user experience where managing a remote system feels as seamless 
 ### Version 2.1
 
 * Speech coming from the remote system now follows the speech mode of NVDA on the client. For example, when speech is off on the client, the remote system no longer speaks. In on-demand mode, remote speech is only spoken while the remote session has focus. With the new client option "Incoming speech follows local speech mode", you can make on-demand mode silent, or restore the previous behavior.
+* Updated translations.
 
 ### Version 2.0.5
 
