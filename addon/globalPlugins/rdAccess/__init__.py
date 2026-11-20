@@ -364,7 +364,7 @@ class RDGlobalPlugin(globalPluginHandler.GlobalPlugin):
 		return (
 			isinstance(gesture, keyboardHandler.KeyboardInputGesture)
 			and gesture.vkCode == winUser.VK_CAPITAL
-			and not gesture.isNVDAModifierKey  # ty: ignore[unresolved-attribute]
+			and not gesture.isNVDAModifierKey  # ty: ignore[missing-attribute]
 		)
 
 	def _vetoInjectedCapsLock(self, vkCode: int, extended: bool, injected: bool) -> bool:

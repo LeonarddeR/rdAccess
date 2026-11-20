@@ -83,7 +83,7 @@ hooks = [
 
 [[repos]]
 repo = "https://github.com/astral-sh/ruff-pre-commit"
-rev = "v0.15.12"
+rev = "v0.17.6"
 hooks = [
   {
     id = "ruff",
