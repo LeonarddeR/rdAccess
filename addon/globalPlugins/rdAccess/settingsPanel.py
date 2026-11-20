@@ -135,13 +135,16 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 			initial=configuration.getIncomingSpeechPitchChange(),
 		)
 
-		# Translators: The label for a setting in RDAccess settings to let incoming remote speech
+		# Translators: The label for a combobox in RDAccess settings to let incoming remote speech
 		# follow the speech mode of NVDA on the client.
-		followSpeechModeText = _("Incoming speech &follows local speech mode")
-		self.followSpeechModeCheckbox = clientGroup.addItem(
-			wx.CheckBox(clientGroupBox, label=followSpeechModeText),
+		followSpeechModeLabelText = _("Incoming speech &follows local speech mode")
+		followSpeechModeChoices = [mode.displayString for mode in configuration.FollowSpeechMode]
+		self.followSpeechModeList = clientGroup.addLabeledControl(
+			followSpeechModeLabelText,
+			wx.Choice,
+			choices=followSpeechModeChoices,
 		)
-		self.followSpeechModeCheckbox.Value = configuration.getFollowSpeechMode()
+		self.followSpeechModeList.Selection = configuration.getFollowSpeechMode()
 
 		# Translators: The label for a combobox in RDAccess settings to control RdPIpe log level.
 		rdPipeLogLevelLabelText = _("&RdPipe log level")
@@ -177,7 +180,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 		self.citrixSupportCheckbox.Enable(isClient and rdPipe.isCitrixSupported())
 		self.connectionNotificationsList.Enable(isClient)
 		self.incomingSpeechPitchChangeSpinCtrl.Enable(isClient)
-		self.followSpeechModeCheckbox.Enable(isClient)
+		self.followSpeechModeList.Enable(isClient)
 		self.rdPipeLogLevelList.Enable(self.persistentRegistrationCheckbox.IsEnabled())
 		self.openRdPipeLogButton.Enable(isClient and rdPipe.logFileExists())
 		self.recoverRemoteSpeechCheckbox.Enable(
@@ -233,7 +236,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 			configuration.SettingName.INCOMING_SPEECH_PITCH_CHANGE
 		] = self.incomingSpeechPitchChangeSpinCtrl.GetValue()
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.SettingName.FOLLOW_SPEECH_MODE] = (
-			self.followSpeechModeCheckbox.IsChecked()
+			self.followSpeechModeList.Selection
 		)
 		config.conf[configuration.CONFIG_SECTION_NAME][configuration.SettingName.SYNCHRONIZE_CAPS_LOCK] = (
 			self.synchronizeCapsLockCheckbox.IsChecked()

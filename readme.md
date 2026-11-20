@@ -24,7 +24,7 @@ This enables a user experience where managing a remote system feels as seamless 
 
 ### Version 2.1
 
-* Added the client option "Incoming speech follows local speech mode". When enabled, speech coming from the remote system follows the speech mode of NVDA on the client. For example, when speech is off on the client, the remote system no longer speaks. In on-demand mode, remote speech is only spoken while the remote session has focus. The option is disabled by default.
+* Speech coming from the remote system now follows the speech mode of NVDA on the client. For example, when speech is off on the client, the remote system no longer speaks. In on-demand mode, remote speech is only spoken while the remote session has focus. With the new client option "Incoming speech follows local speech mode", you can make on-demand mode silent, or restore the previous behavior.
 
 ### Version 2.0.5
 
@@ -216,19 +216,25 @@ The shift is applied only when the local synthesizer supports pitch commands; sy
 
 ### Incoming Speech Follows Local Speech Mode
 
-When this client option is enabled, speech coming from the remote system follows the speech mode of NVDA on the client:
+This client option controls whether speech coming from the remote system follows the speech mode of NVDA on the client.
+You can choose between:
+
+* No: remote speech is spoken in every speech mode on the client.
+* Yes, on-demand speaks while remote session has focus (default)
+* Yes, on-demand is silent
+
+When remote speech follows the speech mode on the client, the speech modes work as follows:
 
 * Talk: remote speech is spoken.
-* On-demand: remote speech is only spoken while the remote session has focus.
+* On-demand: depending on the chosen option, remote speech is only spoken while the remote session has focus, or not at all.
 * Beeps: NVDA beeps instead of speaking remote speech.
 * Off: remote speech is not spoken.
 
 Tones and sounds from the remote system play in every speech mode.
 
-When the speech mode of NVDA on the server is not set to talk, it applies first, whether or not this option is enabled.
-For example, when speech is set to on-demand on the server, the remote system only speaks on demand.
-
-This option is disabled by default, in which case remote speech is spoken regardless of the speech mode on the client.
+The speech mode of NVDA on the server applies as well.
+Remote speech is only spoken when both speech modes allow it.
+For example, when speech is set to on-demand on the server and to talk on the client, the remote system only speaks on demand.
 
 ### Open diagnostics report
 

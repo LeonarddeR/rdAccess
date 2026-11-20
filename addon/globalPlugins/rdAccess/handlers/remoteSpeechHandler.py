@@ -80,7 +80,8 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 		self._queueFunctionOnMainThread(self._speak, sequence, _immediate=True)
 
 	def _speak(self, sequence: SpeechSequence):
-		if configuration.getFollowSpeechMode(fromCache=True):
+		followSpeechMode = configuration.getFollowSpeechMode(fromCache=True)
+		if followSpeechMode != configuration.FollowSpeechMode.NEVER:
 			state = speech.getState()
 			match state.speechMode:
 				case speech.SpeechMode.off:
@@ -91,7 +92,10 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 					tones.beep(config.conf["speech"]["beepSpeechModePitch"], state.speechMode_beeps_ms)
 					self._dropSpeech(sequence)
 					return
-				case speech.SpeechMode.onDemand if not self._hasFocusForSpeech():
+				case speech.SpeechMode.onDemand if (
+					followSpeechMode == configuration.FollowSpeechMode.ON_DEMAND_SILENT
+					or not self._hasFocusForSpeech()
+				):
 					self._dropSpeech(sequence)
 					return
 		pitchChange = configuration.getIncomingSpeechPitchChange(fromCache=True)

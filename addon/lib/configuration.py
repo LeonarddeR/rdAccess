@@ -57,6 +57,30 @@ class ConnectionNotifications(DisplayStringIntEnum):
 		}
 
 
+@unique
+class FollowSpeechMode(DisplayStringIntEnum):
+	NEVER = 0
+	ON_DEMAND_WITH_FOCUS = 1
+	ON_DEMAND_SILENT = 2
+
+	@property
+	def _displayStringLabels(self):
+		return {
+			# Translators: A choice in a combo box in RDAccess settings to let incoming speech
+			# follow the local speech mode.
+			FollowSpeechMode.NEVER: pgettext("follow speech mode", "No"),
+			FollowSpeechMode.ON_DEMAND_WITH_FOCUS: pgettext(
+				"follow speech mode",
+				# Translators: A choice in a combo box in RDAccess settings to let incoming speech
+				# follow the local speech mode.
+				"Yes, on-demand speaks while remote session has focus",
+			),
+			# Translators: A choice in a combo box in RDAccess settings to let incoming speech
+			# follow the local speech mode.
+			FollowSpeechMode.ON_DEMAND_SILENT: pgettext("follow speech mode", "Yes, on-demand is silent"),
+		}
+
+
 CONFIG_SECTION_NAME = addonHandler.getCodeAddon().name
 
 
@@ -84,7 +108,7 @@ CONFIG_SPEC = {
 	SettingName.CONNECTION_NOTIFICATIONS: "integer(default=1, min=0, max=3)",
 	SettingName.INCOMING_SPEECH_PITCH_CHANGE: "integer(default=10, min=-100, max=100)",
 	SettingName.SYNCHRONIZE_CAPS_LOCK: "boolean(default=true)",
-	SettingName.FOLLOW_SPEECH_MODE: "boolean(default=false)",
+	SettingName.FOLLOW_SPEECH_MODE: "integer(default=1, min=0, max=2)",
 }
 
 
@@ -132,8 +156,8 @@ def getSynchronizeCapsLock(fromCache: bool = False) -> bool:
 	return _getSetting(SettingName.SYNCHRONIZE_CAPS_LOCK, fromCache)
 
 
-def getFollowSpeechMode(fromCache: bool = False) -> bool:
-	return _getSetting(SettingName.FOLLOW_SPEECH_MODE, fromCache)
+def getFollowSpeechMode(fromCache: bool = False) -> FollowSpeechMode:
+	return FollowSpeechMode(int(_getSetting(SettingName.FOLLOW_SPEECH_MODE, fromCache)))
 
 
 initialized: bool = False
