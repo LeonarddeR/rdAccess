@@ -147,7 +147,7 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 
 		# Translators: The label for a button in RDAccess settings to open the rdPipe Log
 		label = _("Open RdPipe Log...")
-		self.openRdPipeLogButton = clientGroup.addItem(wx.Button(self, label=label))
+		self.openRdPipeLogButton = clientGroup.addItem(wx.Button(clientGroupBox, label=label))
 		self.openRdPipeLogButton.Bind(wx.EVT_BUTTON, self.showRdPipeLogViewer)
 
 		# Translators: The label for a button in RDAccess settings to open a diagnostics report.
