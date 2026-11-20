@@ -22,6 +22,10 @@ This enables a user experience where managing a remote system feels as seamless 
 
 ## Changelog
 
+### Version 2.1
+
+* Added the client option "Incoming speech follows local speech mode". When enabled, speech coming from the remote system follows the speech mode of NVDA on the client. For example, when speech is off on the client, the remote system no longer speaks. In on-demand mode, remote speech is only spoken while the remote session has focus. The option is disabled by default.
+
 ### Version 2.0.5
 
 * Fixed connections not being cleaned up when they close on NVDA 2027.1. Among other things, this caused errors to be logged when exiting NVDA on the remote system.
@@ -209,6 +213,22 @@ A value of 0 disables the shift.
 The default is 10.
 
 The shift is applied only when the local synthesizer supports pitch commands; synthesizers without pitch support are unaffected.
+
+### Incoming Speech Follows Local Speech Mode
+
+When this client option is enabled, speech coming from the remote system follows the speech mode of NVDA on the client:
+
+* Talk: remote speech is spoken.
+* On-demand: remote speech is only spoken while the remote session has focus.
+* Beeps: NVDA beeps instead of speaking remote speech.
+* Off: remote speech is not spoken.
+
+Tones and sounds from the remote system play in every speech mode.
+
+When the speech mode of NVDA on the server is not set to talk, it applies first, whether or not this option is enabled.
+For example, when speech is set to on-demand on the server, the remote system only speaks on demand.
+
+This option is disabled by default, in which case remote speech is spoken regardless of the speech mode on the client.
 
 ### Open diagnostics report
 

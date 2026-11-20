@@ -4,13 +4,14 @@
 
 import typing
 
+import config
 import nvwave
 import speech
 import synthDriverHandler
 import tones
 from hwIo.ioThread import IoThread
 from logHandler import log
-from speech.commands import PitchCommand
+from speech.commands import IndexCommand, PitchCommand
 from speech.extensions import speechCanceled
 from speech.priorities import Spri
 from speech.types import SpeechSequence
@@ -79,6 +80,20 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 		self._queueFunctionOnMainThread(self._speak, sequence, _immediate=True)
 
 	def _speak(self, sequence: SpeechSequence):
+		if configuration.getFollowSpeechMode(fromCache=True):
+			state = speech.getState()
+			match state.speechMode:
+				case speech.SpeechMode.off:
+					self._dropSpeech(sequence)
+					return
+				case speech.SpeechMode.beeps:
+					assert config.conf is not None
+					tones.beep(config.conf["speech"]["beepSpeechModePitch"], state.speechMode_beeps_ms)
+					self._dropSpeech(sequence)
+					return
+				case speech.SpeechMode.onDemand if not self._hasFocusForSpeech():
+					self._dropSpeech(sequence)
+					return
 		pitchChange = configuration.getIncomingSpeechPitchChange(fromCache=True)
 		if pitchChange != 0 and PitchCommand in self._driver.supportedCommands:
 			sequence = [PitchCommand(offset=pitchChange), *sequence, PitchCommand()]
@@ -87,6 +102,29 @@ class RemoteSpeechHandler(RemoteHandler[synthDriverHandler.SynthDriver]):
 		speech.speech._speechState.isPaused = False
 		speech.speech._speechState.beenCanceled = False
 		speech.speech._manager.speak(sequence, priority=Spri.NORMAL)
+
+	def _hasFocusForSpeech(self) -> bool:
+		"""Whether the remote session has focus.
+
+		Waits for the remote end when this is unknown, and asks it again without waiting when it was not.
+		"""
+		if not self._remoteProcessHasFocus:
+			return False
+		if self._remoteSessionhasFocus is None:
+			try:
+				self.getRemoteAttribute(protocol.GenericAttribute.TIME_SINCE_INPUT)
+			except TimeoutError:
+				log.debugWarning("Timed out waiting for time since input")
+		elif not self._remoteSessionhasFocus:
+			self.requestRemoteAttribute(protocol.GenericAttribute.TIME_SINCE_INPUT)
+		return bool(self._remoteSessionhasFocus)
+
+	def _dropSpeech(self, sequence: SpeechSequence):
+		"""Reports every index in the sequence, then done speaking, without speaking it."""
+		for item in sequence:
+			if isinstance(item, IndexCommand):
+				self._sendIndex(item.index)
+		self._sendIndex(0)
 
 	def _sendIndex(self, index: int):
 		try:

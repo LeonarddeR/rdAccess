@@ -67,6 +67,7 @@ DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME = "driverSettingsManagement"
 CONNECTION_NOTIFICATIONS_SETTING_NAME = "connectionNotifications"
 INCOMING_SPEECH_PITCH_CHANGE_SETTING_NAME = "incomingSpeechPitchChange"
 SYNCHRONIZE_CAPS_LOCK_SETTING_NAME = "synchronizeCapsLock"
+FOLLOW_SPEECH_MODE_SETTING_NAME = "followSpeechMode"
 CONFIG_SPEC = {
 	OPERATING_MODE_SETTING_NAME: "integer(default=7, min=1, max=7)",
 	PERSISTENT_REGISTRATION_SETTING_NAME: "boolean(default=false)",
@@ -77,6 +78,7 @@ CONFIG_SPEC = {
 	CONNECTION_NOTIFICATIONS_SETTING_NAME: "integer(default=1, min=0, max=3)",
 	INCOMING_SPEECH_PITCH_CHANGE_SETTING_NAME: "integer(default=10, min=-100, max=100)",
 	SYNCHRONIZE_CAPS_LOCK_SETTING_NAME: "boolean(default=true)",
+	FOLLOW_SPEECH_MODE_SETTING_NAME: "boolean(default=false)",
 }
 
 
@@ -122,6 +124,10 @@ def getIncomingSpeechPitchChange(fromCache: bool = False) -> int:
 
 def getSynchronizeCapsLock(fromCache: bool = False) -> bool:
 	return _getSetting(SYNCHRONIZE_CAPS_LOCK_SETTING_NAME, fromCache)
+
+
+def getFollowSpeechMode(fromCache: bool = False) -> bool:
+	return _getSetting(FOLLOW_SPEECH_MODE_SETTING_NAME, fromCache)
 
 
 initialized: bool = False
