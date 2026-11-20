@@ -202,40 +202,40 @@ class RemoteDesktopSettingsPanel(SettingsPanel):
 
 	def onSave(self):
 		assert config.conf is not None
-		config.conf[configuration.CONFIG_SECTION_NAME][configuration.OPERATING_MODE_SETTING_NAME] = int(
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.SettingName.OPERATING_MODE] = int(
 			functools.reduce(
 				operator.or_,
 				(self.operatingModes[i] for i in self.operatingModeList.CheckedItems),
 			),
 		)
-		config.conf[configuration.CONFIG_SECTION_NAME][configuration.RECOVER_REMOTE_SPEECH_SETTING_NAME] = (
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.SettingName.RECOVER_REMOTE_SPEECH] = (
 			self.recoverRemoteSpeechCheckbox.IsChecked()
 		)
 		isClient = self.operatingModeList.IsChecked(
 			self.operatingModes.index(configuration.OperatingMode.CLIENT),
 		)
 		config.conf[configuration.CONFIG_SECTION_NAME][
-			configuration.DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME
+			configuration.SettingName.DRIVER_SETTINGS_MANAGEMENT
 		] = self.driverSettingsManagementCheckbox.IsChecked()
-		config.conf[configuration.CONFIG_SECTION_NAME][configuration.PERSISTENT_REGISTRATION_SETTING_NAME] = (
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.SettingName.PERSISTENT_REGISTRATION] = (
 			self.persistentRegistrationCheckbox.IsChecked() and isClient
 		)
-		config.conf[configuration.CONFIG_SECTION_NAME][configuration.REMOTE_DESKTOP_SETTING_NAME] = (
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.SettingName.REMOTE_DESKTOP] = (
 			self.remoteDesktopSupportCheckbox.IsChecked()
 		)
-		config.conf[configuration.CONFIG_SECTION_NAME][configuration.CITRIX_SETTING_NAME] = (
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.SettingName.CITRIX] = (
 			self.citrixSupportCheckbox.IsChecked() and rdPipe.isCitrixSupported()
 		)
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.SettingName.CONNECTION_NOTIFICATIONS] = (
+			self.connectionNotificationsList.Selection
+		)
 		config.conf[configuration.CONFIG_SECTION_NAME][
-			configuration.CONNECTION_NOTIFICATIONS_SETTING_NAME
-		] = self.connectionNotificationsList.Selection
-		config.conf[configuration.CONFIG_SECTION_NAME][
-			configuration.INCOMING_SPEECH_PITCH_CHANGE_SETTING_NAME
+			configuration.SettingName.INCOMING_SPEECH_PITCH_CHANGE
 		] = self.incomingSpeechPitchChangeSpinCtrl.GetValue()
-		config.conf[configuration.CONFIG_SECTION_NAME][configuration.FOLLOW_SPEECH_MODE_SETTING_NAME] = (
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.SettingName.FOLLOW_SPEECH_MODE] = (
 			self.followSpeechModeCheckbox.IsChecked()
 		)
-		config.conf[configuration.CONFIG_SECTION_NAME][configuration.SYNCHRONIZE_CAPS_LOCK_SETTING_NAME] = (
+		config.conf[configuration.CONFIG_SECTION_NAME][configuration.SettingName.SYNCHRONIZE_CAPS_LOCK] = (
 			self.synchronizeCapsLockCheckbox.IsChecked()
 		)
 		self.post_onSave.notify()

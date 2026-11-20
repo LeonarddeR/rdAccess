@@ -2,7 +2,7 @@
 # Copyright 2023 Leonard de Ruijter <alderuijter@gmail.com>
 # License: GNU General Public License version 2.0 or later
 
-from enum import unique
+from enum import StrEnum, unique
 from typing import Any
 
 import addonHandler
@@ -58,31 +58,37 @@ class ConnectionNotifications(DisplayStringIntEnum):
 
 
 CONFIG_SECTION_NAME = addonHandler.getCodeAddon().name
-OPERATING_MODE_SETTING_NAME = "operatingMode"
-PERSISTENT_REGISTRATION_SETTING_NAME = "persistentRegistration"
-REMOTE_DESKTOP_SETTING_NAME = "enableRemoteDesktopSupport"
-CITRIX_SETTING_NAME = "enableCitrixSupport"
-RECOVER_REMOTE_SPEECH_SETTING_NAME = "recoverRemoteSpeech"
-DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME = "driverSettingsManagement"
-CONNECTION_NOTIFICATIONS_SETTING_NAME = "connectionNotifications"
-INCOMING_SPEECH_PITCH_CHANGE_SETTING_NAME = "incomingSpeechPitchChange"
-SYNCHRONIZE_CAPS_LOCK_SETTING_NAME = "synchronizeCapsLock"
-FOLLOW_SPEECH_MODE_SETTING_NAME = "followSpeechMode"
+
+
+@unique
+class SettingName(StrEnum):
+	OPERATING_MODE = "operatingMode"
+	PERSISTENT_REGISTRATION = "persistentRegistration"
+	REMOTE_DESKTOP = "enableRemoteDesktopSupport"
+	CITRIX = "enableCitrixSupport"
+	RECOVER_REMOTE_SPEECH = "recoverRemoteSpeech"
+	DRIVER_SETTINGS_MANAGEMENT = "driverSettingsManagement"
+	CONNECTION_NOTIFICATIONS = "connectionNotifications"
+	INCOMING_SPEECH_PITCH_CHANGE = "incomingSpeechPitchChange"
+	SYNCHRONIZE_CAPS_LOCK = "synchronizeCapsLock"
+	FOLLOW_SPEECH_MODE = "followSpeechMode"
+
+
 CONFIG_SPEC = {
-	OPERATING_MODE_SETTING_NAME: "integer(default=7, min=1, max=7)",
-	PERSISTENT_REGISTRATION_SETTING_NAME: "boolean(default=false)",
-	REMOTE_DESKTOP_SETTING_NAME: "boolean(default=true)",
-	CITRIX_SETTING_NAME: "boolean(default=true)",
-	RECOVER_REMOTE_SPEECH_SETTING_NAME: "boolean(default=true)",
-	DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME: "boolean(default=false)",
-	CONNECTION_NOTIFICATIONS_SETTING_NAME: "integer(default=1, min=0, max=3)",
-	INCOMING_SPEECH_PITCH_CHANGE_SETTING_NAME: "integer(default=10, min=-100, max=100)",
-	SYNCHRONIZE_CAPS_LOCK_SETTING_NAME: "boolean(default=true)",
-	FOLLOW_SPEECH_MODE_SETTING_NAME: "boolean(default=false)",
+	SettingName.OPERATING_MODE: "integer(default=7, min=1, max=7)",
+	SettingName.PERSISTENT_REGISTRATION: "boolean(default=false)",
+	SettingName.REMOTE_DESKTOP: "boolean(default=true)",
+	SettingName.CITRIX: "boolean(default=true)",
+	SettingName.RECOVER_REMOTE_SPEECH: "boolean(default=true)",
+	SettingName.DRIVER_SETTINGS_MANAGEMENT: "boolean(default=false)",
+	SettingName.CONNECTION_NOTIFICATIONS: "integer(default=1, min=0, max=3)",
+	SettingName.INCOMING_SPEECH_PITCH_CHANGE: "integer(default=10, min=-100, max=100)",
+	SettingName.SYNCHRONIZE_CAPS_LOCK: "boolean(default=true)",
+	SettingName.FOLLOW_SPEECH_MODE: "boolean(default=false)",
 }
 
 
-def _getSetting(setting: str, fromCache: bool) -> Any:
+def _getSetting(setting: SettingName, fromCache: bool) -> Any:
 	if not initialized:
 		initializeConfig()
 	assert config.conf is not None
@@ -91,43 +97,43 @@ def _getSetting(setting: str, fromCache: bool) -> Any:
 
 
 def getOperatingMode(fromCache: bool = False) -> OperatingMode:
-	return OperatingMode(int(_getSetting(OPERATING_MODE_SETTING_NAME, fromCache)))
+	return OperatingMode(int(_getSetting(SettingName.OPERATING_MODE, fromCache)))
 
 
 def getPersistentRegistration(fromCache: bool = False) -> bool:
-	return _getSetting(PERSISTENT_REGISTRATION_SETTING_NAME, fromCache)
+	return _getSetting(SettingName.PERSISTENT_REGISTRATION, fromCache)
 
 
 def getRemoteDesktopSupport(fromCache: bool = False) -> bool:
-	return _getSetting(REMOTE_DESKTOP_SETTING_NAME, fromCache)
+	return _getSetting(SettingName.REMOTE_DESKTOP, fromCache)
 
 
 def getCitrixSupport(fromCache: bool = False) -> bool:
-	return _getSetting(CITRIX_SETTING_NAME, fromCache)
+	return _getSetting(SettingName.CITRIX, fromCache)
 
 
 def getRecoverRemoteSpeech(fromCache: bool = False) -> bool:
-	return _getSetting(RECOVER_REMOTE_SPEECH_SETTING_NAME, fromCache)
+	return _getSetting(SettingName.RECOVER_REMOTE_SPEECH, fromCache)
 
 
 def getDriverSettingsManagement(fromCache: bool = False) -> bool:
-	return _getSetting(DRIVER_SETTINGS_MANAGEMENT_SETTING_NAME, fromCache)
+	return _getSetting(SettingName.DRIVER_SETTINGS_MANAGEMENT, fromCache)
 
 
 def getConnectionNotifications(fromCache: bool = False) -> ConnectionNotifications:
-	return ConnectionNotifications(int(_getSetting(CONNECTION_NOTIFICATIONS_SETTING_NAME, fromCache)))
+	return ConnectionNotifications(int(_getSetting(SettingName.CONNECTION_NOTIFICATIONS, fromCache)))
 
 
 def getIncomingSpeechPitchChange(fromCache: bool = False) -> int:
-	return int(_getSetting(INCOMING_SPEECH_PITCH_CHANGE_SETTING_NAME, fromCache))
+	return int(_getSetting(SettingName.INCOMING_SPEECH_PITCH_CHANGE, fromCache))
 
 
 def getSynchronizeCapsLock(fromCache: bool = False) -> bool:
-	return _getSetting(SYNCHRONIZE_CAPS_LOCK_SETTING_NAME, fromCache)
+	return _getSetting(SettingName.SYNCHRONIZE_CAPS_LOCK, fromCache)
 
 
 def getFollowSpeechMode(fromCache: bool = False) -> bool:
-	return _getSetting(FOLLOW_SPEECH_MODE_SETTING_NAME, fromCache)
+	return _getSetting(SettingName.FOLLOW_SPEECH_MODE, fromCache)
 
 
 initialized: bool = False
