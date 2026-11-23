@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nvdaaddons\n"
 "Report-Msgid-Bugs-To: 'nvda-translations@groups.io'\n"
-"POT-Creation-Date: 2026-10-19 02:07+0000\n"
-"PO-Revision-Date: 2026-11-08 11:28\n"
+"POT-Creation-Date: 2026-11-23 04:25+0000\n"
+"PO-Revision-Date: 2026-11-23 04:26\n"
 "Last-Translator: \n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
@@ -110,27 +110,33 @@ msgstr "Bağla&ntı değişikliklerini şu şekilde bildir"
 msgid "Incoming speech &pitch change percentage"
 msgstr "Gelen konuşma &perdesindeki değişim yüzdesi"
 
+#. Translators: The label for a combobox in RDAccess settings to let incoming remote speech
+#. follow the speech mode of NVDA on the client.
+#: addon\globalPlugins\rdAccess\settingsPanel.py:140
+msgid "Incoming speech &follows local speech mode"
+msgstr ""
+
 #. Translators: The label for a combobox in RDAccess settings to control RdPIpe log level.
-#: addon\globalPlugins\rdAccess\settingsPanel.py:139
+#: addon\globalPlugins\rdAccess\settingsPanel.py:150
 msgid "&RdPipe log level"
 msgstr "&RdPipe Günlük seviyesi"
 
 #. Translators: The label for a button in RDAccess settings to open the rdPipe Log
-#: addon\globalPlugins\rdAccess\settingsPanel.py:149
+#: addon\globalPlugins\rdAccess\settingsPanel.py:160
 msgid "Open RdPipe Log..."
 msgstr "RdPipe Günlük dosyasını Aç..."
 
 #. Translators: The label for a button in RDAccess settings to open a diagnostics report.
-#: addon\globalPlugins\rdAccess\settingsPanel.py:154
+#: addon\globalPlugins\rdAccess\settingsPanel.py:165
 msgid "Open diagnostics report..."
 msgstr "Tanılama raporunu aç..."
 
-#: addon\globalPlugins\rdAccess\settingsPanel.py:183
+#: addon\globalPlugins\rdAccess\settingsPanel.py:195
 msgid "You need to enable remote destkop accessibility support for at least incoming or outgoing connections."
 msgstr "En azından gelen veya giden bağlantılar için NVDA Uzak Masaüstü Erişilebilirliği'ni etkinleştirmeniz gerekir."
 
 #. Translators: The title of the message box
-#: addon\globalPlugins\rdAccess\settingsPanel.py:187
+#: addon\globalPlugins\rdAccess\settingsPanel.py:199
 msgid "Error"
 msgstr "Hata"
 
@@ -193,6 +199,27 @@ msgstr "Sesler"
 msgctxt "connection notifications"
 msgid "Both Messages and sounds"
 msgstr "Hem mesaj hem de sesler"
+
+#. Translators: A choice in a combo box in RDAccess settings to let incoming speech
+#. follow the local speech mode.
+#: addon\lib\configuration.py:71
+msgctxt "follow speech mode"
+msgid "No"
+msgstr ""
+
+#. Translators: A choice in a combo box in RDAccess settings to let incoming speech
+#. follow the local speech mode.
+#: addon\lib\configuration.py:76
+msgctxt "follow speech mode"
+msgid "Yes, on-demand speaks while remote session has focus"
+msgstr ""
+
+#. Translators: A choice in a combo box in RDAccess settings to let incoming speech
+#. follow the local speech mode.
+#: addon\lib\configuration.py:80
+msgctxt "follow speech mode"
+msgid "Yes, on-demand is silent"
+msgstr ""
 
 #. Translators: Name for a remote braille display.
 #: addon\synthDrivers\remote.py:34

@@ -22,6 +22,11 @@ Bu, uzak bir sistemi yönetmenin, yerel sistemi çalıştırmak kadar kusursuz h
 
 ## Changelog
 
+### Version 2.1
+
+* Speech coming from the remote system now follows the speech mode of NVDA on the client. For example, when speech is off on the client, the remote system no longer speaks. In on-demand mode, remote speech is only spoken while the remote session has focus. With the new client option "Incoming speech follows local speech mode", you can make on-demand mode silent, or restore the previous behavior.
+* Updated translations.
+
 ### Sürüm 2.0.5
 
 * NVDA 2027.1'de bağlantılar kapatıldığında temizlenmemesi sorunu giderildi. Bu durum, diğer şeylerin yanı sıra, uzak sistemde NVDA'dan çıkılırken hataların kaydedilmesine neden oluyordu.
@@ -209,6 +214,28 @@ Pozitif değerler perdeyi yükseltir, negatif değerler ise düşürür.
 Varsayılan 10'dur.
 
 Kaydırma yalnızca yerel sentezleyici perde komutlarını desteklediğinde uygulanır; Perde desteği olmayan sentezleyiciler etkilenmez.
+
+### Incoming Speech Follows Local Speech Mode
+
+This client option controls whether speech coming from the remote system follows the speech mode of NVDA on the client.
+You can choose between:
+
+* No: remote speech is spoken in every speech mode on the client.
+* Yes, on-demand speaks while remote session has focus (default)
+* Yes, on-demand is silent
+
+When remote speech follows the speech mode on the client, the speech modes work as follows:
+
+* Talk: remote speech is spoken.
+* On-demand: depending on the chosen option, remote speech is only spoken while the remote session has focus, or not at all.
+* Beeps: NVDA beeps instead of speaking remote speech.
+* Off: remote speech is not spoken.
+
+Tones and sounds from the remote system play in every speech mode.
+
+The speech mode of NVDA on the server applies as well.
+Remote speech is only spoken when both speech modes allow it.
+For example, when speech is set to on-demand on the server and to talk on the client, the remote system only speaks on demand.
 
 ### Open diagnostics report
 
